@@ -250,10 +250,12 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
           (PHDNLDNFC_HWVER_MRA2_2 == bChipVer) ||
           ((nfcFL.chipType == pn551) &&
            ((PHDNLDNFC_HWVER_PN551_MRA1_0 == bChipVer))) ||
-          (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn557)) &&
+          (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn557)
+            || (nfcFL.chipType == pn7220)) &&
            ((PHDNLDNFC_HWVER_PN553_MRA1_0 == bChipVer) ||
             (PHDNLDNFC_HWVER_PN553_MRA1_0_UPDATED & bChipVer) ||
-            ((PHDNLDNFC_HWVER_PN557_MRA1_0 == bChipVer)))) ||
+            ((PHDNLDNFC_HWVER_PN557_MRA1_0 == bChipVer)) ||
+             (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer))) ||
           ((nfcFL.chipType == sn100u) &&
            (PHDNLDNFC_HWVER_VENUS_MRA1_0 & bChipVer)) ||
           ((nfcFL.chipType == sn220u) &&
