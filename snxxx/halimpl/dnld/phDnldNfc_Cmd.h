@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014 NXP Semiconductors
+ * Copyright 2010-2014,2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,20 @@
 /*
  * Enum definition contains Firmware Download Command Ids
  */
+#if (NXP_EXTNS == TRUE)
 typedef enum phDnldNfc_CmdId {
+  PH_DL_CMD_NONE = 0x00,           /* Invalid Cmd */
+  PH_DL_CMD_RESET = 0xE5,          /* Reset */
+  PH_DL_CMD_GETVERSION = 0xE1,     /* Get Version */
+  PH_DL_CMD_CHECKINTEGRITY = 0xE7, /* Check Integrity */
+  PH_DL_CMD_WRITE = 0x8C,          /* Write */
+  PH_DL_CMD_READ = 0xA2,           /* Read */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid the compilation issue */
+  PH_DL_CMD_LOG = 0xA7,            /* Log */  /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid the compilation issue */
+  PH_DL_CMD_FORCE = 0xD0,          /* Force *//* TODO: Cuurently,this cmd is not support by FW, keep it to avoid the compilation issue */
+  PH_DL_CMD_GETSESSIONSTATE = 0xDB /* Get Session State */
+} phDnldNfc_CmdId_t;
+#else
+ typedef enum phDnldNfc_CmdId {
   PH_DL_CMD_NONE = 0x00,           /* Invalid Cmd */
   PH_DL_CMD_RESET = 0xF0,          /* Reset */
   PH_DL_CMD_GETVERSION = 0xF1,     /* Get Version */
@@ -37,5 +50,6 @@ typedef enum phDnldNfc_CmdId {
   PH_DL_CMD_FORCE = 0xD0,          /* Force */
   PH_DL_CMD_GETSESSIONSTATE = 0xF2 /* Get Session State */
 } phDnldNfc_CmdId_t;
+#endif
 
 #endif /* PHDNLDNFC_CMD_H */

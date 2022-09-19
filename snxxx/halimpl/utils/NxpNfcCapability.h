@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2015-2018,2020-2021 NXP
+ *  Copyright 2015-2018,2020-2022 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,9 +30,15 @@ class capability {
   const uint16_t offsetFwMajorVersion_pn557 = 11;
   /*product[] will be used to print product version and
   should be kept in accordance with tNFC_chipType*/
+  #if (NXP_EXTNS == TRUE)
+  const char* product[14] = {"UNKNOWN", "PN547C2", "PN65T", "PN548C2", "PN66T",
+                             "PN551",   "PN67T",   "PN553", "PN80T",   "PN557",
+                             "PN81T",   "sn100u",  "sn220u", "pn7220"};
+  #else
   const char* product[13] = {"UNKNOWN", "PN547C2", "PN65T", "PN548C2", "PN66T",
                              "PN551",   "PN67T",   "PN553", "PN80T",   "PN557",
                              "PN81T",   "sn100u",  "sn220u"};
+  #endif
   capability();
 
  public:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 NXP
+ * Copyright 2012-2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,13 +139,14 @@ static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void* pContext,
 static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void* pContext,
                                                      NFCSTATUS status,
                                                      void* pInfo);
-
+#if (NXP_EXTNS != TRUE)
+/* Note: FW dnld log is not supported by PN7220 FW */
 static void phNxpNciHal_fw_dnld_log_read_cb(void* pContext, NFCSTATUS status,
                                             void* pInfo);
 
 static NFCSTATUS phNxpNciHal_fw_dnld_log_read(void* pContext, NFCSTATUS status,
                                               void* pInfo);
-
+#endif
 static void phNxpNciHal_fw_dnld_write_cb(void* pContext, NFCSTATUS status,
                                          void* pInfo);
 
@@ -158,12 +159,14 @@ static void phNxpNciHal_fw_dnld_chk_integrity_cb(void* pContext,
 static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void* pContext,
                                                    NFCSTATUS status,
                                                    void* pInfo);
-
+/* Note: FW dnld log is not supported by PN7220 FW */
+#if (NXP_EXTNS != TRUE)
 static void phNxpNciHal_fw_dnld_log_cb(void* pContext, NFCSTATUS status,
                                        void* pInfo);
 
 static NFCSTATUS phNxpNciHal_fw_dnld_log(void* pContext, NFCSTATUS status,
                                          void* pInfo);
+#endif
 
 static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void* pContext, NFCSTATUS status,
                                                void* pInfo);
@@ -185,6 +188,10 @@ static NFCSTATUS phLibNfc_VerifyCrcStatus(uint8_t bCrcStatus);
  * response*/
 static NFCSTATUS phLibNfc_VerifySNxxxU_CrcStatus(uint8_t* bCrcStatus);
 
+/* Internal function to verify pallas Crc info  received during CheckIntegrity
+ * response*/
+static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus);
+
 static void phNxpNciHal_fw_dnld_recover_cb(void* pContext, NFCSTATUS status,
                                            void* pInfo);
 
@@ -194,6 +201,19 @@ static NFCSTATUS phNxpNciHal_fw_seq_handler(
 static NFCSTATUS phNxpNciHal_releasePendingRead();
 
 /* Array of pointers to start fw download seq */
+/* Note: FW dnld sequence for PN7220 FW */
+#if (NXP_EXTNS == TRUE)
+static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void* pContext,
+                                                   NFCSTATUS status,
+                                                   void* pInfo) = {
+    phNxpNciHal_fw_dnld_get_sessn_state,
+    phNxpNciHal_fw_dnld_get_version,
+    phNxpNciHal_fw_dnld_write,
+    phNxpNciHal_fw_dnld_get_sessn_state,
+    phNxpNciHal_fw_dnld_get_version,
+    phNxpNciHal_fw_dnld_chk_integrity,
+    NULL};
+#else
 static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void* pContext,
                                                    NFCSTATUS status,
                                                    void* pInfo) = {
@@ -206,7 +226,7 @@ static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void* pContext,
     phNxpNciHal_fw_dnld_log,
     phNxpNciHal_fw_dnld_chk_integrity,
     NULL};
-
+#endif
 static NFCSTATUS (*phNxpNciHal_minimal_dwnld_seqhandler[])(void* pContext,
                                                            NFCSTATUS status,
                                                            void* pInfo) = {
@@ -234,11 +254,13 @@ static NFCSTATUS (*phNxpNciHal_dwnld_rec_seqhandler[])(void* pContext,
     phNxpNciHal_fw_dnld_recover, phNxpNciHal_fw_dnld_send_ncicmd, NULL};
 
 /* Download Log Sequence */
+#if (NXP_EXTNS != TRUE)
+/* Note: FW dnld log is not supported by PN7220 FW */
 static NFCSTATUS (*phNxpNciHal_dwnld_log_seqhandler[])(void* pContext,
                                                        NFCSTATUS status,
                                                        void* pInfo) = {
     phNxpNciHal_fw_dnld_log, NULL};
-
+#endif
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_fw_dnld_reset_cb
@@ -563,8 +585,15 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
            (PHDNLDNFC_HWVER_MRA2_2 == bHwVer) ||
            ((nfcFL.chipType == pn551) &&
             ((PHDNLDNFC_HWVER_PN551_MRA1_0 == bHwVer))) ||
-           (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn557) || (nfcFL.chipType == pn7220)) &&
-            ((PHDNLDNFC_HWVER_PN553_MRA1_0 == bHwVer || ( PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer ) ||
+           (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn557)
+#if (NXP_EXTNS == TRUE)
+            || (nfcFL.chipType == pn7220)
+#endif
+            ) &&
+            ((PHDNLDNFC_HWVER_PN553_MRA1_0 == bHwVer ||
+#if (NXP_EXTNS == TRUE)
+              ( PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer ) ||
+#endif
               (PHDNLDNFC_HWVER_PN553_MRA1_0_UPDATED & pRespBuff->pBuff[0])))) ||
            ((nfcFL.chipType == sn100u) &&
             (PHDNLDNFC_HWVER_VENUS_MRA1_0 & pRespBuff->pBuff[0])) ||
@@ -876,6 +905,9 @@ clean_and_return:
   return wStatus;
 }
 
+/* Note: FW dnld log is not supported by PN7220 FW */
+
+#if (NXP_EXTNS != TRUE)
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_fw_dnld_log_read_cb
@@ -968,6 +1000,7 @@ clean_and_return:
   return wStatus;
 }
 
+#endif
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_fw_dnld_write_cb
@@ -1117,9 +1150,13 @@ static void phNxpNciHal_fw_dnld_chk_integrity_cb(void* pContext,
     NXPLOG_FWDNLD_D(
         "phNxpNciHal_fw_dnld_chk_integrity_cb - Request Successful");
     pRespBuff = (pphDnldNfc_Buff_t)pInfo;
-    if ((nfcFL.chipType >= sn100u) && (NULL != (pRespBuff->pBuff))) {
+    if ((nfcFL.chipType >= pn7220) && (NULL != (pRespBuff->pBuff))) {
       NXPLOG_FWDNLD_D(
-          "phNxpNciHal_fw_dnld_chk_integrity_cb - Valid Resp Buff!!...\n");
+          "pn72xx phNxpNciHal_fw_dnld_chk_integrity_cb - Valid Resp Buff!!...\n");
+     wStatus = phLibNfc_VerifyPN72xx_CrcStatus(&pRespBuff->pBuff[0]);
+    } else if ((nfcFL.chipType >= sn100u) && (NULL != (pRespBuff->pBuff))) {
+      NXPLOG_FWDNLD_D(
+          "snxxx phNxpNciHal_fw_dnld_chk_integrity_cb - Valid Resp Buff!!...\n");
       wStatus = phLibNfc_VerifySNxxxU_CrcStatus(&pRespBuff->pBuff[0]);
     } else if ((PHLIBNFC_DNLD_CHECKINTEGRITYLEN == (pRespBuff->wLen)) &&
                (NULL != (pRespBuff->pBuff))) {
@@ -1442,7 +1479,8 @@ static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void* pContext,
 
   return wStatus;
 }
-
+#if (NXP_EXTNS != TRUE)
+/* Note: FW dnld log is not supported by FW */
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_fw_dnld_log_cb
@@ -1537,7 +1575,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_log(void* pContext, NFCSTATUS status,
     return wStatus;
   }
 }
-
+#endif
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_fw_seq_handler
@@ -1644,11 +1682,15 @@ static NFCSTATUS phNxpNciHal_fw_dnld_complete(void* pContext, NFCSTATUS status,
   if ((gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) == true) {
     (gphNxpNciHal_fw_IoctlCtx.bLastStatus) = status;
     (gphNxpNciHal_fw_IoctlCtx.bDnldAttemptFailed) = true;
-
+#if (NXP_EXTNS != TRUE)
     NXPLOG_FWDNLD_E("Invoking Pending Download Log Sequence..");
+#endif
     (gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) = false;
     /* Perform the Logging sequence */
+#if (NXP_EXTNS != TRUE)
+    /* Note: FW dnld log is not supported by FW */
     wStatus = phNxpNciHal_fw_seq_handler(phNxpNciHal_dwnld_log_seqhandler);
+#endif
     if (NFCSTATUS_SUCCESS != gphNxpNciHal_fw_IoctlCtx.bLastStatus) {
       /* update the previous Download Write status to upper layer and not the
        * status of Log command */
@@ -1928,6 +1970,43 @@ static NFCSTATUS phLibNfc_VerifySNxxxU_CrcStatus(uint8_t* bCrcStatus) {
   NXPLOG_FWDNLD_E("crc status code area len 0x%x", chkIntgRspBuf.code_len);
   NXPLOG_FWDNLD_E("crc status code data_len 0x%x", chkIntgRspBuf.data_len);
   NXPLOG_FWDNLD_E("crc status code area  0x%2x", chkIntgRspBuf.crc_status);
+
+  if ((chkIntgRspBuf.crc_status & acceptable_crc_values) !=
+      acceptable_crc_values) {
+    return NFCSTATUS_FAILED;
+  }
+
+  return wStatus;
+}
+
+static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
+  uint8_t CODEINFO_LEN = 0x06;
+  uint8_t DATAINFO_LEN = 0x11;
+  uint8_t* crc_info_buf;
+  /*acceptable CRC values defined in little indian format
+   * Actual CRC values are 3F80FFFF
+  */
+
+  uint32_t acceptable_crc_values = 0xFFFF803F;
+
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+  phDnldChkIntegrityRsp_Buff_t chkIntgRspBuf;
+
+  if (bCrcStatus == NULL) return NFCSTATUS_FAILED;
+  chkIntgRspBuf.pBuff = bCrcStatus;
+  chkIntgRspBuf.data_len = chkIntgRspBuf.pBuff[0];
+  chkIntgRspBuf.code_len = chkIntgRspBuf.pBuff[1];
+  if (chkIntgRspBuf.data_len > DATAINFO_LEN ||
+      chkIntgRspBuf.code_len > CODEINFO_LEN)
+    return NFCSTATUS_FAILED;
+
+  /*Skip byte*/
+  crc_info_buf = bCrcStatus + 3;
+  STREAM_TO_UINT32(chkIntgRspBuf.crc_status, crc_info_buf);
+
+  NXPLOG_FWDNLD_D("crc status code area len 0x%x", chkIntgRspBuf.code_len);
+  NXPLOG_FWDNLD_D("crc status code data_len 0x%x", chkIntgRspBuf.data_len);
+  NXPLOG_FWDNLD_D("crc status code area  0x%2x", chkIntgRspBuf.crc_status);
 
   if ((chkIntgRspBuf.crc_status & acceptable_crc_values) !=
       acceptable_crc_values) {

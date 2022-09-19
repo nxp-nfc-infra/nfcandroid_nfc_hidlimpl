@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2021 NXP
+ *  Copyright 2010-2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,12 +251,17 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
           ((nfcFL.chipType == pn551) &&
            ((PHDNLDNFC_HWVER_PN551_MRA1_0 == bChipVer))) ||
           (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn557)
-            || (nfcFL.chipType == pn7220)) &&
+#if (NXP_EXTNS == TRUE)
+            || (nfcFL.chipType == pn7220)
+#endif
+            ) &&
            ((PHDNLDNFC_HWVER_PN553_MRA1_0 == bChipVer) ||
             (PHDNLDNFC_HWVER_PN553_MRA1_0_UPDATED & bChipVer) ||
-            ((PHDNLDNFC_HWVER_PN557_MRA1_0 == bChipVer)) ||
-             (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer))) ||
-          ((nfcFL.chipType == sn100u) &&
+            ((PHDNLDNFC_HWVER_PN557_MRA1_0 == bChipVer))
+#if (NXP_EXTNS == TRUE)
+            || (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer)
+#endif
+             )) || ((nfcFL.chipType == sn100u) &&
            (PHDNLDNFC_HWVER_VENUS_MRA1_0 & bChipVer)) ||
           ((nfcFL.chipType == sn220u) &&
            (PHDNLDNFC_HWVER_VULCAN_MRA1_0 & bChipVer))) {

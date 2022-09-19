@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2021 NXP
+ * Copyright 2010-2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -972,6 +972,9 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
             gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
                                       MODE_POWER_ON);
             usleep(100 * 1000);
+          } else if (nfcFL.chipType >= pn7220){
+            gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
+                                      MODE_POWER_RESET);
           } else {
             gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
                                       MODE_FW_GPIO_LOW);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 NXP
+ * Copyright 2012-2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1535,7 +1535,7 @@ void phNxpNciHal_prop_conf_rssi() {
 
   return;
 }
-
+#if (NXP_EXTNS != TRUE)
 /******************************************************************************
  * Function         phNxpNciHal_conf_nfc_forum_mode
  *
@@ -1579,7 +1579,7 @@ void phNxpNciHal_conf_nfc_forum_mode() {
   NXPLOG_NCIHAL_E("%s: failed!!", __func__);
   return;
 }
-
+#endif
 /******************************************************************************
  * Function         RemoveNfcDepIntfFromInitResp
  *

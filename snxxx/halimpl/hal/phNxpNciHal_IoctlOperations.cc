@@ -699,7 +699,7 @@ int phNxpNciHal_CheckFwRegFlashRequired(uint8_t* fw_update_req,
     if (!GetNxpNumValue(NAME_NXP_FLASH_CONFIG, &option,
                         sizeof(unsigned long))) {
       NXPLOG_NCIHAL_D("Flash option not found; giving default value");
-      option = 1;
+      option = FLASH_DIFFERENT_VERSION;
     }
     switch (option) {
       case FLASH_UPPER_VERSION:
