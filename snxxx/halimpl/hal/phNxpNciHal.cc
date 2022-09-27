@@ -3581,7 +3581,7 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
     int ret = 0;
 #if (NXP_EXTNS != TRUE)
     phNxpNciHal_conf_nfc_forum_mode();
-#endif
+
     if (nfcFL.chipType >= sn100u) {
       ret = GetNxpNumValue(NAME_NXP_RDR_DISABLE_ENABLE_LPCD, &num, sizeof(num));
       if (!ret || num == 1 || num == 2) {
@@ -3590,6 +3590,8 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
         phNxpNciHal_prop_conf_lpcd(false);
       }
     }
+
+#endif
   }
   return status;
 }
