@@ -139,6 +139,17 @@ static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void* pContext,
 static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void* pContext,
                                                      NFCSTATUS status,
                                                      void* pInfo);
+
+#if (NXP_EXTNS == TRUE)
+static void phNxpNciHal_fw_dnld_get_die_id_cb(void* pContext,
+                                                   NFCSTATUS status,
+                                                   void* pInfo);
+
+static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void* pContext,
+                                                     NFCSTATUS status,
+                                                     void* pInfo);
+#endif
+
 #if (NXP_EXTNS != TRUE)
 /* Note: FW dnld log is not supported by PN7220 FW */
 static void phNxpNciHal_fw_dnld_log_read_cb(void* pContext, NFCSTATUS status,
@@ -212,6 +223,7 @@ static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void* pContext,
     phNxpNciHal_fw_dnld_get_sessn_state,
     phNxpNciHal_fw_dnld_get_version,
     phNxpNciHal_fw_dnld_chk_integrity,
+    phNxpNciHal_fw_dnld_get_die_id,
     NULL};
 #else
 static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void* pContext,
@@ -905,6 +917,88 @@ clean_and_return:
   return wStatus;
 }
 
+#if (NXP_EXTNS == TRUE)
+/*******************************************************************************
+**
+** Function         phNxpNciHal_fw_dnld_get_die_id_cb
+**
+** Description      Download Get Die ID callback
+**
+** Returns          None
+**
+*******************************************************************************/
+static void phNxpNciHal_fw_dnld_get_die_id_cb(void* pContext,
+                                                   NFCSTATUS status,
+                                                   void* pInfo) {
+  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+  p_cb_data->status = status;
+  UNUSED_PROP(pInfo);
+  SEM_POST(p_cb_data);
+
+  return;
+}
+
+/*******************************************************************************
+**
+** Function         phNxpNciHal_fw_dnld_get_die_id
+**
+** Description      Download Get Die ID
+**
+** Returns          NFCSTATUS_SUCCESS if success
+**
+*******************************************************************************/
+static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void* pContext,
+                                                     NFCSTATUS status,
+                                                     void* pInfo) {
+  phDnldNfc_Buff_t tDnldBuff;
+  static uint8_t bgetDieId[3];
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+  phNxpNciHal_Sem_t cb_data;
+  UNUSED_PROP(pContext);
+  UNUSED_PROP(status);
+  UNUSED_PROP(pInfo);
+  if (gphNxpNciHal_fw_IoctlCtx.bSkipSeq == true) {
+    return NFCSTATUS_SUCCESS;
+  }
+
+  if (phNxpNciHal_init_cb_data(&cb_data, NULL) != NFCSTATUS_SUCCESS) {
+    NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_get_die_id cb_data creation failed");
+    return NFCSTATUS_FAILED;
+  }
+
+  tDnldBuff.pBuff = bgetDieId;
+  tDnldBuff.wLen = sizeof(bgetDieId);
+
+  wStatus = phDnldNfc_GetDieId(
+      &tDnldBuff, &phNxpNciHal_fw_dnld_get_die_id_cb, (void*)&cb_data);
+  if (wStatus != NFCSTATUS_PENDING) {
+    NXPLOG_FWDNLD_E("phDnldNfc_GetDieId failed");
+    wStatus = NFCSTATUS_FAILED;
+    goto clean_and_return;
+  }
+
+  /* Wait for callback response */
+  if (SEM_WAIT(cb_data)) {
+    NXPLOG_FWDNLD_E("phDnldNfc_GetDieId semaphore error");
+    wStatus = NFCSTATUS_FAILED;
+    goto clean_and_return;
+  }
+
+  if (cb_data.status != NFCSTATUS_SUCCESS) {
+    NXPLOG_FWDNLD_E("phDnldNfc_GetDieId cb failed");
+    wStatus = NFCSTATUS_FAILED;
+    goto clean_and_return;
+  }
+
+  wStatus = NFCSTATUS_SUCCESS;
+
+clean_and_return:
+  phNxpNciHal_cleanup_cb_data(&cb_data);
+
+  return wStatus;
+}
+
+#endif
 /* Note: FW dnld log is not supported by PN7220 FW */
 
 #if (NXP_EXTNS != TRUE)

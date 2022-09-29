@@ -124,6 +124,11 @@ extern NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer,
 extern NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
                                            pphDnldNfc_RspCb_t pNotify,
                                            void* pContext);
+#if (NXP_EXTNS == TRUE)
+extern NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pSession,
+                                    pphDnldNfc_RspCb_t pNotify,
+                                    void* pContext);
+#endif
 extern NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs,
                                  pphDnldNfc_RspCb_t pNotify, void* pContext);
 extern NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,

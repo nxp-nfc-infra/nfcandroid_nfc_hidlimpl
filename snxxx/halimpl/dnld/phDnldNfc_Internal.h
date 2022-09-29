@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 NXP
+ * Copyright 2010-2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,9 @@ typedef enum phDnldNfc_Event {
   phDnldNfc_EventRead,           /* Read event*/
   phDnldNfc_EventIntegChk,       /* Integrity Check event*/
   phDnldNfc_EventGetSesnSt,      /* Get Session State event*/
+#if (NXP_EXTNS == TRUE)
+  phDnldNfc_EventGetDieId,      /* Get Die ID event*/
+#endif
   phDnldNfc_EventLog,            /* Log event*/
   phDnldNfc_EventForce,          /* Force event*/
   phDnldNfc_EventRaw, /* Raw Req/Rsp event,used currently for sending NCI RESET

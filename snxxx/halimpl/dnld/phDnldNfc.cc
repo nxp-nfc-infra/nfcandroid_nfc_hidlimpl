@@ -209,6 +209,68 @@ NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
   return wStatus;
 }
 
+#if (NXP_EXTNS == TRUE)
+/*******************************************************************************
+**
+** Function         phDnldNfc_GetDieId
+**
+** Description      Retrieves the Die ID of NFCC
+**
+** Parameters       pGetDieId - response buffer which gets updated with complete
+**                             version info from NFCC
+**                  pNotify - notify caller after getting response
+**                  pContext - caller context
+**
+** Returns          NFC status:
+**                  NFCSTATUS_SUCCESS - Get Die ID request to NFCC is
+**                                      successful
+**                  NFCSTATUS_FAILED - Get Die ID request failed due to
+**                                     internal error
+**                  NFCSTATUS_NOT_ALLOWED - command not allowed
+**                  Other command specific errors
+**
+*******************************************************************************/
+NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pGetDieId,
+                                    pphDnldNfc_RspCb_t pNotify,
+                                    void* pContext) {
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+
+  if ((NULL == pGetDieId) || (NULL == pNotify) || (NULL == pContext)) {
+    NXPLOG_FWDNLD_E("Invalid Input Parameters!!");
+    wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+  } else {
+    if (phDnldNfc_TransitionIdle != gpphDnldContext->tDnldInProgress) {
+      NXPLOG_FWDNLD_E("Dnld Cmd Request in Progress..Cannot Continue!!");
+      wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_BUSY);
+    } else {
+      if ((NULL != pGetDieId->pBuff) && (0 != pGetDieId->wLen)) {
+        (gpphDnldContext->tRspBuffInfo.pBuff) = pGetDieId->pBuff;
+        (gpphDnldContext->tRspBuffInfo.wLen) = pGetDieId->wLen;
+        (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
+        (gpphDnldContext->tCmdId) = PH_DL_CMD_GETDIE_ID;
+        (gpphDnldContext->tUserData.pBuff) = NULL;
+        (gpphDnldContext->tUserData.wLen) = 0;
+        (gpphDnldContext->UserCb) = pNotify;
+        (gpphDnldContext->UserCtxt) = pContext;
+
+        wStatus =
+            phDnldNfc_CmdHandler(gpphDnldContext, phDnldNfc_EventGetDieId);
+
+        if (NFCSTATUS_PENDING == wStatus) {
+          NXPLOG_FWDNLD_D("phDnldNfc_GetDieId Request submitted successfully");
+        } else {
+          NXPLOG_FWDNLD_E("phDnldNfc_GetDieId Request Failed!!");
+        }
+      } else {
+        NXPLOG_FWDNLD_E("Invalid Buff Parameters!!");
+        wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+      }
+    }
+  }
+
+  return wStatus;
+}
+#endif
 /*******************************************************************************
 **
 ** Function         phDnldNfc_CheckIntegrity

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 NXP
+ * Copyright 2010-2022 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,9 @@ NFCSTATUS phDnldNfc_CmdHandler(void* pContext, phDnldNfc_Event_t TrigEvent) {
     status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
   } else {
     switch (TrigEvent) {
+#if (NXP_EXTNS == TRUE)
+      case phDnldNfc_EventGetDieId:
+#endif
       case phDnldNfc_EventReset:
       case phDnldNfc_EventGetVer:
       case phDnldNfc_EventIntegChk:
