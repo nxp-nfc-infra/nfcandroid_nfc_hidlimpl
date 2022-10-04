@@ -2247,15 +2247,17 @@ int phNxpNciHal_close(bool bShutdown) {
   }
   if (!bShutdown) {
     if (nfcFL.chipType >= sn100u) {
-      status = phNxpNciHal_send_ext_cmd(sizeof(cmd_ce_in_phone_off),
-                                        cmd_ce_in_phone_off);
-      if (status != NFCSTATUS_SUCCESS) {
-        NXPLOG_NCIHAL_E("CMD_CE_IN_PHONE_OFF: Failed");
-      }
-      config_ext.autonomous_mode = 0x00;
-      status = phNxpNciHal_setAutonomousMode();
-      if (status != NFCSTATUS_SUCCESS) {
-        NXPLOG_NCIHAL_E("Autonomous mode Disable: Failed");
+      if (nfcFL.chipType != pn7220){
+          status = phNxpNciHal_send_ext_cmd(sizeof(cmd_ce_in_phone_off),
+                                            cmd_ce_in_phone_off);
+          if (status != NFCSTATUS_SUCCESS) {
+            NXPLOG_NCIHAL_E("CMD_CE_IN_PHONE_OFF: Failed");
+          }
+          config_ext.autonomous_mode = 0x00;
+          status = phNxpNciHal_setAutonomousMode();
+          if (status != NFCSTATUS_SUCCESS) {
+            NXPLOG_NCIHAL_E("Autonomous mode Disable: Failed");
+          }
       }
     } else {
       status = phNxpNciHal_send_ext_cmd(sizeof(cmd_ce_in_phone_off_pn557),
@@ -2317,7 +2319,7 @@ int phNxpNciHal_close(bool bShutdown) {
   }
 #endif
 close_and_return:
-  if ((nfcFL.chipType < sn220u) || bShutdown) {
+  if ((nfcFL.chipType < sn220u) || (nfcFL.chipType == pn7220) || bShutdown) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_CLOSE;
   }
   do { /*This is NXP_EXTNS code for retry*/
@@ -2337,7 +2339,7 @@ close_and_return:
     }
   } while (retry < 3);
 
-  if ((nfcFL.chipType >= sn220u) && !bShutdown) {
+  if ((nfcFL.chipType >= sn220u) && (nfcFL.chipType != pn7220) && !bShutdown) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_CLOSE;
     status = phNxpNciHal_send_ext_cmd(sizeof(cmd_system_set_service_status),
                                       cmd_system_set_service_status);
