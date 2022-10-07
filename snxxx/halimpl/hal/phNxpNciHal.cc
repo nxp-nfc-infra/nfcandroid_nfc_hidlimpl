@@ -814,21 +814,23 @@ int phNxpNciHal_MinOpen() {
     }
 
     if (!wFwUpdateReq) {
-      uint8_t is_teared_down = 0x00;
 #if (NXP_EXTNS != TRUE)
+      uint8_t is_teared_down = 0x00;
       status = phNxpNciHal_read_fw_dw_status(is_teared_down);
       if (status != NFCSTATUS_SUCCESS) {
         NXPLOG_NCIHAL_E("%s: NXP get FW DW Flag failed", __FUNCTION__);
       }
-#endif
       if (is_teared_down) {
         seq_handler_offset = PHLIBNFC_DNLD_CHECKINTEGRITY_OFFSET;
         fw_update_req = TRUE;
       } else {
+#endif
         NXPLOG_NCIHAL_D("FW update not required");
         property_set("nfc.fw.downloadmode_force", "0");
         phDnldNfc_ReSetHwDevHandle();
+#if (NXP_EXTNS != TRUE)
       }
+#endif
     }
   } else {
     phNxpNciHal_getChipInfoInFwDnldMode(true);
@@ -1105,12 +1107,7 @@ int phNxpNciHal_write_internal(uint16_t data_len, const uint8_t* p_data) {
   data_len = phNxpNciHal_write_unlocked(nxpncihal_ctrl.cmd_len,
                                         nxpncihal_ctrl.p_cmd_data, ORIG_LIBNFC);
   CONCURRENCY_UNLOCK();
-#if (NXP_EXTNS == TRUE)
-  if (nfcFL.chipType < sn100u && ((nfcFL.chipType != pn557) || (nfcFL.chipType != pn7220)) &&
-#else
-  if (nfcFL.chipType < sn100u && nfcFL.chipType != pn557 &&
-#endif
-      icode_send_eof == 1) {
+  if (nfcFL.chipType < sn100u && nfcFL.chipType != pn557 && icode_send_eof == 1) {
     usleep(10000);
     icode_send_eof = 2;
     status = phNxpNciHal_send_ext_cmd(3, cmd_icode_eof);
