@@ -3260,7 +3260,11 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
   NFCSTATUS status = NFCSTATUS_FAILED;
   uint8_t session_state = -1;
   unsigned long minimal_fw_version = DEFAULT_MINIMAL_FW_VERSION;
+#if (NXP_EXTNS == TRUE)
+  status = phNxpNciHal_getChipInfoInFwDnldMode(true);
+#else
   status = phNxpNciHal_getChipInfoInFwDnldMode();
+#endif
   if (status != NFCSTATUS_SUCCESS) {
     NXPLOG_NCIHAL_E("Get Chip Info Failed");
     usleep(150 * 1000);
@@ -3327,7 +3331,11 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
   NFCSTATUS status = NFCSTATUS_FAILED;
   int retry_cnt = 0;
   if (bIsVenResetReqd) {
+#if (NXP_EXTNS == TRUE)
+    status = phTmlNfc_IoCtl(phTmlNfc_e_EnableVen);
+#else
     status = phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadModeWithVenRst);
+#endif
     if (status != NFCSTATUS_SUCCESS) {
       NXPLOG_NCIHAL_E("Enable Download mode failed");
       return status;

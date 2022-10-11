@@ -933,7 +933,11 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
         break;
       }
       case phTmlNfc_e_EnableVen: {
+#if (NXP_EXTNS == TRUE)
+        if (nfcFL.chipType < sn100u || nfcFL.chipType == pn7220) {
+#else
         if (nfcFL.chipType < sn100u) {
+#endif
           gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
                                     MODE_POWER_ON);
           usleep(100 * 1000);
