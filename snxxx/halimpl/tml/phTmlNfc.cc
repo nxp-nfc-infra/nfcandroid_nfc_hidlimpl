@@ -1030,6 +1030,20 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
         }
         break;
       }
+#if (NXP_EXTNS == TRUE)
+      case phTmlNfc_e_RedLedOff: {
+        if (nfcFL.chipType == pn7220) {
+          gpTransportObj->SetLED(gpphTmlNfc_Context->pDevHandle, RED_LED_OFF);
+        }
+      break;
+      }
+      case phTmlNfc_e_RedLedOn: {
+        if (nfcFL.chipType == pn7220) {
+          gpTransportObj->SetLED(gpphTmlNfc_Context->pDevHandle, RED_LED_ON);
+        }
+      break;
+      }
+#endif
       default: {
         wStatus = NFCSTATUS_INVALID_PARAMETER;
         break;

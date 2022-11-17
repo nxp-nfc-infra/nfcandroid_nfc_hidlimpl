@@ -2062,6 +2062,18 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
     updateNxpRfConfigTimestamp();
   }
 #endif
+
+#if (NXP_EXTNS == TRUE)
+    if (nfcFL.chipType == pn7220) {
+      status = phTmlNfc_IoCtl(phTmlNfc_e_RedLedOn);
+      if (NFCSTATUS_SUCCESS == status) {
+        NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn - SUCCESS\n");
+      } else {
+        NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn - FAILED\n");
+      }
+    }
+#endif
+
   return NFCSTATUS_SUCCESS;
 }
 #if (NXP_EXTNS != TRUE)
@@ -2344,6 +2356,17 @@ close_and_return:
       NXPLOG_NCIHAL_E("NCI SYSTEM SET SERVICE STATUS to OFF Failed");
     }
   }
+
+#if (NXP_EXTNS == TRUE)
+    if (nfcFL.chipType == pn7220) {
+      status = phTmlNfc_IoCtl(phTmlNfc_e_RedLedOff);
+      if (NFCSTATUS_SUCCESS == status) {
+        NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn - SUCCESS\n");
+      } else {
+        NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn- FAILED\n");
+      }
+    }
+#endif
 
   sem_destroy(&nxpncihal_ctrl.syncSpiNfc);
 
