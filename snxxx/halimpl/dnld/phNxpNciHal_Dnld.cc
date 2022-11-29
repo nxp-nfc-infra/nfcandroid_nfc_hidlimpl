@@ -2081,7 +2081,8 @@ static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
    * Actual CRC values are 3F80FFFF
   */
 
-  uint32_t acceptable_crc_values = 0xFFFF803F;
+ uint32_t acceptable_crc_values_devsample  = 0xFFFF803F;
+ uint32_t acceptable_crc_values_goldsample = 0xFFBF803F;
 
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phDnldChkIntegrityRsp_Buff_t chkIntgRspBuf;
@@ -2099,11 +2100,12 @@ static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
   STREAM_TO_UINT32(chkIntgRspBuf.crc_status, crc_info_buf);
 
   NXPLOG_FWDNLD_D("crc status code area len 0x%x", chkIntgRspBuf.code_len);
-  NXPLOG_FWDNLD_D("crc status code data_len 0x%x", chkIntgRspBuf.data_len);
+  NXPLOG_FWDNLD_D("crc status code data len 0x%x", chkIntgRspBuf.data_len);
   NXPLOG_FWDNLD_D("crc status code area  0x%2x", chkIntgRspBuf.crc_status);
 
-  if ((chkIntgRspBuf.crc_status & acceptable_crc_values) !=
-      acceptable_crc_values) {
+ if (((chkIntgRspBuf.crc_status & acceptable_crc_values_devsample) != acceptable_crc_values_devsample) &&
+      ((chkIntgRspBuf.crc_status & acceptable_crc_values_goldsample) != acceptable_crc_values_goldsample)) {
+    NXPLOG_FWDNLD_D("Error : Integrity CRC check failed");
     return NFCSTATUS_FAILED;
   }
 
