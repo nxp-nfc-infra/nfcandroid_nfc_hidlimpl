@@ -24,7 +24,9 @@
 #include <phDnldNfc_Cmd.h>
 #include <phDnldNfc_Status.h>
 
-#define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX (0x200U)
+/*The fragment length must be increased to send a complete FW package in
+  one command since firmware doesn't support chunk packages.*/
+#define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX (0x22AU)
 #define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN557 (0x100U)
 
 /* DL Host Short Frame Buffer Size for pipelined WRITE RSP */
