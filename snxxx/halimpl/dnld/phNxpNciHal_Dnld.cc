@@ -37,6 +37,10 @@
 #define PHLIBNFC_IOCTL_DNLD_SN220U_GETVERLEN (0x0FU)
 #define PHLIBNFC_DNLD_CHECKINTEGRITYLEN (0x1FU)
 #define MAX_GET_VER_RESP_LEN (0x0FU)
+
+ /* Mask MSB Byte to ignore MSB Value */
+ #define  MASK_MSB_BYTE 0xFFFF0000
+
 /* External global variable to get FW version */
 extern uint16_t wFwVer;
 extern uint16_t wMwVer;
@@ -2080,9 +2084,7 @@ static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
   /*acceptable CRC values defined in little indian format
    * Actual CRC values are 3F80FFFF
   */
-
  uint32_t acceptable_crc_values_devsample  = 0xFFFF803F;
- uint32_t acceptable_crc_values_goldsample = 0xFFBF803F;
 
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phDnldChkIntegrityRsp_Buff_t chkIntgRspBuf;
@@ -2103,8 +2105,7 @@ static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
   NXPLOG_FWDNLD_D("crc status code data len 0x%x", chkIntgRspBuf.data_len);
   NXPLOG_FWDNLD_D("crc status code area  0x%2x", chkIntgRspBuf.crc_status);
 
- if (((chkIntgRspBuf.crc_status & acceptable_crc_values_devsample) != acceptable_crc_values_devsample) &&
-      ((chkIntgRspBuf.crc_status & acceptable_crc_values_goldsample) != acceptable_crc_values_goldsample)) {
+ if ((chkIntgRspBuf.crc_status | MASK_MSB_BYTE) != acceptable_crc_values_devsample) {
     NXPLOG_FWDNLD_D("Error : Integrity CRC check failed");
     return NFCSTATUS_FAILED;
   }
