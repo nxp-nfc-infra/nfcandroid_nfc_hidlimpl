@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2022 NXP
+ *  Copyright 2010-2021 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ typedef void (*pphDnldNfc_RspCb_t)(void* pContext, NFCSTATUS wStatus,
    PN80T B0 -> 0x51 */
 #define PHDNLDNFC_HWVER_PN553_MRA1_0_UPDATED (0x40U)
 #define PHDNLDNFC_HWVER_PN557_MRA1_0 (0x01U)
-#define PHDNLDNFC_HWVER_PN7220_MRA1_0 (0x53U)
 #define PHDNLDNFC_HWVER_VENUS_MRA1_0 (0xA0U)
 #define PHDNLDNFC_HWVER_VULCAN_MRA1_0 (0xC0U)
 /*
@@ -124,11 +123,6 @@ extern NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer,
 extern NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
                                            pphDnldNfc_RspCb_t pNotify,
                                            void* pContext);
-#if (NXP_EXTNS == TRUE)
-extern NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pSession,
-                                    pphDnldNfc_RspCb_t pNotify,
-                                    void* pContext);
-#endif
 extern NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs,
                                  pphDnldNfc_RspCb_t pNotify, void* pContext);
 extern NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,

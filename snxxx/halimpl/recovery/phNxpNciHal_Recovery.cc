@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 NXP
+ * Copyright 2021 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -348,13 +348,8 @@ bool phNxpNciHal_isSessionClosed(void) {
  *
  ******************************************************************************/
 static bool phNxpNciHal_determineChipTypeDlMode(void) {
-#if (NXP_EXTNS == TRUE)
-  const uint8_t get_version_cmd[] = {0x00, 0x04, 0xE1, 0x00,
-                                     0x00, 0x00, 0x75, 0x48};
-#else
   const uint8_t get_version_cmd[] = {0x00, 0x04, 0xF1, 0x00,
                                      0x00, 0x00, 0x6E, 0xEF};
-#endif
   uint8_t* rsp_buffer = NULL;
   uint16_t rsp_len = 0;
 

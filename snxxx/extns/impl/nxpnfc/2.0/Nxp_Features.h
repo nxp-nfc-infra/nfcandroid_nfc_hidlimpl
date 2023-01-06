@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2018-2022 NXP
+ *  Copyright 2018-2021 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@
 #define FW_MOBILE_MAJOR_NUMBER_PN557 0x01
 #define FW_MOBILE_MAJOR_NUMBER_SN100U 0x010
 #define FW_MOBILE_MAJOR_NUMBER_SN220U 0x01
-#define FW_MOBILE_MAJOR_NUMBER_PN7220 0x00
 
 /*Including T4T NFCEE by incrementing 1*/
 #define NFA_EE_MAX_EE_SUPPORTED 5
@@ -78,8 +77,7 @@ typedef enum {
   pn557,
   pn81T,
   sn100u,
-  sn220u,
-  pn7220
+  sn220u
 } tNFC_chipType;
 
 typedef struct {
@@ -437,7 +435,7 @@ extern tNfc_featureList nfcFL;
       SRTCPY_FW("libsn100u_fw", "libsn100u_fw_platform", "libsn100u_fw_pku") \
       STRCPY_FW_BIN("sn100u")                                                \
     }                                                                        \
-    if ((chipType == pn557) || (chipType == pn7220)) {                       \
+    if (chipType == pn557) {                                                 \
       nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                  \
       nfcFL.nfccFL._NFCC_MIFARE_TIANJIN = false;                             \
       nfcFL.nfccFL._NFCC_MW_RCVRY_BLK_FW_DNLD = true;                        \
@@ -461,13 +459,8 @@ extern tNfc_featureList nfcFL;
       nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x82;                       \
       nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x83;                        \
                                                                              \
-      if (chipType == pn557) {                                               \
-        SRTCPY_FW("libpn557_fw", "libpn557_fw_platform", "libpn557_fw_pku")  \
-        STRCPY_FW_BIN("pn557")                                               \
-      } else if(chipType == pn7220) {                                        \
-        SRTCPY_FW("libpn7220_fw", "libpn7220_fw_platform",                   \
-        "libpn7220_fw_pku") STRCPY_FW_BIN("pn7220")                          \
-      }                                                                      \
+      SRTCPY_FW("libpn557_fw", "libpn557_fw_platform", "libpn557_fw_pku")    \
+      STRCPY_FW_BIN("pn557")                                                 \
     } else if (chipType == pn553) {                                          \
       nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                  \
       nfcFL.nfccFL._NFCC_MIFARE_TIANJIN = false;                             \

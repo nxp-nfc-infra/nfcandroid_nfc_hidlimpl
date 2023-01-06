@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2015-2018,2020-2022 NXP
+ *  Copyright 2015-2018,2020-2021 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,10 +44,6 @@ tNFC_chipType capability::processChipType(uint8_t* msg, uint16_t msg_len) {
         chipType = sn100u;
       else if (msg[msg_len - 3] == 0x01 && msg[msg_len - 2] == 0x01)
         chipType = sn220u;
-#if (NXP_EXTNS == TRUE)
-      else if (msg[msg_len - 3] == 0x03 && msg[msg_len - 2] == 0x00)
-        chipType = pn7220;
-#endif
     } else if (msg[0] == 0x00) {
       if (msg[offsetFwRomCodeVersion] == 0x01 &&
           msg[offsetFwMajorVersion] == 0x01)
@@ -55,10 +51,6 @@ tNFC_chipType capability::processChipType(uint8_t* msg, uint16_t msg_len) {
       else if (msg[offsetFwRomCodeVersion] == 0x01 &&
                msg[offsetFwMajorVersion] == 0x10)
         chipType = sn100u;
-#if (NXP_EXTNS == TRUE)
-      else if (msg[offsetFwRomCodeVersion] == 0x03)
-        chipType = pn7220;
-#endif
       else if (msg[offsetFwRomCodeVersion] == 0x12 &&
                (msg[offsetFwMajorVersion_pn557] == 0x21 ||
                 msg[offsetFwMajorVersion_pn557] == 0x01))

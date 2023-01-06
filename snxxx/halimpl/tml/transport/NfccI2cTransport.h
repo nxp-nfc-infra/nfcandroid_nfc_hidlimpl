@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2020-2022 NXP
+ *  Copyright 2020-2021 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -41,17 +41,6 @@
  * power state of ESE
  */
 #define ESE_GET_PWR _IOR(NFC_MAGIC, 0x03, uint32_t)
-
-#if (NXP_EXTNS == TRUE)
-/*
- * LED control via ioctl
- * RED_LED_OFF(0): RED LED OFF
- * RED_LED_ON(1):  RED LED ON
- * GREEN_LED_OFF(2): GREEN LED OFF
- * GREEN_LED_ON(3): GREEN LED ON
- */
-#define LEDS_CONTROL _IOW(NFC_MAGIC, 0x06, uint32_t)
-#endif
 
 extern phTmlNfc_i2cfragmentation_t fragmentation_enabled;
 
@@ -209,21 +198,4 @@ class NfccI2cTransport : public NfccTransport {
   **
   *******************************************************************************/
   bool Flushdata(pphTmlNfc_Config_t pConfig);
-
-#if (NXP_EXTNS == TRUE)
-/*******************************************************************************
-**
-** Function         SetLED
-**
-** Description      Request NFCC to set the respective LED ON or OFF
-**
-** Parameters       pDevHandle     - valid device handle
-**                  eType          - LEDControl
-**
-** Returns           0   SetLED operation success
-**                   1   SetLED operation failure
-**
-*******************************************************************************/
-  int SetLED(void* pDevHandle, LEDControl eType);
-#endif
 };

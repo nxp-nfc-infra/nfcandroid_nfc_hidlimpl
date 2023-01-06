@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2022 NXP
+ * Copyright (C) 2010-2021 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@
 #include <phDnldNfc_Cmd.h>
 #include <phDnldNfc_Status.h>
 
-/*The fragment length must be increased to send a complete FW package in
-  one command since firmware doesn't support chunk packages.*/
 #define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX (0x22AU)
 #define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN557 (0x100U)
 
@@ -62,9 +60,6 @@ typedef enum phDnldNfc_Event {
   phDnldNfc_EventRead,           /* Read event*/
   phDnldNfc_EventIntegChk,       /* Integrity Check event*/
   phDnldNfc_EventGetSesnSt,      /* Get Session State event*/
-#if (NXP_EXTNS == TRUE)
-  phDnldNfc_EventGetDieId,      /* Get Die ID event*/
-#endif
   phDnldNfc_EventLog,            /* Log event*/
   phDnldNfc_EventForce,          /* Force event*/
   phDnldNfc_EventRaw, /* Raw Req/Rsp event,used currently for sending NCI RESET

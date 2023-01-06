@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 NXP
+ * Copyright 2012-2021 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -866,7 +866,7 @@ NFCSTATUS phNxpNciHal_write_ext(uint16_t* cmd_len, uint8_t* p_cmd_data,
     }
     status = NFCSTATUS_SUCCESS;
   } else if (icode_detected) {
-    if (nfcFL.chipType < sn100u && nfcFL.chipType != pn557 && nfcFL.chipType != pn7220 &&
+    if (nfcFL.chipType < sn100u && nfcFL.chipType != pn557 &&
         (p_cmd_data[3] & 0x40) == 0x40 &&
         (p_cmd_data[4] == 0x21 || p_cmd_data[4] == 0x22 ||
          p_cmd_data[4] == 0x24 || p_cmd_data[4] == 0x27 ||
@@ -1535,7 +1535,7 @@ void phNxpNciHal_prop_conf_rssi() {
 
   return;
 }
-#if (NXP_EXTNS != TRUE)
+
 /******************************************************************************
  * Function         phNxpNciHal_conf_nfc_forum_mode
  *
@@ -1579,7 +1579,7 @@ void phNxpNciHal_conf_nfc_forum_mode() {
   NXPLOG_NCIHAL_E("%s: failed!!", __func__);
   return;
 }
-#endif
+
 /******************************************************************************
  * Function         RemoveNfcDepIntfFromInitResp
  *

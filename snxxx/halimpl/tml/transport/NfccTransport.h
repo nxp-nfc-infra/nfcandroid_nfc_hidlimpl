@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2020-2022 NXP
+ *  Copyright 2020-2021 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -52,15 +52,6 @@ enum EseResetType : uint32_t {
 };
 
 extern phTmlNfc_i2cfragmentation_t fragmentation_enabled;
-
-#if (NXP_EXTNS == TRUE)
-enum LEDControl : uint32_t {
-  RED_LED_OFF = 0x00,
-  RED_LED_ON,
-  GREEN_LED_OFF,
-  GREEN_LED_ON
-};
-#endif
 
 class NfccTransport {
  public:
@@ -224,21 +215,4 @@ class NfccTransport {
    ** Returns          None
    ****************************************************************************/
   virtual ~NfccTransport(){};
-
-#if (NXP_EXTNS == TRUE)
-/*******************************************************************************
-**
-** Function         SetLED
-**
-** Description      Request NFCC to set the respective LED ON or OFF
-**
-** Parameters       pDevHandle     - valid device handle
-**                  eType          - LEDControl
-**
-** Returns           0   SetLED operation success
-**                   1   SetLED operation failure
-**
-*******************************************************************************/
-  virtual int SetLED(void* pDevHandle, LEDControl eType);
-#endif
 };

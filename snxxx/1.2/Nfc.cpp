@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2019-2022 NXP
+ *  Copyright 2019-2021 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,13 +25,6 @@
 #define CHK_STATUS(x) \
   ((x) == NFCSTATUS_SUCCESS) ? (V1_0::NfcStatus::OK) : (V1_0::NfcStatus::FAILED)
 
-#define NXP_EN_PN7150 1
-#define NXP_EN_PN7160 1
-#define NXP_EN_PN7220 1
-#define NFC_NXP_MW_ANDROID_VER (13U)   /* Android version used by NFC MW */
-#define NFC_NXP_MW_VERSION_MAJ (0x02)  /* MW Major Version */
-#define NFC_NXP_MW_VERSION_MIN (0x00)  /* MW Minor Version */
-
 extern bool nfc_debug_enabled;
 
 namespace android {
@@ -42,14 +35,6 @@ namespace implementation {
 
 sp<V1_1::INfcClientCallback> Nfc::mCallbackV1_1 = nullptr;
 sp<V1_0::INfcClientCallback> Nfc::mCallbackV1_0 = nullptr;
-
-static void printNfcMwVersion() {
-  uint32_t validation = (NXP_EN_PN7220 << 2);
-
-  ALOGE("MW-HAL Version: NFC_AR_INFRA_%04X_%02d.%02x.%02x",
-        validation, NFC_NXP_MW_ANDROID_VER,
-        NFC_NXP_MW_VERSION_MAJ, NFC_NXP_MW_VERSION_MIN);
-}
 
 Return<V1_0::NfcStatus> Nfc::open_1_1(
     const sp<V1_1::INfcClientCallback>& clientCallback) {
@@ -75,7 +60,6 @@ Return<V1_0::NfcStatus> Nfc::open(
     mCallbackV1_0->linkToDeath(this, 0 /*cookie*/);
   }
 
-  printNfcMwVersion();
   NFCSTATUS status = phNxpNciHal_open(eventCallback, dataCallback);
   ALOGD_IF(nfc_debug_enabled, "Nfc::open Exit");
   return CHK_STATUS(status);
