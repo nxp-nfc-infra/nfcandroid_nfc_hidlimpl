@@ -26,9 +26,6 @@
 #include <phTmlNfc.h>
 #include <string>
 
-#if (NXP_NFC_RECOVERY == TRUE)
-#include <phDnldNfc_UpdateSeq.h>
-#endif
 
 static void* pFwHandle; /* Global firmware handle*/
 uint16_t wMwVer = 0;    /* Middleware version no */
@@ -211,67 +208,6 @@ NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
 
 /*******************************************************************************
 **
-** Function         phDnldNfc_GetDieId
-**
-** Description      Retrieves the Die ID of NFCC
-**
-** Parameters       pGetDieId - response buffer which gets updated with complete
-**                             version info from NFCC
-**                  pNotify - notify caller after getting response
-**                  pContext - caller context
-**
-** Returns          NFC status:
-**                  NFCSTATUS_SUCCESS - Get Die ID request to NFCC is
-**                                      successful
-**                  NFCSTATUS_FAILED - Get Die ID request failed due to
-**                                     internal error
-**                  NFCSTATUS_NOT_ALLOWED - command not allowed
-**                  Other command specific errors
-**
-*******************************************************************************/
-NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pGetDieId,
-                                    pphDnldNfc_RspCb_t pNotify,
-                                    void* pContext) {
-  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-
-  if ((NULL == pGetDieId) || (NULL == pNotify) || (NULL == pContext)) {
-    NXPLOG_FWDNLD_E("Invalid Input Parameters!!");
-    wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
-  } else {
-    if (phDnldNfc_TransitionIdle != gpphDnldContext->tDnldInProgress) {
-      NXPLOG_FWDNLD_E("Dnld Cmd Request in Progress..Cannot Continue!!");
-      wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_BUSY);
-    } else {
-      if ((NULL != pGetDieId->pBuff) && (0 != pGetDieId->wLen)) {
-        (gpphDnldContext->tRspBuffInfo.pBuff) = pGetDieId->pBuff;
-        (gpphDnldContext->tRspBuffInfo.wLen) = pGetDieId->wLen;
-        (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_GETDIE_ID;
-        (gpphDnldContext->tUserData.pBuff) = NULL;
-        (gpphDnldContext->tUserData.wLen) = 0;
-        (gpphDnldContext->UserCb) = pNotify;
-        (gpphDnldContext->UserCtxt) = pContext;
-
-        wStatus =
-            phDnldNfc_CmdHandler(gpphDnldContext, phDnldNfc_EventGetDieId);
-
-        if (NFCSTATUS_PENDING == wStatus) {
-          NXPLOG_FWDNLD_D("phDnldNfc_GetDieId Request submitted successfully");
-        } else {
-          NXPLOG_FWDNLD_E("phDnldNfc_GetDieId Request Failed!!");
-        }
-      } else {
-        NXPLOG_FWDNLD_E("Invalid Buff Parameters!!");
-        wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
-      }
-    }
-  }
-
-  return wStatus;
-}
-
-/*******************************************************************************
-**
 ** Function         phDnldNfc_CheckIntegrity
 **
 ** Description      Inspects the integrity of EEPROM and FLASH contents of the
@@ -309,23 +245,11 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
     } else {
       if ((PHDNLDNFC_HWVER_MRA2_1 == bChipVer) ||
           (PHDNLDNFC_HWVER_MRA2_2 == bChipVer) ||
-          ((nfcFL.chipType == pn551) &&
-           ((PHDNLDNFC_HWVER_PN551_MRA1_0 == bChipVer))) ||
-          (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn557)
 #if (NXP_EXTNS == TRUE)
-            || (nfcFL.chipType == pn7220)
+          ((nfcFL.chipType == pn7220) &&
+           (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer))
 #endif
-            ) &&
-           ((PHDNLDNFC_HWVER_PN553_MRA1_0 == bChipVer) ||
-            (PHDNLDNFC_HWVER_PN553_MRA1_0_UPDATED & bChipVer) ||
-            ((PHDNLDNFC_HWVER_PN557_MRA1_0 == bChipVer))
-#if (NXP_EXTNS == TRUE)
-            || (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer)
-#endif
-             )) || ((nfcFL.chipType == sn100u) &&
-           (PHDNLDNFC_HWVER_VENUS_MRA1_0 & bChipVer)) ||
-          ((nfcFL.chipType == sn220u) &&
-           (PHDNLDNFC_HWVER_VULCAN_MRA1_0 & bChipVer))) {
+      ) {
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_ChkIntg;
       } else {
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
@@ -463,24 +387,9 @@ NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
           wLen = gpphDnldContext->nxp_nfc_fw_len;
 
         } else {
-          if (nfcFL.chipType >= sn100u) {
-            if (PH_DL_STATUS_PLL_ERROR == (gpphDnldContext->tLastStatus)) {
-              wStatus = phDnldNfc_LoadRecInfo();
-            } else if (PH_DL_STATUS_SIGNATURE_ERROR ==
-                       (gpphDnldContext->tLastStatus)) {
-              wStatus = phDnldNfc_LoadPKInfo();
-            } else {
-            }
-          }
-
-          if (NFCSTATUS_SUCCESS == wStatus) {
-            pImgPtr = (uint8_t*)gpphDnldContext->nxp_nfc_fwp;
-            wLen = gpphDnldContext->nxp_nfc_fwp_len;
-          } else {
-            NXPLOG_FWDNLD_E("Platform Recovery Image extraction Failed!!");
-            pImgPtr = NULL;
-            wLen = 0;
-          }
+          pImgPtr = NULL;
+          wLen = 0;
+          NXPLOG_FWDNLD_E("Pn72xx Don't support FW recovery");
         }
       }
 
@@ -831,26 +740,13 @@ NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw) {
 
   if (fwType == FW_FORMAT_ARRAY) {
     gpphDnldContext->FwFormat = FW_FORMAT_ARRAY;
-#if (NXP_NFC_RECOVERY == TRUE)
-    pImageInfo = (uint8_t*)gphDnldNfc_DlSequence;
-    ImageInfoLen = gphDnldNfc_DlSeqSz;
-#endif
     wStatus = NFCSTATUS_SUCCESS;
   } else if (fwType == FW_FORMAT_BIN) {
     gpphDnldContext->FwFormat = FW_FORMAT_BIN;
     wStatus = phDnldNfc_LoadBinFW(&pImageInfo, &ImageInfoLen);
   } else if (fwType == FW_FORMAT_SO) {
     gpphDnldContext->FwFormat = FW_FORMAT_SO;
-#ifdef NXP_DUMMY_FW_DNLD
-    if (gRecFWDwnld == true) {
-      wStatus =
-          phDnldNfc_LoadRecoveryFW(Fw_Lib_Path, &pImageInfo, &ImageInfoLen);
-    } else {
-      wStatus = phDnldNfc_LoadFW(Fw_Lib_Path, &pImageInfo, &ImageInfoLen);
-    }
-#else
     wStatus = phDnldNfc_LoadFW(Fw_Lib_Path, &pImageInfo, &ImageInfoLen);
-#endif
   } else {
     NXPLOG_FWDNLD_E("firmware file format mismatch!!!\n");
     return NFCSTATUS_FAILED;
@@ -906,141 +802,11 @@ NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw) {
   /* gpphDnldContext reset by phDnldNfc_SetHwDevHandle()
      so reassign the Fragment Length based on chip version */
   if (NFCSTATUS_SUCCESS == wStatus) {
-    if (nfcFL.chipType >= sn100u) {
-      phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX);
-    } else {
-      phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN557);
-    }
+      phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX);
   }
 
   return wStatus;
 }
-
-/*******************************************************************************
-**
-** Function         phDnldNfc_LoadRecInfo
-**
-** Description      Extracts recovery sequence image information and stores it
-**                  in respective variables, to be used internally for write
-**                  operation
-**
-** Parameters       None
-**
-** Returns          NFC status
-**
-*******************************************************************************/
-NFCSTATUS phDnldNfc_LoadRecInfo(void) {
-  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-  uint8_t* pImageInfo = NULL;
-  uint32_t ImageInfoLen = 0;
-
-  /* if memory is not allocated then allocate memory for donwload context
-   * structure */
-  phDnldNfc_SetHwDevHandle();
-#ifdef NXP_DUMMY_FW_DNLD
-  if (gRecFWDwnld == true)
-    wStatus =
-        phDnldNfc_LoadRecoveryFW(PLATFORM_LIB_PATH, &pImageInfo, &ImageInfoLen);
-  else
-#endif
-    wStatus = phDnldNfc_LoadFW(PLATFORM_LIB_PATH, &pImageInfo, &ImageInfoLen);
-  if ((pImageInfo == NULL) || (ImageInfoLen == 0)) {
-    NXPLOG_FWDNLD_E(
-        "Image extraction Failed - invalid imginfo or imginfolen!!");
-    wStatus = NFCSTATUS_FAILED;
-  }
-
-  /* load the PLL recovery image library */
-  if (wStatus != NFCSTATUS_SUCCESS) {
-    NXPLOG_FWDNLD_E("Error loading FW file... !!\n");
-  }
-
-  if (NFCSTATUS_SUCCESS == wStatus) {
-    /* fetch the PLL recovery image pointer and the image length */
-    gpphDnldContext->nxp_nfc_fwp = (uint8_t*)pImageInfo;
-    gpphDnldContext->nxp_nfc_fwp_len = ImageInfoLen;
-
-    /* gpphDnldContext reset by phDnldNfc_SetHwDevHandle()
-    so reassign the Fragment Length 554 (0x22A) for chip sn1xx*/
-    phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX);
-
-    if ((NULL != gpphDnldContext->nxp_nfc_fwp) &&
-        (0 != gpphDnldContext->nxp_nfc_fwp_len)) {
-      NXPLOG_FWDNLD_D("Recovery Image Length - %d", ImageInfoLen);
-      NXPLOG_FWDNLD_D("Recovery Image Info Pointer - %p", pImageInfo);
-      wStatus = NFCSTATUS_SUCCESS;
-    } else {
-      NXPLOG_FWDNLD_E("Recovery Image details extraction Failed!!");
-      wStatus = NFCSTATUS_FAILED;
-    }
-  }
-
-  return wStatus;
-}
-
-/*******************************************************************************
-**
-** Function         phDnldNfc_LoadPKInfo
-**
-** Description      Extracts production sequence image information and stores it
-**                  in respective variables, to be used internally for write
-**                  operation
-**
-** Parameters       None
-**
-** Returns          NFC status
-**
-*******************************************************************************/
-NFCSTATUS phDnldNfc_LoadPKInfo(void) {
-  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-  uint8_t* pImageInfo = NULL;
-  uint32_t ImageInfoLen = 0;
-
-  /* if memory is not allocated then allocate memory for donwload context
-   * structure */
-  phDnldNfc_SetHwDevHandle();
-
-/* load the PKU image library */
-#ifdef NXP_DUMMY_FW_DNLD
-  if (gRecFWDwnld == true)
-    wStatus =
-        phDnldNfc_LoadRecoveryFW(PKU_LIB_PATH, &pImageInfo, &ImageInfoLen);
-  else
-#endif
-    wStatus = phDnldNfc_LoadFW(PKU_LIB_PATH, &pImageInfo, &ImageInfoLen);
-  if ((pImageInfo == NULL) || (ImageInfoLen == 0)) {
-    NXPLOG_FWDNLD_E(
-        "Image extraction Failed - invalid imginfo or imginfolen!!");
-    wStatus = NFCSTATUS_FAILED;
-  }
-
-  if (wStatus != NFCSTATUS_SUCCESS) {
-    NXPLOG_FWDNLD_E("Error loading FW File pku !!\n");
-  }
-
-  if (NFCSTATUS_SUCCESS == wStatus) {
-    /* fetch the PKU image pointer and the image length */
-    gpphDnldContext->nxp_nfc_fwp = (uint8_t*)pImageInfo;
-    gpphDnldContext->nxp_nfc_fwp_len = ImageInfoLen;
-
-    /* gpphDnldContext reset by phDnldNfc_SetHwDevHandle()
-    so reassign the Fragment Length 554 (0x22A) for chip sn1xx*/
-    phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX);
-
-    if ((NULL != gpphDnldContext->nxp_nfc_fwp) &&
-        (0 != gpphDnldContext->nxp_nfc_fwp_len)) {
-      NXPLOG_FWDNLD_D("PKU Image Length - %d", ImageInfoLen);
-      NXPLOG_FWDNLD_D("PKU Image Info Pointer - %p", pImageInfo);
-      wStatus = NFCSTATUS_SUCCESS;
-    } else {
-      NXPLOG_FWDNLD_E("PKU Image details extraction Failed!!");
-      wStatus = NFCSTATUS_FAILED;
-    }
-  }
-
-  return wStatus;
-}
-
 /*******************************************************************************
 **
 ** Function         phDnldNfc_CloseFwLibHandle
@@ -1221,67 +987,6 @@ NFCSTATUS phDnldNfc_LoadBinFW(uint8_t** pImgInfo, uint32_t* pImgInfoLen) {
 
 /*******************************************************************************
 **
-** Function         phDnldNfc_LoadRecoveryFW
-**
-** Description      Load the recovery firmware version form firmware lib for
-**                  recovery. This will change the FW version of the NFCC
-**                  firmware and enable flashing of firmware of same version.
-**
-** Parameters       pathName    - Firmware image path
-**                  pImgInfo    - Firmware image handle
-**                  pImgInfoLen - Firmware image length
-**
-** Returns          NFCSTATUS
-**
-*******************************************************************************/
-NFCSTATUS phDnldNfc_LoadRecoveryFW(const char* pathName, uint8_t** pImgInfo,
-                                   uint32_t* pImgInfoLen) {
-  void* pImageInfo = NULL;
-  void* pImageInfoLen = NULL;
-
-  /* check for path name */
-  if (pathName == NULL) pathName = nfcFL._FW_LIB_PATH.c_str();
-
-  /* check if the handle is not NULL then free the library */
-  if (pFwHandle != NULL) {
-    phDnldNfc_CloseFwLibHandle();
-    pFwHandle = NULL;
-  }
-  /* load the DLL file */
-  pFwHandle = dlopen(pathName, RTLD_LAZY);
-  NXPLOG_FWDNLD_D("phDnldNfc_LoadRecoveryFW %s ", pathName);
-
-  /* if library load failed then handle will be NULL */
-  if (pFwHandle == NULL) {
-    NXPLOG_FWDNLD_E(
-        "NULL handler : unable to load the library file, specify correct path");
-    return NFCSTATUS_FAILED;
-  }
-
-  dlerror(); /* Clear any existing error */
-
-  /* load the address of download image pointer and image size */
-  pImageInfo = (void*)dlsym(pFwHandle, "gphDnldNfc_DummyDlSeq");
-
-  if (dlerror() || (NULL == pImageInfo)) {
-    NXPLOG_FWDNLD_E("Problem loading symbol : gphDnldNfc_DummyDlSeq");
-    return NFCSTATUS_FAILED;
-  }
-
-  (*pImgInfo) = (*(uint8_t**)pImageInfo);
-  pImageInfoLen = (void*)dlsym(pFwHandle, "gphDnldNfc_DlSeqDummyFwSz");
-  if (dlerror() || (NULL == pImageInfoLen)) {
-    NXPLOG_FWDNLD_E("Problem loading symbol : gphDnldNfc_DlSeqDummyFwSz");
-    return NFCSTATUS_FAILED;
-  }
-
-  (*pImgInfoLen) = (uint32_t)(*((uint32_t*)pImageInfoLen));
-
-  return NFCSTATUS_SUCCESS;
-}
-
-/*******************************************************************************
-**
 ** Function         phDnldNfc_UnloadFW
 **
 ** Description      Deinit the firmware handle
@@ -1394,7 +1099,7 @@ NFCSTATUS phDnldNfc_ReadMem(void* pHwRef, pphDnldNfc_RspCb_t pNotify,
       phDnldNfc_SetHwDevHandle();
       /* gpphDnldContext reset by phDnldNfc_SetHwDevHandle()
       so reassign the Fragment Length 554 (0x22A) for chip sn1xx*/
-      phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX);
+      phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX);
     } else {
       wStatus = NFCSTATUS_FAILED;
     }
@@ -1527,3 +1232,64 @@ NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,
   return wStatus;
 }
 #endif
+
+/*******************************************************************************
+**
+** Function         phDnldNfc_GetDieId
+**
+** Description      Retrieves the Die ID of NFCC
+**
+** Parameters       pGetDieId - response buffer which gets updated with complete
+**                             version info from NFCC
+**                  pNotify - notify caller after getting response
+**                  pContext - caller context
+**
+** Returns          NFC status:
+**                  NFCSTATUS_SUCCESS - Get Die ID request to NFCC is
+**                                      successful
+**                  NFCSTATUS_FAILED - Get Die ID request failed due to
+**                                     internal error
+**                  NFCSTATUS_NOT_ALLOWED - command not allowed
+**                  Other command specific errors
+**
+*******************************************************************************/
+NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pGetDieId,
+                                    pphDnldNfc_RspCb_t pNotify,
+                                    void* pContext) {
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+
+  if ((NULL == pGetDieId) || (NULL == pNotify) || (NULL == pContext)) {
+    NXPLOG_FWDNLD_E("Invalid Input Parameters!!");
+    wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+  } else {
+    if (phDnldNfc_TransitionIdle != gpphDnldContext->tDnldInProgress) {
+      NXPLOG_FWDNLD_E("Dnld Cmd Request in Progress..Cannot Continue!!");
+      wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_BUSY);
+    } else {
+      if ((NULL != pGetDieId->pBuff) && (0 != pGetDieId->wLen)) {
+        (gpphDnldContext->tRspBuffInfo.pBuff) = pGetDieId->pBuff;
+        (gpphDnldContext->tRspBuffInfo.wLen) = pGetDieId->wLen;
+        (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
+        (gpphDnldContext->tCmdId) = PH_DL_CMD_GETDIE_ID;
+        (gpphDnldContext->tUserData.pBuff) = NULL;
+        (gpphDnldContext->tUserData.wLen) = 0;
+        (gpphDnldContext->UserCb) = pNotify;
+        (gpphDnldContext->UserCtxt) = pContext;
+
+        wStatus =
+            phDnldNfc_CmdHandler(gpphDnldContext, phDnldNfc_EventGetDieId);
+
+        if (NFCSTATUS_PENDING == wStatus) {
+          NXPLOG_FWDNLD_D("phDnldNfc_GetDieId Request submitted successfully");
+        } else {
+          NXPLOG_FWDNLD_E("phDnldNfc_GetDieId Request Failed!!");
+        }
+      } else {
+        NXPLOG_FWDNLD_E("Invalid Buff Parameters!!");
+        wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+      }
+    }
+  }
+
+  return wStatus;
+}

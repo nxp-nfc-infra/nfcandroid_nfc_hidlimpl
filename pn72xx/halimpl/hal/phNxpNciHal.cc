@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 NXP
+ * Copyright 2012-2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,8 @@
 #include <phNxpNciHal.h>
 #include <phNxpNciHal_Adaptation.h>
 #include <phNxpNciHal_Dnld.h>
-#include <phNxpNciHal_NfcDepSWPrio.h>
 #include <phNxpNciHal_ext.h>
 #include <phTmlNfc.h>
-#if (NXP_EXTNS == TRUE)
-#include "phNxpNciHal_nciParser.h"
-#endif
 
 #include <EseAdaptation.h>
 #include <android-base/stringprintf.h>
@@ -97,7 +93,6 @@ extern void phNxpNciHal_prop_conf_rssi();
 
 nfc_stack_callback_t* p_nfc_stack_cback_backup;
 phNxpNci_getCfg_info_t* mGetCfg_info = NULL;
-bool_t gParserCreated = FALSE;
 /* global variable to get FW version from NCI response or dl get version
  * response*/
 uint32_t wFwVerRsp;
@@ -456,7 +451,7 @@ static NFCSTATUS phNxpNciHal_force_fw_download(uint8_t seq_handler_offset) {
 /******************************************************************************
  * Function         phNxpNciHal_fw_download
  *
- * Description      This function download the PN54X secure firmware to IC. If
+ * Description      This function download the PN72xx secure firmware to IC. If
  *                  firmware version in Android filesystem and firmware in the
  *                  IC is same then firmware download will return with success
  *                  without downloading the firmware.
@@ -581,11 +576,7 @@ NFCSTATUS phNxpNciHal_CheckValidFwVersion(void) {
   ufw_current_major_no = ((0x00FF) & (wFwVer >> 8U));
   NXPLOG_NCIHAL_D("HAL %s current_major_no = 0x%x", __func__, ufw_current_major_no);
   NXPLOG_NCIHAL_D("%s fw_maj_ver = 0x%x", __func__, fw_maj_ver);
-#if (NXP_EXTNS == TRUE)
-  if ((nfcFL.chipType == pn557)||(nfcFL.chipType == pn7220)) {
-#else
-  if (nfcFL.chipType == pn557) {
-#endif
+  if (nfcFL.chipType == pn7220) {
     if (ufw_current_major_no >= fw_maj_ver) {
       /* if file major version is grater than the one from the
          Nfc init command allow FW download
@@ -599,28 +590,18 @@ NFCSTATUS phNxpNciHal_CheckValidFwVersion(void) {
     NXPLOG_NCIHAL_E(
         "FW Version not received by NCI command >>> Force Firmware download");
     status = NFCSTATUS_SUCCESS;
-  } else if ((ufw_current_major_no == nfcFL._FW_MOBILE_MAJOR_NUMBER) ||
-             ((ufw_current_major_no == FW_MOBILE_MAJOR_NUMBER_PN81A) &&
-              (nxpncihal_ctrl.nci_info.nci_version == NCI_VERSION_2_0))) {
+  } else if (ufw_current_major_no == nfcFL._FW_MOBILE_MAJOR_NUMBER) {
     NXPLOG_NCIHAL_E("FW Version 2");
     status = NFCSTATUS_SUCCESS;
   } else if (ufw_current_major_no == sfw_infra_major_no) {
-    if ((rom_version == FW_MOBILE_ROM_VERSION_PN553 ||
-         rom_version == FW_MOBILE_ROM_VERSION_PN557 ||
-         rom_version == FW_MOBILE_ROM_VERSION_PN7720 )) {
-      NXPLOG_NCIHAL_D(" PN557  allow Fw download with major number =  0x%x",
+    if (rom_version == FW_MOBILE_ROM_VERSION_PN7720 ) {
+      NXPLOG_NCIHAL_D(" Pn72xx  allow Fw download with major number =  0x%x",
                       ufw_current_major_no);
       status = NFCSTATUS_SUCCESS;
     } else {
       status = NFCSTATUS_NOT_ALLOWED;
     }
   }
-#ifdef NXP_DUMMY_FW_DNLD
-  else if (gRecFWDwnld == TRUE) {
-    NXPLOG_NCIHAL_E("FW Version 4");
-    status = NFCSTATUS_SUCCESS;
-  }
-#endif
   else {
     NXPLOG_NCIHAL_E("Wrong FW Version >>> Firmware download not allowed");
   }
@@ -726,12 +707,12 @@ int phNxpNciHal_MinOpen() {
   } else if (!GetNxpStrValue(NAME_NXP_NFC_DEV_NODE, nfc_dev_node, max_len)) {
     NXPLOG_NCIHAL_D(
         "Invalid nfc device node name keeping the default device node "
-        "/dev/pn54x");
-    strlcpy(nfc_dev_node, "/dev/pn54x", (max_len * sizeof(char)));
+        "/dev/nxpnfc");
+    strlcpy(nfc_dev_node, "/dev/nxpnfc", (max_len * sizeof(char)));
   }
   /* Configure hardware link */
   nxpncihal_ctrl.gDrvCfg.nClientId = phDal4Nfc_msgget(0, 0600);
-  nxpncihal_ctrl.gDrvCfg.nLinkType = ENUM_LINK_TYPE_I2C; /* For PN54X */
+  nxpncihal_ctrl.gDrvCfg.nLinkType = ENUM_LINK_TYPE_I2C; /* For PN72xx */
   tTmlConfig.pDevName = (int8_t*)nfc_dev_node;
   tOsalConfig.dwCallbackThreadId = (uintptr_t)nxpncihal_ctrl.gDrvCfg.nClientId;
   tOsalConfig.pLogFile = NULL;
@@ -886,7 +867,7 @@ int phNxpNciHal_MinOpen() {
  *
  * Description      This function is called by libnfc-nci during the
  *                  initialization of the NFCC. It opens the physical connection
- *                  with NFCC (PN54X) and creates required client thread for
+ *                  with NFCC (PN72xx) and creates required client thread for
  *                  operation.
  *                  After open is complete, status is informed to libnfc-nci
  *                  through callback function.
@@ -962,23 +943,14 @@ int phNxpNciHal_fw_mw_ver_check() {
   uint8_t rom_version = 0xFF & (wFwVerRsp >> 16);
   uint8_t fw_maj_ver = 0xFF & (wFwVerRsp >> 8);
 
-  if ((nfcFL.chipType == pn557) &&
-      (rom_version == FW_MOBILE_ROM_VERSION_PN557) && (fw_maj_ver == 0x01)) {
+  if ((nfcFL.chipType == sn100u) && (rom_version == SN1XX_ROM_VERSION) &&
+             (fw_maj_ver == SN1XX_FW_MAJOR_VERSION)) {
     status = NFCSTATUS_SUCCESS;
 #if (NXP_EXTNS == TRUE)
   } else if ((nfcFL.chipType == pn7220) &&
     (rom_version == FW_MOBILE_ROM_VERSION_PN7720) && (fw_maj_ver == 0x00)) {
     status = NFCSTATUS_SUCCESS;
 #endif
-  } else if (((nfcFL.chipType == pn553) || (nfcFL.chipType == pn80T)) &&
-             (rom_version == 0x11) && (fw_maj_ver == 0x01)) {
-    status = NFCSTATUS_SUCCESS;
-  } else if (((nfcFL.chipType == pn551) || (nfcFL.chipType == pn67T)) &&
-             (rom_version == 0x10) && (fw_maj_ver == 0x05)) {
-    status = NFCSTATUS_SUCCESS;
-  } else if ((nfcFL.chipType == sn100u) && (rom_version == SN1XX_ROM_VERSION) &&
-             (fw_maj_ver == SN1XX_FW_MAJOR_VERSION)) {
-    status = NFCSTATUS_SUCCESS;
   } else if ((nfcFL.chipType == sn220u) && (rom_version == SN2XX_ROM_VERSION) &&
              (fw_maj_ver == SN2XX_FW_MAJOR_VERSION)) {
     status = NFCSTATUS_SUCCESS;
@@ -1039,7 +1011,7 @@ static void phNxpNciHal_open_complete(NFCSTATUS status) {
  * Function         phNxpNciHal_write
  *
  * Description      This function write the data to NFCC through physical
- *                  interface (e.g. I2C) using the PN54X driver interface.
+ *                  interface (e.g. I2C) using the PN72xx driver interface.
  *                  Before sending the data to NFCC, phNxpNciHal_write_ext
  *                  is called to check if there is any extension processing
  *                  is required for the NCI packet being sent out.
@@ -1058,7 +1030,7 @@ int phNxpNciHal_write(uint16_t data_len, const uint8_t* p_data) {
  * Function         phNxpNciHal_write_internal
  *
  * Description      This function write the data to NFCC through physical
- *                  interface (e.g. I2C) using the PN54X driver interface.
+ *                  interface (e.g. I2C) using the PN72xx driver interface.
  *                  Before sending the data to NFCC, phNxpNciHal_write_ext
  *                  is called to check if there is any extension processing
  *                  is required for the NCI packet being sent out.
@@ -1093,7 +1065,7 @@ int phNxpNciHal_write_internal(uint16_t data_len, const uint8_t* p_data) {
       phNxpNciHal_write_ext(&nxpncihal_ctrl.cmd_len, nxpncihal_ctrl.p_cmd_data,
                             &nxpncihal_ctrl.rsp_len, nxpncihal_ctrl.p_rsp_data);
   if (status != NFCSTATUS_SUCCESS) {
-    /* Do not send packet to PN54X, send response directly */
+    /* Do not send packet to PN72xx, send response directly */
     msg.eMsgType = NCI_HAL_RX_MSG;
     msg.pMsgData = NULL;
     msg.Size = 0;
@@ -1107,7 +1079,7 @@ int phNxpNciHal_write_internal(uint16_t data_len, const uint8_t* p_data) {
   data_len = phNxpNciHal_write_unlocked(nxpncihal_ctrl.cmd_len,
                                         nxpncihal_ctrl.p_cmd_data, ORIG_LIBNFC);
   CONCURRENCY_UNLOCK();
-  if (nfcFL.chipType < sn100u && nfcFL.chipType != pn557 && icode_send_eof == 1) {
+  if (nfcFL.chipType < sn100u && icode_send_eof == 1) {
     usleep(10000);
     icode_send_eof = 2;
     status = phNxpNciHal_send_ext_cmd(3, cmd_icode_eof);
@@ -1187,22 +1159,22 @@ retry:
     data_len = 0;
     if (nxpncihal_ctrl.retry_cnt++ < MAX_RETRY_COUNT) {
       NXPLOG_NCIHAL_D(
-          "write_unlocked failed - PN54X Maybe in Standby Mode - Retry");
+          "write_unlocked failed - PN72xx Maybe in Standby Mode - Retry");
       /* 10ms delay to give NFCC wake up delay */
       usleep(1000 * 10);
       goto retry;
     } else {
       NXPLOG_NCIHAL_E(
-          "write_unlocked failed - PN54X Maybe in Standby Mode (max count = "
+          "write_unlocked failed - PN72xx Maybe in Standby Mode (max count = "
           "0x%x)",
           nxpncihal_ctrl.retry_cnt);
 
       status = phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice);
 
       if (NFCSTATUS_SUCCESS == status) {
-        NXPLOG_NCIHAL_D("PN54X Reset - SUCCESS\n");
+        NXPLOG_NCIHAL_D("PN72xx Reset - SUCCESS\n");
       } else {
-        NXPLOG_NCIHAL_D("PN54X Reset - FAILED\n");
+        NXPLOG_NCIHAL_D("PN72xx Reset - FAILED\n");
       }
       if (nxpncihal_ctrl.p_nfc_stack_data_cback != NULL &&
           nxpncihal_ctrl.hal_open_status == true) {
@@ -1350,22 +1322,6 @@ static void phNxpNciHal_read_complete(void* pContext,
       NxpMfcReaderInstance.MfcNotifyOnAckReceived(nxpncihal_ctrl.p_rx_data);
       (*nxpncihal_ctrl.p_nfc_stack_data_cback)(nxpncihal_ctrl.rx_data_len,
                                                nxpncihal_ctrl.p_rx_data);
-      // workaround for sync issue between SPI and NFC
-      if ((nfcFL.chipType == pn557) && nxpncihal_ctrl.p_rx_data[0] == 0x62 &&
-          nxpncihal_ctrl.p_rx_data[1] == 0x00 &&
-          nxpncihal_ctrl.p_rx_data[3] == 0xC0 &&
-          nxpncihal_ctrl.p_rx_data[4] == 0x00) {
-        uint8_t nfcee_notifiations[3][9] = {
-            {0x61, 0x0A, 0x06, 0x01, 0x00, 0x03, 0xC0, 0x80, 0x04},
-            {0x61, 0x0A, 0x06, 0x01, 0x00, 0x03, 0xC0, 0x81, 0x04},
-            {0x61, 0x0A, 0x06, 0x01, 0x00, 0x03, 0xC0, 0x82, 0x03},
-        };
-
-        for (int i = 0; i < 3; i++) {
-          (*nxpncihal_ctrl.p_nfc_stack_data_cback)(
-              sizeof(nfcee_notifiations[i]), nfcee_notifiations[i]);
-        }
-      }
     }
     /* Unblock next Write Command Window */
     sem_getvalue(&(nxpncihal_ctrl.syncSpiNfc), &sem_val);
@@ -1440,7 +1396,7 @@ NFCSTATUS phNxpNciHal_enableTmlRead() {
  * Function         phNxpNciHal_core_initialized
  *
  * Description      This function is called by libnfc-nci after successful open
- *                  of NFCC. All proprietary setting for PN54X are done here.
+ *                  of NFCC. All proprietary setting for PN72xx are done here.
  *                  After completion of proprietary settings notification is
  *                  provided to libnfc-nci through callback function.
  *
@@ -1511,9 +1467,9 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
     if (nfcFL.chipType < sn100u) {
       status = phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice);
       if (NFCSTATUS_SUCCESS == status) {
-        NXPLOG_NCIHAL_D("PN54X Reset - SUCCESS\n");
+        NXPLOG_NCIHAL_D("PN72xx Reset - SUCCESS\n");
       } else {
-        NXPLOG_NCIHAL_D("PN54X Reset - FAILED\n");
+        NXPLOG_NCIHAL_D("PN72xx Reset - FAILED\n");
       }
     }
 
@@ -1561,31 +1517,6 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
       goto retry_core_init;
     }
   }
-  if (nfcFL.chipType == sn100u) {
-    uint8_t cmd_get_cfg_dbg_info[] = {0x20, 0x03, 0x0D, 0x06, 0xA0, 0x39,
-                                      0xA0, 0x1A, 0xA0, 0x1B, 0xA0, 0x1C,
-                                      0xA0, 0x27, 0xA1, 0x1F};
-    status = phNxpNciHal_send_ext_cmd(sizeof(cmd_get_cfg_dbg_info),
-                                      cmd_get_cfg_dbg_info);
-  } else if (nfcFL.chipType >= sn220u || nfcFL.chipType == pn557) {
-    uint8_t cmd_get_cfg_dbg_info[] = {0x20, 0x03, 0x0B, 0x05, 0xA0, 0x39, 0xA0,
-                                      0x1A, 0xA0, 0x1B, 0xA0, 0x1C, 0xA0, 0x27};
-    status = phNxpNciHal_send_ext_cmd(sizeof(cmd_get_cfg_dbg_info),
-                                      cmd_get_cfg_dbg_info);
-  }
-  if (status != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("Failed to retrieve NFCC debug info");
-  }
-
-  if (nfcFL.chipType >= sn220u) {
-    uint8_t cmd_get_hard_fault_ctr_info[] = {0x20, 0x03, 0x03,
-                                             0x01, 0xA1, 0x5A};
-    status = phNxpNciHal_send_ext_cmd(sizeof(cmd_get_hard_fault_ctr_info),
-                                      cmd_get_hard_fault_ctr_info);
-    if (status != NFCSTATUS_SUCCESS) {
-      NXPLOG_NCIHAL_E("Failed to retrieve NFCC hard fault counter debug info");
-    }
-  }
 
   num = 0;
   if (GetNxpNumValue("NXP_I3C_MODE", &num, sizeof(num))) {
@@ -1605,8 +1536,6 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
     retry_core_init_cnt++;
     goto retry_core_init;
   }
-
-  if (nfcFL.chipType == pn557) enable_ven_cfg = PN557_VEN_CFG_DEFAULT;
 
   mEEPROM_info.buffer = &enable_ven_cfg;
   mEEPROM_info.bufflen = sizeof(uint8_t);
@@ -1729,10 +1658,6 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
   if ((true == fw_dwnld_flag) || (true == setConfigAlways) ||
       isNxpConfigModified()) {
     config_access = true;
-
-    if (nfcFL.chipType != pn547C2) {
-      config_access = true;
-    }
 
     retlen = 0;
     /*Select UICC2/UICC3 SWP line from config param*/
@@ -1862,12 +1787,9 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
     }
   }
 
-  config_access = true;
-
   retlen = 0;
-  if (nfcFL.chipType != pn547C2) {
-    config_access = false;
-  }
+  config_access = false;
+
   isfound = GetNxpByteArrayValue(NAME_NXP_CORE_RF_FIELD, (char*)buffer, bufflen,
                                  &retlen);
   if (isfound > 0 && retlen > 0) {
@@ -1973,33 +1895,6 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
       }
     }
   }
-
-#if (NXP_EXTNS == TRUE)
-  isfound = GetNxpNumValue(NAME_NXP_NCI_PARSER_LIBRARY, &num, sizeof(num));
-  if (isfound > 0 && num == 0x01) {
-    phNxpNciHal_configNciParser(true);
-    NXPLOG_NCIHAL_D("NCI Parser is enabled");
-  } else if (isfound > 0 && num == 0x00) {
-    NXPLOG_NCIHAL_D("Disabling NCI Parser...");
-    phNxpNciHal_configNciParser(false);
-  } else {
-    NXPLOG_NCIHAL_D("NCI Parser is disabled");
-  }
-
-  if (nfcFL.chipType == pn557) {
-    if (GetNxpNumValue(NAME_NXP_PROP_CE_ACTION_NTF, (void*)&retlen,
-                       sizeof(retlen))) {
-      uint8_t value = (uint8_t)retlen;
-      NXPLOG_NCIHAL_D("Prop CE ACT NTF %x", value);
-      mEEPROM_info.buffer = &value;
-      mEEPROM_info.bufflen = sizeof(value);
-      mEEPROM_info.request_type = EEPROM_CE_ACT_NTF;
-      mEEPROM_info.request_mode = SET_EEPROM_DATA;
-      request_EEPROM(&mEEPROM_info);
-    }
-  }
-
-#endif
 
   config_access = false;
   {
@@ -2370,12 +2265,6 @@ close_and_return:
 
   sem_destroy(&nxpncihal_ctrl.syncSpiNfc);
 
-#if (NXP_EXTNS == TRUE)
-  if (gParserCreated) {
-    phNxpNciHal_deinitParser();
-    gParserCreated = FALSE;
-  }
-#endif
   if (NULL != gpphTmlNfc_Context->pDevHandle) {
     phNxpNciHal_close_complete(NFCSTATUS_SUCCESS);
     /* Abort any pending read and write */
@@ -2713,12 +2602,12 @@ int phNxpNciHal_power_cycle(void) {
     NXPLOG_NCIHAL_D("Power Cycle failed due to hal status not open");
     return NFCSTATUS_FAILED;
   }
-  status = phTmlNfc_IoCtl(phTmlNfc_e_PowerReset);
+  status = phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice);
 
   if (NFCSTATUS_SUCCESS == status) {
-    NXPLOG_NCIHAL_D("PN54X Reset - SUCCESS\n");
+    NXPLOG_NCIHAL_D("PN72xx Reset - SUCCESS\n");
   } else {
-    NXPLOG_NCIHAL_D("PN54X Reset - FAILED\n");
+    NXPLOG_NCIHAL_D("PN72xx Reset - FAILED\n");
   }
 
   phNxpNciHal_power_cycle_complete(NFCSTATUS_SUCCESS);
@@ -2786,21 +2675,6 @@ int phNxpNciHal_check_ncicmd_write_window(uint16_t cmd_len, uint8_t* p_cmd) {
     status = NFCSTATUS_SUCCESS;
   }
   return status;
-}
-
-/******************************************************************************
- * Function         phNxpNciHal_ioctl
- *
- * Description      This function is called by jni when wired mode is
- *                  performed.First Pn54x driver will give the access
- *                  permission whether wired mode is allowed or not
- *                  arg (0):
- * Returns          return 0 on success and -1 on fail, On success
- *                  update the acutual state of operation in arg pointer
- *
- ******************************************************************************/
-int phNxpNciHal_ioctl(long arg, void* p_data) {
-  return phNxpNciHal_ioctlIf(arg, p_data);
 }
 
 /******************************************************************************
@@ -2878,9 +2752,7 @@ static void phNxpNciHal_nfccClockCfgRead(void) {
 int phNxpNciHal_determineConfiguredClockSrc() {
   uint8_t param_clock_src = CLK_SRC_PLL;
   if (nxpprofile_ctrl.bClkSrcVal == CLK_SRC_PLL) {
-    if (nfcFL.chipType == pn553) {
-      param_clock_src = param_clock_src << 3;
-    } else if (nfcFL.chipType >= sn100u) {
+    if (nfcFL.chipType >= sn100u) {
       param_clock_src = 0;
     }
 
@@ -3033,16 +2905,12 @@ NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
 
   if (nfcc_clock_set_needed) {
     NXPLOG_NCIHAL_D("Setting Clock Source and Frequency");
-    if (nfcFL.chipType < sn100u) {
-      phNxpNciHal_txNfccClockSetCmd();
-    } else {
       /*Read the preset value from FW*/
       memcpy(&set_clck_cmd[7], &phNxpNciClock.p_rx_data[8],
              phNxpNciClock.p_rx_data[7]);
       /*Update clock source and frequency as per DH configuration*/
       set_clck_cmd[7] = nfcc_cfg_clock_src;
       status = phNxpNciHal_send_ext_cmd(sizeof(set_clck_cmd), set_clck_cmd);
-    }
   }
 
   return status;
@@ -3341,21 +3209,15 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
  *
  ******************************************************************************/
 NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
-#if (NXP_EXTNS == TRUE)
+
   uint8_t get_chip_info_cmd[] = {0x00, 0x04, 0xE1, 0x00,
                                  0x00, 0x00, 0x75, 0x48};
-#else
-  uint8_t get_chip_info_cmd[] = {0x00, 0x04, 0xF1, 0x00,
-                                 0x00, 0x00, 0x6E, 0xEF};
-#endif
+
   NFCSTATUS status = NFCSTATUS_FAILED;
   int retry_cnt = 0;
-  if (bIsVenResetReqd) {
-#if (NXP_EXTNS == TRUE)
+  if (bIsVenResetReqd)
+  {
     status = phTmlNfc_IoCtl(phTmlNfc_e_EnableVen);
-#else
-    status = phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadModeWithVenRst);
-#endif
     if (status != NFCSTATUS_SUCCESS) {
       NXPLOG_NCIHAL_E("Enable Download mode failed");
       return status;
@@ -3628,9 +3490,8 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
 int phNxpNciHal_check_config_parameter() {
   uint8_t param_clock_src = CLK_SRC_PLL;
   if (nxpprofile_ctrl.bClkSrcVal == CLK_SRC_PLL) {
-    if ((nfcFL.chipType != pn553) && (nfcFL.chipType != pn557)) {
       param_clock_src = param_clock_src << 3;
-    }
+
     if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_13MHZ) {
       param_clock_src |= 0x00;
     } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_19_2MHZ) {
@@ -4067,25 +3928,6 @@ void phNxpNciHal_configNciParser(bool enable) {
   if (enable ==
       false) { /*We are here to disable the LX_DEBUG_CFG and parser library*/
     return;
-  }
-  /* try initializing parser library*/
-  NXPLOG_NCIHAL_D("Try Init Parser gParserCreated:%d", gParserCreated);
-
-  if (!gParserCreated) {
-    gParserCreated = phNxpNciHal_initParser();
-  } else {
-    NXPLOG_NCIHAL_D("Parser Already Initialized");
-  }
-
-  if (gParserCreated) {
-    NXPLOG_NCIHAL_D("Parser Initialized Successfully");
-    if (isfound) {
-      NXPLOG_NCIHAL_D("Setting lxdebug levels in library");
-      phNxpNciHal_parsePacket(cmd_lxdebug,
-                              sizeof(cmd_lxdebug) / sizeof(cmd_lxdebug[0]));
-    }
-  } else {
-    NXPLOG_NCIHAL_E("Parser Library Not Available");
   }
 }
 #endif

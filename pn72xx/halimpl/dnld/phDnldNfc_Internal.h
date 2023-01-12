@@ -26,8 +26,7 @@
 
 /*The fragment length must be increased to send a complete FW package in
   one command since firmware doesn't support chunk packages.*/
-#define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX (0x22AU)
-#define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN557 (0x100U)
+#define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX (0x22AU)
 
 /* DL Host Short Frame Buffer Size for pipelined WRITE RSP */
 #define PHDNLDNFC_WRITERSP_BUFF_SIZE (0x08U)
@@ -125,7 +124,7 @@ typedef enum phDnldNfc_FwFormat {
  */
 typedef struct phDnldNfc_FrameInfo {
   uint16_t dwSendlength; /* length of the payload  */
-  uint8_t aFrameBuff[PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_SNXXX]; /* Buffer to store
+  uint8_t aFrameBuff[PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX]; /* Buffer to store
                                                           command that needs to
                                                           be sent*/
 } phDnldNfc_FrameInfo_t,

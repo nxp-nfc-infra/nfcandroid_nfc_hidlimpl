@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2020 NXP Semiconductors
+ * Copyright 2012-2020,2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ int phNxpNciHal_close(bool);
 int phNxpNciHal_configDiscShutdown(void);
 int phNxpNciHal_control_granted(void);
 int phNxpNciHal_power_cycle(void);
-int phNxpNciHal_ioctl(long arg, void* p_data);
 void phNxpNciHal_do_factory_reset(void);
 void phNxpNciHal_getVendorConfig(
     android::hardware::nfc::V1_1::NfcConfig& config);

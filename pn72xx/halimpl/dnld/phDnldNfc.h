@@ -24,7 +24,7 @@
 
 /*
  *
- * Callback for handling the received data/response from PN54X.
+ * Callback for handling the received data/response from PN72xx.
  * Parameters to be passed/registered to download context during respective
  * download function call:
  *      pContext - Upper layer context
@@ -48,19 +48,7 @@ typedef void (*pphDnldNfc_RspCb_t)(void* pContext, NFCSTATUS wStatus,
 #define PHDNLDNFC_HWVER_MRA2_1 (0x04U) /* ChipVersion MRA2.1 */
 #define PHDNLDNFC_HWVER_MRA2_2 (0x05U) /* ChipVersion MRA2.2 */
 
-/* PN551 ChipVersion MRA1.0 */
-#define PHDNLDNFC_HWVER_PN551_MRA1_0 (0x08U)
-/* PN553-NCI1.0 ChipVersion MRA1.0 */
-#define PHDNLDNFC_HWVER_PN553_MRA1_0 (0x0BU)
-/* PN553 A0 -> 0x40 hardware version
-   PN553 B0 -> 0x41
-   PN80T A0 -> 0x50
-   PN80T B0 -> 0x51 */
-#define PHDNLDNFC_HWVER_PN553_MRA1_0_UPDATED (0x40U)
-#define PHDNLDNFC_HWVER_PN557_MRA1_0 (0x01U)
 #define PHDNLDNFC_HWVER_PN7220_MRA1_0 (0x53U)
-#define PHDNLDNFC_HWVER_VENUS_MRA1_0 (0xA0U)
-#define PHDNLDNFC_HWVER_VULCAN_MRA1_0 (0xC0U)
 /*
  * Enum definition contains Download Life Cycle States
  */
@@ -147,14 +135,9 @@ extern NFCSTATUS phDnldNfc_RawReq(pphDnldNfc_Buff_t pFrameData,
                                   pphDnldNfc_Buff_t pRspData,
                                   pphDnldNfc_RspCb_t pNotify, void* pContext);
 extern NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw = false);
-extern NFCSTATUS phDnldNfc_LoadRecInfo(void);
-extern NFCSTATUS phDnldNfc_LoadPKInfo(void);
 extern void phDnldNfc_CloseFwLibHandle(void);
 extern NFCSTATUS phDnldNfc_LoadFW(const char* pathName, uint8_t** pImgInfo,
                                   uint32_t* pImgInfoLen);
-extern NFCSTATUS phDnldNfc_LoadRecoveryFW(const char* pathName,
-                                          uint8_t** pImgInfo,
-                                          uint32_t* pImgInfoLen);
 extern NFCSTATUS phDnldNfc_LoadBinFW(uint8_t** pImgInfo, uint32_t* pImgInfoLen);
 extern NFCSTATUS phDnldNfc_UnloadFW(void);
 extern void phDnldNfc_SetDlRspTimeout(uint16_t timeout);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 NXP
+ * Copyright 2019-2021,2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,49 +208,6 @@ std::set<string> gNciConfigs = {"NXP_SE_COLD_TEMP_ERROR_DELAY",
 /****************************************************************
  * Local Functions
  ***************************************************************/
-
-/******************************************************************************
- ** Function         phNxpNciHal_ioctlIf
- **
- ** Description      This function shall be called from HAL when libnfc-nci
- **                  calls phNxpNciHal_ioctl() to perform any IOCTL operation
- **
- ** Returns          return 0 on success and -1 on fail,
- ******************************************************************************/
-int phNxpNciHal_ioctlIf(long arg, void* p_data) {
-  NXPLOG_NCIHAL_D("%s : enter - arg = %ld", __func__, arg);
-  ese_nxp_IoctlInOutData_t* pInpOutData = (ese_nxp_IoctlInOutData_t*)p_data;
-  int ret = -1;
-
-  switch (arg) {
-    case HAL_ESE_IOCTL_NFC_JCOP_DWNLD:
-      if (pInpOutData == NULL) {
-        NXPLOG_NCIHAL_E("%s : received invalid param", __func__);
-        break;
-      }
-
-      if (gpEseAdapt == NULL) {
-        gpEseAdapt = &EseAdaptation::GetInstance();
-        if (gpEseAdapt == NULL) {
-          NXPLOG_NCIHAL_E("%s :invalid gpEseAdapt param", __func__);
-          break;
-        }
-        gpEseAdapt->Initialize();
-      }
-
-      NXPLOG_NCIHAL_D("HAL_ESE_IOCTL_NFC_JCOP_DWNLD Enter value is %d: \n",
-                      pInpOutData->inp.data.nxpCmd.p_cmd[0]);
-
-      gpEseAdapt->HalIoctl(HAL_ESE_IOCTL_NFC_JCOP_DWNLD, pInpOutData);
-      ret = 0;
-      break;
-    default:
-      NXPLOG_NCIHAL_E("%s : Wrong arg = %ld", __func__, arg);
-      break;
-  }
-  NXPLOG_NCIHAL_D("%s : exit - ret = %d", __func__, ret);
-  return ret;
-}
 
 /*******************************************************************************
  **
@@ -579,40 +536,6 @@ static string phNxpNciHal_parseBytesString(string in) {
   return in;
 }
 
-/*******************************************************************************
-**
-** Function         phNxpNciHal_resetEse
-**
-** Description      It shall be used to reset eSE by proprietary command.
-**
-** Parameters
-**
-** Returns          status of eSE reset response
-*******************************************************************************/
-NFCSTATUS phNxpNciHal_resetEse(uint64_t resetType) {
-  NFCSTATUS status = NFCSTATUS_FAILED;
-
-  if (nxpncihal_ctrl.halStatus == HAL_STATUS_CLOSE) {
-    if (NFCSTATUS_SUCCESS != phNxpNciHal_MinOpen()) {
-      return NFCSTATUS_FAILED;
-    }
-  }
-
-  CONCURRENCY_LOCK();
-  status = gpTransportObj->EseReset(gpphTmlNfc_Context->pDevHandle,
-                                    (EseResetType)resetType);
-  CONCURRENCY_UNLOCK();
-  if (status != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("EsePowerCycle failed");
-  }
-
-  if (nxpncihal_ctrl.halStatus == HAL_STATUS_MIN_OPEN) {
-    phNxpNciHal_close(false);
-  }
-
-  return status;
-}
-
 /******************************************************************************
  * Function         phNxpNciHal_setNxpTransitConfig
  *
@@ -731,132 +654,4 @@ int phNxpNciHal_CheckFwRegFlashRequired(uint8_t* fw_update_req,
       "wFwUpdateReq=%u, wRfUpdateReq=%u",
       status, *fw_update_req, *rf_update_req);
   return status;
-}
-
-/******************************************************************************
- * Function         phNxpNciHal_txNfccClockSetCmd
- *
- * Description      This function is called after successful download
- *                  to apply the clock setting provided in config file
- *
- * Returns          void.
- *
- ******************************************************************************/
-void phNxpNciHal_txNfccClockSetCmd(void) {
-  NFCSTATUS status = NFCSTATUS_FAILED;
-
-  uint8_t set_clock_cmd[] = {0x20, 0x02, 0x05, 0x01, 0xA0, 0x03, 0x01, 0x08};
-  uint8_t setClkCmdLen = sizeof(set_clock_cmd);
-  unsigned long clockSource = 0;
-  unsigned long frequency = 0;
-  uint32_t pllSetRetryCount = 3, dpllSetRetryCount = 3,
-           setClockCmdWriteRetryCnt = 0;
-  uint8_t* pCmd4PllSetting = NULL;
-  uint8_t* pCmd4DpllSetting = NULL;
-  uint32_t pllCmdLen = 0, dpllCmdLen = 0;
-  int srcCfgFound = 0, freqCfgFound = 0;
-
-  srcCfgFound = (GetNxpNumValue(NAME_NXP_SYS_CLK_SRC_SEL, &clockSource,
-                                sizeof(clockSource)) > 0);
-
-  freqCfgFound = (GetNxpNumValue(NAME_NXP_SYS_CLK_FREQ_SEL, &frequency,
-                                 sizeof(frequency)) > 0);
-
-  NXPLOG_NCIHAL_D("%s : clock source = %lu, frequency = %lu", __FUNCTION__,
-                  clockSource, frequency);
-
-  if (srcCfgFound && freqCfgFound && (clockSource == CLK_SRC_PLL)) {
-    phNxpNciClock.isClockSet = TRUE;
-
-    switch (frequency) {
-      case CLK_FREQ_13MHZ: {
-        NXPLOG_NCIHAL_D("PLL setting for CLK_FREQ_13MHZ");
-        pCmd4PllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_PLL_13MHZ;
-        pllCmdLen = sizeof(PN557_SET_CONFIG_CMD_PLL_13MHZ);
-        pCmd4DpllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_DPLL_13MHZ;
-        dpllCmdLen = sizeof(PN557_SET_CONFIG_CMD_DPLL_13MHZ);
-        break;
-      }
-      case CLK_FREQ_19_2MHZ: {
-        NXPLOG_NCIHAL_D("PLL setting for CLK_FREQ_19_2MHZ");
-        pCmd4PllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_PLL_19_2MHZ;
-        pllCmdLen = sizeof(PN557_SET_CONFIG_CMD_PLL_19_2MHZ);
-        pCmd4DpllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_DPLL_19_2MHZ;
-        dpllCmdLen = sizeof(PN557_SET_CONFIG_CMD_DPLL_19_2MHZ);
-        break;
-      }
-      case CLK_FREQ_24MHZ: {
-        NXPLOG_NCIHAL_D("PLL setting for CLK_FREQ_24MHZ");
-        pCmd4PllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_PLL_24MHZ;
-        pllCmdLen = sizeof(PN557_SET_CONFIG_CMD_PLL_24MHZ);
-        pCmd4DpllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_DPLL_24MHZ;
-        dpllCmdLen = sizeof(PN557_SET_CONFIG_CMD_DPLL_24MHZ);
-        break;
-      }
-      case CLK_FREQ_26MHZ: {
-        NXPLOG_NCIHAL_D("PLL setting for CLK_FREQ_26MHZ");
-        pCmd4PllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_PLL_26MHZ;
-        pllCmdLen = sizeof(PN557_SET_CONFIG_CMD_PLL_26MHZ);
-        pCmd4DpllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_DPLL_26MHZ;
-        dpllCmdLen = sizeof(PN557_SET_CONFIG_CMD_DPLL_26MHZ);
-        break;
-      }
-      case CLK_FREQ_32MHZ: {
-        NXPLOG_NCIHAL_D("PLL setting for CLK_FREQ_32MHZ");
-        pCmd4PllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_PLL_32MHZ;
-        pllCmdLen = sizeof(PN557_SET_CONFIG_CMD_PLL_32MHZ);
-        pCmd4DpllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_DPLL_32MHZ;
-        dpllCmdLen = sizeof(PN557_SET_CONFIG_CMD_DPLL_32MHZ);
-        break;
-      }
-      case CLK_FREQ_38_4MHZ: {
-        NXPLOG_NCIHAL_D("PLL setting for CLK_FREQ_38_4MHZ");
-        pCmd4PllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_PLL_38_4MHZ;
-        pllCmdLen = sizeof(PN557_SET_CONFIG_CMD_PLL_38_4MHZ);
-        pCmd4DpllSetting = (uint8_t*)PN557_SET_CONFIG_CMD_DPLL_38_4MHZ;
-        dpllCmdLen = sizeof(PN557_SET_CONFIG_CMD_DPLL_38_4MHZ);
-        break;
-      }
-      default:
-        phNxpNciClock.isClockSet = FALSE;
-        NXPLOG_NCIHAL_E("ERROR: Invalid clock frequency!!");
-        return;
-    }
-  }
-  switch (clockSource) {
-    case CLK_SRC_PLL: {
-      set_clock_cmd[setClkCmdLen - 1] = 0x00;
-      while (status != NFCSTATUS_SUCCESS &&
-             setClockCmdWriteRetryCnt++ < MAX_RETRY_COUNT)
-        status = phNxpNciHal_send_ext_cmd(setClkCmdLen, set_clock_cmd);
-
-      status = NFCSTATUS_FAILED;
-
-      while (status != NFCSTATUS_SUCCESS && pllSetRetryCount-- > 0)
-        status = phNxpNciHal_send_ext_cmd(pllCmdLen, pCmd4PllSetting);
-
-      status = NFCSTATUS_FAILED;
-
-      while (status != NFCSTATUS_SUCCESS && dpllSetRetryCount-- > 0)
-        status = phNxpNciHal_send_ext_cmd(dpllCmdLen, pCmd4DpllSetting);
-
-      break;
-    }
-    case CLK_SRC_XTAL: {
-      status = phNxpNciHal_send_ext_cmd(setClkCmdLen, set_clock_cmd);
-      if (status != NFCSTATUS_SUCCESS) {
-        NXPLOG_NCIHAL_E("XTAL clock setting failed !!");
-      }
-      break;
-    }
-    default:
-      NXPLOG_NCIHAL_E("Wrong clock source. Don't apply any modification");
-      return;
-  }
-  phNxpNciClock.isClockSet = FALSE;
-  if (status == NFCSTATUS_SUCCESS &&
-      phNxpNciClock.p_rx_data[3] == NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_D("PLL and DPLL settings applied successfully");
-  }
-  return;
 }

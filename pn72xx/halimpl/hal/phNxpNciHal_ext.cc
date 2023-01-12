@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 NXP
+ * Copyright 2012-2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,11 @@
 #include <phNxpLog.h>
 #include <phNxpNciHal.h>
 #include <phNxpNciHal_Adaptation.h>
-#include <phNxpNciHal_NfcDepSWPrio.h>
 #include <phNxpNciHal_ext.h>
 #include <phTmlNfc.h>
 #if (NXP_EXTNS == TRUE)
 #include "phNxpNciHal.h"
 #include "phNxpNciHal_IoctlOperations.h"
-#include "phNxpNciHal_nciParser.h"
 #endif
 /* Timeout value to wait for response from PN548AD */
 #define HAL_EXTNS_WRITE_RSP_TIMEOUT (1000)
@@ -43,7 +41,6 @@ extern phNxpNci_getCfg_info_t* mGetCfg_info;
 
 extern bool_t gsIsFwRecoveryRequired;
 
-extern uint32_t cleanup_timer;
 extern bool nfc_debug_enabled;
 uint8_t icode_detected = 0x00;
 uint8_t icode_send_eof = 0x00;
@@ -52,15 +49,12 @@ uint8_t EnableP2P_PrioLogic = false;
 extern bool bEnableMfcExtns;
 extern bool bEnableMfcReader;
 extern bool bDisableLegacyMfcExtns;
-static uint32_t RfDiscID = 1;
-static uint32_t RfProtocolType = 4;
 /* NFCEE Set mode */
 static uint8_t setEEModeDone = 0x00;
 /* External global variable to get FW version from NCI response*/
 extern uint32_t wFwVerRsp;
 /* External global variable to get FW version from FW file*/
 extern uint16_t wFwVer;
-extern bool_t gParserCreated;
 /* local buffer to store CORE_INIT response */
 static uint32_t bCoreInitRsp[40];
 static uint32_t iCoreInitRspLen;
@@ -131,11 +125,6 @@ NFCSTATUS phNxpNciHal_ext_send_sram_config_to_flash() {
 NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
 
-#if (NXP_EXTNS == TRUE)
-  /*parse and decode LxDebug Notifications*/
-  if (p_ntf[0] == 0x6F && (p_ntf[1] == 0x35 || p_ntf[1] == 0x36)) {
-    if (gParserCreated) phNxpNciHal_parsePacket(p_ntf, *p_len);
-  }
 #if (NXP_SRD == TRUE)
   if (p_ntf[0] == 0x01 && p_ntf[1] == 0x00 && p_ntf[5] == 0x81 &&
       p_ntf[23] == 0x82 && p_ntf[26] == 0xA0 && p_ntf[27] == 0xFE) {
@@ -148,7 +137,6 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
              p_ntf[3] == 0xE2) {
     nxpprofile_ctrl.profile_type = NFC_FORUM_PROFILE;
   }
-#endif
 #endif
 
   if (p_ntf[0] == 0x61 && p_ntf[1] == 0x05 && *p_len < 14) {
@@ -403,23 +391,6 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
     }
     NXPLOG_NCIHAL_D("Going through workaround - NFCEE_DISCOVER_RSP - END");
 
-  } else if (p_ntf[0] == 0x61 && p_ntf[1] == 0x03 /*&& cleanup_timer!=0*/) {
-    if (cleanup_timer != 0) {
-      /* if RF Notification Type of RF_DISCOVER_NTF is Last Notification */
-      if (0 == (*(p_ntf + 2 + (*(p_ntf + 2))))) {
-        phNxpNciHal_select_RF_Discovery(RfDiscID, RfProtocolType);
-        status = NFCSTATUS_FAILED;
-        return status;
-      } else {
-        RfDiscID = p_ntf[3];
-        RfProtocolType = p_ntf[4];
-      }
-      status = NFCSTATUS_FAILED;
-      return status;
-    }
-  } else if (p_ntf[0] == 0x41 && p_ntf[1] == 0x04 && cleanup_timer != 0) {
-    status = NFCSTATUS_FAILED;
-    return status;
   } else if (*p_len == 4 && p_ntf[0] == 0x4F && p_ntf[1] == 0x11 &&
              p_ntf[2] == 0x01) {
     if (p_ntf[3] == 0x00) {
@@ -742,9 +713,7 @@ NFCSTATUS phNxpNciHal_write_ext(uint16_t* cmd_len, uint8_t* p_cmd_data,
                                 uint16_t* rsp_len, uint8_t* p_rsp_data) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
 
-  phNxpNciHal_NfcDep_cmd_ext(p_cmd_data, cmd_len);
-
-  if (phNxpDta_IsEnable() == true) {
+   if (phNxpDta_IsEnable() == true) {
     status = phNxpNHal_DtaUpdate(cmd_len, p_cmd_data, rsp_len, p_rsp_data);
   }
 
@@ -866,7 +835,7 @@ NFCSTATUS phNxpNciHal_write_ext(uint16_t* cmd_len, uint8_t* p_cmd_data,
     }
     status = NFCSTATUS_SUCCESS;
   } else if (icode_detected) {
-    if (nfcFL.chipType < sn100u && nfcFL.chipType != pn557 && nfcFL.chipType != pn7220 &&
+    if (nfcFL.chipType < sn100u && nfcFL.chipType != pn7220 &&
         (p_cmd_data[3] & 0x40) == 0x40 &&
         (p_cmd_data[4] == 0x21 || p_cmd_data[4] == 0x22 ||
          p_cmd_data[4] == 0x24 || p_cmd_data[4] == 0x27 ||

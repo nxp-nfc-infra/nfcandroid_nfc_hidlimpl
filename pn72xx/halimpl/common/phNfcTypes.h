@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 NXP Semiconductors
+ * Copyright 2010-2020,2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ typedef uint16_t NFCSTATUS; /* Return values */
 
 /*
  * Possible Hardware Configuration exposed to upper layer.
- * Typically this should be port name (Ex:"COM1","COM2") to which PN54X is
+ * Typically this should be port name (Ex:"COM1","COM2") to which PN72xx is
  * connected.
  */
 typedef enum {

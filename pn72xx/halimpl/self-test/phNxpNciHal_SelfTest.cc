@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 NXP
+ * Copyright 2012-2021,2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include <phOsalNfc_Timer.h>
 #include <pthread.h>
 
-/* Timeout value to wait for response from PN54X */
+/* Timeout value to wait for response from PN72xx */
 #define HAL_WRITE_RSP_TIMEOUT (2000)
 #define HAL_WRITE_MAX_RETRY (10)
 
@@ -1076,7 +1076,7 @@ retry:
   if (cb_data.status != NFCSTATUS_SUCCESS && retryCnt < HAL_WRITE_MAX_RETRY) {
     retryCnt++;
     NXPLOG_NCIHAL_D(
-        "write_unlocked failed - PN54X Maybe in Standby Mode - Retry %d",
+        "write_unlocked failed - PN72xx Maybe in Standby Mode - Retry %d",
         retryCnt);
     goto retry;
   }
@@ -1140,7 +1140,7 @@ clean_and_return:
  **
  ** Function         phNxpNciHal_TestMode_open
  **
- ** Description      It opens the physical connection with NFCC (PN54X) and
+ ** Description      It opens the physical connection with NFCC (PN72xx) and
  **                  creates required client thread for operation.
  **
  ** Returns          NFCSTATUS_SUCCESS if successful,otherwise NFCSTATUS_FAILED.
@@ -1177,12 +1177,12 @@ NFCSTATUS phNxpNciHal_TestMode_open(void) {
   } else if (!GetNxpStrValue(NAME_NXP_NFC_DEV_NODE, nfc_dev_node, max_len)) {
     NXPLOG_NCIHAL_D(
         "Invalid nfc device node name keeping the default device node "
-        "/dev/pn54x");
-    strlcpy(nfc_dev_node, "/dev/pn54x", (max_len * sizeof(char)));
+        "/dev/nxpnfc");
+    strlcpy(nfc_dev_node, "/dev/nxpnfc", (max_len * sizeof(char)));
   }
 
   gDrvCfg.nClientId = phDal4Nfc_msgget(0, 0600);
-  gDrvCfg.nLinkType = ENUM_LINK_TYPE_I2C; /* For PN54X */
+  gDrvCfg.nLinkType = ENUM_LINK_TYPE_I2C; /* For PN72xx */
   tTmlConfig.pDevName = (int8_t*)nfc_dev_node;
   tOsalConfig.dwCallbackThreadId = (uintptr_t)gDrvCfg.nClientId;
   tOsalConfig.pLogFile = NULL;

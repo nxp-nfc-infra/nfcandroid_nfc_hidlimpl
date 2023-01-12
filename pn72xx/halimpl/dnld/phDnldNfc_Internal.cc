@@ -57,10 +57,6 @@
   ((n) | (1 << 10)) /* Header chunk bit set macro */
 #define PHDNLDNFC_CLR_HDR_FRAGBIT(n) \
   ((n) & ~(1U << 10)) /* Header chunk bit clear macro */
-#define PHDNLDNFC_SET_HDR_FRAGBIT_SN220(n) \
-  ((n) | (1 << 13)) /* Header chunk bit set macro */
-#define PHDNLDNFC_CLR_HDR_FRAGBIT_SN220(n) \
-  ((n) & ~(1U << 13)) /* Header chunk bit clear macro */
 #define PHDNLDNFC_CHK_HDR_FRAGBIT(n) \
   ((n)&0x04) /* macro to check if frag bit is set in Hdr */
 
@@ -623,11 +619,7 @@ static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext) {
           if (0 != (pDlContext->tRWInfo.wRWPldSize)) {
             if ((pDlContext->tRWInfo.bFramesSegmented) == true) {
               /* Turning ON the Fragmentation bit in FrameLen */
-              if (nfcFL.chipType == sn220u) {
-                wFrameLen = PHDNLDNFC_SET_HDR_FRAGBIT_SN220(wFrameLen);
-              } else {
                 wFrameLen = PHDNLDNFC_SET_HDR_FRAGBIT(wFrameLen);
-              }
             }
 
             pFrameByte = (uint8_t*)&wFrameLen;
@@ -638,12 +630,7 @@ static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext) {
                 .aFrameBuff[PHDNLDNFC_FRAME_HDR_OFFSET + 1] = pFrameByte[0];
 
             /* To ensure we have no frag bit set for crc calculation */
-            if (nfcFL.chipType == sn220u) {
-              wFrameLen = PHDNLDNFC_CLR_HDR_FRAGBIT_SN220(wFrameLen);
-            } else {
-              wFrameLen = PHDNLDNFC_CLR_HDR_FRAGBIT(wFrameLen);
-            }
-
+            wFrameLen = PHDNLDNFC_CLR_HDR_FRAGBIT(wFrameLen);
             wFrameLen += PHDNLDNFC_FRAME_HDR_LEN;
           }
         }

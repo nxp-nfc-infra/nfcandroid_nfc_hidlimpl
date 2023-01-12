@@ -44,10 +44,8 @@ cc_library_shared {
         "halimpl/dnld/phDnldNfc_Utils.cc",
         "halimpl/dnld/phNxpNciHal_Dnld.cc",
         "halimpl/hal/phNxpNciHal.cc",
-        "halimpl/hal/phNxpNciHal_NfcDepSWPrio.cc",
         "halimpl/hal/phNxpNciHal_dta.cc",
         "halimpl/hal/phNxpNciHal_ext.cc",
-        "halimpl/hal/phNxpNciHal_nciParser.cc",
         "halimpl/log/phNxpLog.cc",
         "halimpl/self-test/phNxpNciHal_SelfTest.cc",
         "halimpl/src/adaptation/EseAdaptation.cc",
@@ -61,11 +59,9 @@ cc_library_shared {
         "halimpl/utils/phNxpConfig.cc",
         "halimpl/utils/phNxpNciHal_utils.cc",
         "halimpl/utils/sparse_crc32.cc",
-        "halimpl/eseclients_extns/src/*.cc",
         "halimpl/hal/phNxpNciHal_IoctlOperations.cc",
         "halimpl/hal/phNxpNciHal_extOperations.cc",
         "halimpl/mifare/NxpMfcReader.cc",
-        "halimpl/recovery/phNxpNciHal_Recovery.cc",
     ],
 
     local_include_dirs: [
@@ -78,11 +74,9 @@ cc_library_shared {
         "halimpl/tml/transport",
         "halimpl/tml",
         "halimpl/utils",
-        "halimpl/eseclients_extns/inc",
         "halimpl/src/include",
         "halimpl/mifare",
         "extns/impl/nxpnfc/2.0",
-        "halimpl/recovery",
     ],
 
     include_dirs: [
@@ -126,7 +120,6 @@ cc_binary {
         "1.2/NxpNfcService.cpp",
         "1.2/Nfc.cpp",
         "extns/impl/nxpnfc/2.0/NxpNfc.cpp",
-        "halimpl/eseclients_extns/src/eSEClientExtns.cc",
     ],
 
     shared_libs: [
@@ -155,9 +148,7 @@ cc_binary {
         "halimpl/tml",
         "halimpl/utils",
         "halimpl/mifare",
-        "halimpl/eseclients_extns/inc/",
         "extns/impl/nxpnfc/2.0",
-        "halimpl/recovery",
     ],
 
     include_dirs: [

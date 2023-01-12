@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2019-2021 NXP
+ *  Copyright 2019-2021,2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,11 +24,6 @@
 #include <hidl/LegacySupport.h>
 #include "Nfc.h"
 #include "NxpNfc.h"
-#include "eSEClientExtns.h"
-
-#if (NXP_NFC_RECOVERY == TRUE)
-#include "phNxpNciHal_Recovery.h"
-#endif
 
 // Generated HIDL files
 using android::OK;
@@ -56,11 +51,6 @@ int main() {
     }
 
     configureRpcThreadpool(1, true /*callerWillJoin*/);
-#if (NXP_NFC_RECOVERY == TRUE)
-    phNxpNciHal_RecoverFWTearDown();
-#endif
-    initializeEseClient();
-    checkEseClientUpdate();
     status = nfc_service->registerAsService();
     if (status != OK) {
       LOG_ALWAYS_FATAL("Could not register service for NFC HAL Iface (%d).",
@@ -78,9 +68,6 @@ int main() {
     if (status != OK) {
       ALOGE("Could not register service for NXP NFC Extn Iface (%d).", status);
     }
-    ALOGE("Before calling JCOP JCOS_doDownload");
-    perform_eSEClientUpdate();
-    ALOGE("After calling JCOS_doDownload");
     ALOGI("NFC service is ready");
     joinRpcThreadpool();
   } catch (const std::length_error& le) {

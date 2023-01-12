@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 NXP
+ * Copyright 2010-2021,2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@
 #include <phNxpNciHal_utils.h>
 #include "NxpMfcReader.h"
 #include "NxpNfcCapability.h"
-#ifdef NXP_BOOTTIME_UPDATE
-#include "eSEClientIntf.h"
-#endif
-#include "eSEClientExtns.h"
 #include "phNxpNciHal_IoctlOperations.h"
 
 #include <vendor/nxp/nxpnfc/2.0/types.h>

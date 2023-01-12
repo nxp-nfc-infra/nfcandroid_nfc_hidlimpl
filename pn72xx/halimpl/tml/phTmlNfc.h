@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2022 NXP
+ * Copyright 2010-2023 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,10 +48,9 @@
 #define PH_TMLNFC_RESETDEVICE (0x00008001)
 
 /*
- * Fragment Length for SNXXX and PN547
+ * Fragment Length for PN72XX
  */
-#define PH_TMLNFC_FRGMENT_SIZE_SNXXX (0x22A)
-#define PH_TMLNFC_FRGMENT_SIZE_PN557 (0x102)
+#define PH_TMLNFC_FRGMENT_SIZE_PN72XX (0x22A)
 
 /*
 ***************************Globals,Structure and Enumeration ******************
@@ -114,14 +113,10 @@ typedef enum {
                                     download mode */
   phTmlNfc_e_EnableNormalMode, /* Hardware setting for normal mode of operation
                                 */
-  phTmlNfc_e_EnableDownloadModeWithVenRst,
   phTmlNfc_e_EnableVen, /* Enable Ven for PN557 chip*/
-  phTmlNfc_e_PowerReset = 5,
-  phTmlNfc_e_setFragmentSize,
-#if (NXP_EXTNS == TRUE)
+  phTmlNfc_e_setFragmentSize= 5,
   phTmlNfc_e_RedLedOff,        /* Turns off red led */
   phTmlNfc_e_RedLedOn,         /* Turns on red led */
-#endif
 } phTmlNfc_ControlCode_t; /* Control code for IOCTL call */
 
 /*
@@ -188,20 +183,20 @@ typedef struct phTmlNfc_Context {
  * TML Configuration exposed to upper layer.
  */
 typedef struct phTmlNfc_Config {
-  /* Port name connected to PN54X
+  /* Port name connected to PN72xx
    *
-   * Platform specific canonical device name to which PN54X is connected.
+   * Platform specific canonical device name to which nxpnfc is connected.
    *
-   * e.g. On Linux based systems this would be /dev/PN54X
+   * e.g. On Linux based systems this would be /dev/nxpnfc
    */
   int8_t* pDevName;
   /* Callback Thread ID
    *
    * This is the thread ID on which the Reader & Writer thread posts message. */
   uintptr_t dwGetMsgThreadId;
-  /* Communication speed between DH and PN54X
+  /* Communication speed between DH and PN72xx
    *
-   * This is the baudrate of the bus for communication between DH and PN54X */
+   * This is the baudrate of the bus for communication between DH and PN72xx */
   uint32_t dwBaudRate;
   uint16_t fragment_len;
 } phTmlNfc_Config_t, *pphTmlNfc_Config_t; /* pointer to phTmlNfc_Config_t */
