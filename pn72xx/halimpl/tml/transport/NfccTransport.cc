@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2020-2022 NXP
+ *  Copyright 2020-2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -47,5 +47,10 @@ bool NfccTransport::Flushdata(__attribute__((unused))
  int NfccTransport::SetLED(__attribute__((unused)) void* pDevHandle,
                            __attribute__((unused)) LEDControl eType) {
   return true;
+ }
+ int NfccTransport::SetModeSwitch(
+     __attribute__((unused)) void *p_dev_handle,
+     __attribute__((unused)) enum ProfileMode eType) {
+   return NFCSTATUS_SUCCESS;
  }
 #endif

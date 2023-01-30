@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2020-2022 NXP
+ *  Copyright 2020-2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -59,6 +59,11 @@ enum LEDControl : uint32_t {
   RED_LED_ON,
   GREEN_LED_OFF,
   GREEN_LED_ON
+};
+/* Profile mode type */
+enum ProfileMode : uint32_t {
+  NCI_MODE = 0,
+  EMVCO_MODE,
 };
 #endif
 
@@ -226,19 +231,33 @@ class NfccTransport {
   virtual ~NfccTransport(){};
 
 #if (NXP_EXTNS == TRUE)
-/*******************************************************************************
-**
-** Function         SetLED
-**
-** Description      Request NFCC to set the respective LED ON or OFF
-**
-** Parameters       pDevHandle     - valid device handle
-**                  eType          - LEDControl
-**
-** Returns           0   SetLED operation success
-**                   1   SetLED operation failure
-**
-*******************************************************************************/
+  /*******************************************************************************
+  **
+  ** Function         SetLED
+  **
+  ** Description      Request NFCC to set the respective LED ON or OFF
+  **
+  ** Parameters       pDevHandle     - valid device handle
+  **                  eType          - LEDControl
+  **
+  ** Returns           0   SetLED operation success
+  **                   1   SetLED operation failure
+  **
+  *******************************************************************************/
   virtual int SetLED(void* pDevHandle, LEDControl eType);
+
+  /*******************************************************************************
+  ** Function         SetModeSwitch
+  **
+  ** Description      sets the mode switch to NFCC
+  **
+  ** Parameters       p_dev_handle     - valid device handle
+  **                  eType          - mode switch control
+  **
+  ** Returns           0   - reset operation success
+  **                  -1   - reset operation failure
+  **
+  *******************************************************************************/
+  virtual int SetModeSwitch(void *p_dev_handle, enum ProfileMode eType);
 #endif
 };

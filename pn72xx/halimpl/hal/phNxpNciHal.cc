@@ -775,6 +775,13 @@ int phNxpNciHal_MinOpen() {
 
   phTmlNfc_IoCtl(phTmlNfc_e_EnableVen);
 
+  status = phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOn);
+  if (NFCSTATUS_SUCCESS == status) {
+    NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - SUCCESS\n");
+  } else {
+    NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
+  }
+
   /* reset version info new version info will be fetch */
   wFwVerRsp = 0x00;
   wFwVer = 0x00;

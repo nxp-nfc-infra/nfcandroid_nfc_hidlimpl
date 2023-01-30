@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright 2020-2022 NXP
+ *  Copyright 2020-2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -433,6 +433,35 @@ int NfccI2cTransport::SetLED(void* pDevHandle, LEDControl eType) {
     return -1;
   }
   ret = ioctl((int)(intptr_t)pDevHandle, LEDS_CONTROL, eType);
+  if (ret < 0) {
+    NXPLOG_TML_E("%s :failed errno = 0x%x", __func__, errno);
+  }
+  return ret;
+}
+
+/*******************************************************************************
+** Function         SetModeSwitch
+**
+** Description      sets the mode switch to NFCC
+**
+** Parameters       p_dev_handle     - valid device handle
+**                  eType          - mode switch control
+**
+** Returns           0   - reset operation success
+**                  -1   - reset operation failure
+**
+*******************************************************************************/
+int NfccI2cTransport::SetModeSwitch(void *p_dev_handle,
+                                    enum ProfileMode eType) {
+  int ret = -1;
+  NXPLOG_TML_D("%s, LEDControl eType %u", __func__, eType);
+
+  if (NULL == p_dev_handle) {
+    return -1;
+  }
+
+  ret = ioctl((int)(intptr_t)p_dev_handle, NFCC_PROFILE_SWITCH, eType, 2);
+
   if (ret < 0) {
     NXPLOG_TML_E("%s :failed errno = 0x%x", __func__, errno);
   }

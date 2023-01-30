@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2020-2022 NXP
+ *  Copyright 2020-2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -43,6 +43,11 @@
 #define ESE_GET_PWR _IOR(NFC_MAGIC, 0x03, uint32_t)
 
 #if (NXP_EXTNS == TRUE)
+/*
+ * ioctl code to switch between the NFC polling and EMVCo polling
+ *
+ */
+#define NFCC_PROFILE_SWITCH _IOW(NFC_MAGIC, 0x04, uint32_t)
 /*
  * LED control via ioctl
  * RED_LED_OFF(0): RED LED OFF
@@ -211,19 +216,34 @@ class NfccI2cTransport : public NfccTransport {
   bool Flushdata(pphTmlNfc_Config_t pConfig);
 
 #if (NXP_EXTNS == TRUE)
-/*******************************************************************************
-**
-** Function         SetLED
-**
-** Description      Request NFCC to set the respective LED ON or OFF
-**
-** Parameters       pDevHandle     - valid device handle
-**                  eType          - LEDControl
-**
-** Returns           0   SetLED operation success
-**                   1   SetLED operation failure
-**
-*******************************************************************************/
+  /*******************************************************************************
+  **
+  ** Function         SetLED
+  **
+  ** Description      Request NFCC to set the respective LED ON or OFF
+  **
+  ** Parameters       pDevHandle     - valid device handle
+  **                  eType          - LEDControl
+  **
+  ** Returns           0   SetLED operation success
+  **                   1   SetLED operation failure
+  **
+  *******************************************************************************/
   int SetLED(void* pDevHandle, LEDControl eType);
+
+  /*******************************************************************************
+  ** Function         SetModeSwitch
+  **
+  ** Description      sets the mode switch to NFCC
+  **
+  ** Parameters       p_dev_handle     - valid device handle
+  **                  eType          - mode switch control
+  **
+  ** Returns           0   - reset operation success
+  **                  -1   - reset operation failure
+  **
+  *******************************************************************************/
+  int SetModeSwitch(void *p_dev_handle, enum ProfileMode eType);
+
 #endif
 };
