@@ -70,6 +70,8 @@ static uint8_t config_access = false;
 static uint8_t config_success = true;
 static NfcHalThreadMutex sHalFnLock;
 
+extern phNxpNciClock_t phNxpNciClock;
+
 /* NCI HAL Control structure */
 phNxpNciHal_Control_t nxpncihal_ctrl;
 
@@ -146,8 +148,8 @@ static void phNxpNciHal_power_cycle_complete(NFCSTATUS status);
 static void phNxpNciHal_kill_client_thread(
     phNxpNciHal_Control_t* p_nxpncihal_ctrl);
 static void phNxpNciHal_nfccClockCfgRead(void);
-#if (NXP_EXTNS != TRUE)
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
+#if (NXP_EXTNS != TRUE)
 static void phNxpNciHal_hci_network_reset(void);
 #endif
 static NFCSTATUS phNxpNciHal_do_swp_session_reset(void);
@@ -1951,6 +1953,11 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
     buffer = NULL;
   }
 #endif
+
+  if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
+  }
+
   // initialize recovery FW variables
   gRecFWDwnld = 0;
   gRecFwRetryCount = 0;
@@ -2707,7 +2714,6 @@ static void phNxpNciHal_nfccClockCfgRead(void) {
 
   nxpprofile_ctrl.bClkSrcVal = 0;
   nxpprofile_ctrl.bClkFreqVal = 0;
-  nxpprofile_ctrl.bTimeout = 0;
 
   isfound = GetNxpNumValue(NAME_NXP_SYS_CLK_SRC_SEL, &num, sizeof(num));
   if (isfound > 0) {
@@ -2721,140 +2727,20 @@ static void phNxpNciHal_nfccClockCfgRead(void) {
     nxpprofile_ctrl.bClkFreqVal = num;
   }
 
-  num = 0;
-  isfound = 0;
-  isfound = GetNxpNumValue(NAME_NXP_SYS_CLOCK_TO_CFG, &num, sizeof(num));
-  if (isfound > 0) {
-    nxpprofile_ctrl.bTimeout = num;
-  }
-
-  NXPLOG_FWDNLD_D("gphNxpNciHal_fw_IoctlCtx.bClkSrcVal = 0x%x",
-                  nxpprofile_ctrl.bClkSrcVal);
-  NXPLOG_FWDNLD_D("gphNxpNciHal_fw_IoctlCtx.bClkFreqVal = 0x%x",
-                  nxpprofile_ctrl.bClkFreqVal);
-  NXPLOG_FWDNLD_D("gphNxpNciHal_fw_IoctlCtx.bClkFreqVal = 0x%x",
-                  nxpprofile_ctrl.bTimeout);
+  NXPLOG_FWDNLD_D("gphNxpNciHal_fw_IoctlCtx.bClkSrcVal = 0x%x", nxpprofile_ctrl.bClkSrcVal);
+  NXPLOG_FWDNLD_D("gphNxpNciHal_fw_IoctlCtx.bClkFreqVal = 0x%x", nxpprofile_ctrl.bClkFreqVal);
 
   if ((nxpprofile_ctrl.bClkSrcVal < CLK_SRC_XTAL) ||
       (nxpprofile_ctrl.bClkSrcVal > CLK_SRC_PLL)) {
-    NXPLOG_FWDNLD_E(
-        "Clock source value is wrong in config file, setting it as default");
+    NXPLOG_FWDNLD_E("Clock source value is wrong in config file, setting it as default XTAL");
     nxpprofile_ctrl.bClkSrcVal = NXP_SYS_CLK_SRC_SEL;
   }
-  if ((nxpprofile_ctrl.bClkFreqVal < CLK_FREQ_13MHZ) ||
-      (nxpprofile_ctrl.bClkFreqVal > CLK_FREQ_52MHZ)) {
-    NXPLOG_FWDNLD_E(
-        "Clock frequency value is wrong in config file, setting it as default");
+  if (nxpprofile_ctrl.bClkFreqVal > CLK_FREQ_XTAL) {
+    NXPLOG_FWDNLD_E("Clock frequency value is wrong in config file, setting it as default");
     nxpprofile_ctrl.bClkFreqVal = NXP_SYS_CLK_FREQ_SEL;
   }
-  if ((nxpprofile_ctrl.bTimeout < CLK_TO_CFG_DEF) ||
-      (nxpprofile_ctrl.bTimeout > CLK_TO_CFG_MAX)) {
-    NXPLOG_FWDNLD_E(
-        "Clock timeout value is wrong in config file, setting it as default");
-    nxpprofile_ctrl.bTimeout = CLK_TO_CFG_DEF;
-  }
 }
 
-/******************************************************************************
- * Function         phNxpNciHal_determineConfiguredClockSrc
- *
- * Description      This function determines and encodes clock source based on
- *                  clock frequency
- *
- * Returns          encoded form of clock source
- *
- *****************************************************************************/
-int phNxpNciHal_determineConfiguredClockSrc() {
-  uint8_t param_clock_src = CLK_SRC_PLL;
-  if (nxpprofile_ctrl.bClkSrcVal == CLK_SRC_PLL) {
-    if (nfcFL.chipType >= sn100u) {
-      param_clock_src = 0;
-    }
-
-    if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_13MHZ) {
-      param_clock_src |= 0x00;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_19_2MHZ) {
-      param_clock_src |= 0x01;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_24MHZ) {
-      param_clock_src |= 0x02;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_26MHZ) {
-      param_clock_src |= 0x03;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_38_4MHZ) {
-      param_clock_src |= 0x04;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_52MHZ) {
-      param_clock_src |= 0x05;
-    } else {
-      NXPLOG_NCIHAL_E("Wrong clock freq, send default PLL@19.2MHz");
-      if (nfcFL.chipType < sn100u)
-        param_clock_src = 0x11;
-      else
-        param_clock_src = 0x01;
-    }
-  } else if (nxpprofile_ctrl.bClkSrcVal == CLK_SRC_XTAL) {
-    param_clock_src = 0x08;
-
-  } else {
-    NXPLOG_NCIHAL_E("Wrong clock source. Don't apply any modification");
-  }
-  return param_clock_src;
-}
-
-/******************************************************************************
- * Function         phNxpNciHal_determineConfiguredClockSrc
- *
- * Description      This function determines and encodes clock source based on
- *                  clock frequency
- *
- * Returns          encoded form of clock source
- *
- *****************************************************************************/
-int phNxpNciHal_determineClockDelayRequest(uint8_t nfcc_cfg_clock_src) {
-  unsigned long num = 0;
-  int isfound = 0;
-  uint8_t nfcc_clock_delay_req = 0;
-  uint8_t nfcc_clock_set_needed = false;
-
-  isfound = GetNxpNumValue(NAME_NXP_CLOCK_REQ_DELAY, &num, sizeof(num));
-  if (isfound > 0) {
-    nxpprofile_ctrl.clkReqDelay = num;
-  }
-  if ((nxpprofile_ctrl.clkReqDelay < CLK_REQ_DELAY_MIN) ||
-      (nxpprofile_ctrl.clkReqDelay > CLK_REQ_DELAY_MAX)) {
-    NXPLOG_FWDNLD_E(
-        "default delay to start clock value is wrong in config "
-        "file, setting it as default");
-    nxpprofile_ctrl.clkReqDelay = CLK_REQ_DELAY_DEF;
-    return nfcc_clock_set_needed;
-  }
-  nfcc_clock_delay_req = nxpprofile_ctrl.clkReqDelay;
-
-  /*Check if the clock source is XTAL as per config*/
-  if (nfcc_cfg_clock_src == CLK_CFG_XTAL) {
-    if (nfcc_clock_delay_req !=
-        (phNxpNciClock.p_rx_data[CLK_REQ_DELAY_XTAL_OFFSET] &
-         CLK_REQ_DELAY_MASK)) {
-      nfcc_clock_set_needed = true;
-      phNxpNciClock.p_rx_data[CLK_REQ_DELAY_XTAL_OFFSET] &=
-          ~(CLK_REQ_DELAY_MASK);
-      phNxpNciClock.p_rx_data[CLK_REQ_DELAY_XTAL_OFFSET] |=
-          (nfcc_clock_delay_req & CLK_REQ_DELAY_MASK);
-    }
-  }
-  /*Check if the clock source is PLL as per config*/
-  else if (nfcc_cfg_clock_src < 6) {
-    if (nfcc_clock_delay_req !=
-        (phNxpNciClock.p_rx_data[CLK_REQ_DELAY_PLL_OFFSET] &
-         CLK_REQ_DELAY_MASK)) {
-      nfcc_clock_set_needed = true;
-      phNxpNciClock.p_rx_data[CLK_REQ_DELAY_PLL_OFFSET] &=
-          ~(CLK_REQ_DELAY_MASK);
-      phNxpNciClock.p_rx_data[CLK_REQ_DELAY_PLL_OFFSET] |=
-          (nfcc_clock_delay_req & CLK_REQ_DELAY_MASK);
-    }
-  }
-  return nfcc_clock_set_needed;
-}
-#if (NXP_EXTNS != TRUE)
 /******************************************************************************
  * Function         phNxpNciHal_nfccClockCfgApply
  *
@@ -2865,29 +2751,15 @@ int phNxpNciHal_determineClockDelayRequest(uint8_t nfcc_cfg_clock_src) {
  * Returns          void.
  *
  ******************************************************************************/
-NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
+static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
-  uint8_t nfcc_cfg_clock_src, nfcc_cur_clock_src;
-  uint8_t nfcc_clock_set_needed;
-  uint8_t nfcc_clock_delay_req;
-  static uint8_t* get_clock_cmd;
-  uint8_t get_clck_cmd[] = {0x20, 0x03, 0x07, 0x03, 0xA0,
-                            0x02, 0xA0, 0x03, 0xA0, 0x04};
-  uint8_t get_clck_cmd_sn100[] = {0x20, 0x03, 0x03, 0x01, 0xA0, 0x11};
-  uint8_t set_clck_cmd[] = {0x20, 0x02, 0x0B, 0x01, 0xA0, 0x11, 0x07,
-                            0x01, 0x0A, 0x32, 0x02, 0x01, 0xF6, 0xF6};
-  uint8_t get_clk_size = 0;
+  uint8_t get_clck_cmd[] = {0x20, 0x03, 0x04, 0x01, 0xA2, 0x02, 0x08};
+  uint8_t set_clck_cmd[] = {0x20, 0x02, 0x0C, 0x01, 0xA2, 0x02, 0x08,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-  if (nfcFL.chipType < sn100u) {
-    get_clock_cmd = get_clck_cmd;
-    get_clk_size = sizeof(get_clck_cmd);
-  } else {
-    get_clock_cmd = get_clck_cmd_sn100;
-    get_clk_size = sizeof(get_clck_cmd_sn100);
-  }
   phNxpNciHal_nfccClockCfgRead();
   phNxpNciClock.isClockSet = true;
-  status = phNxpNciHal_send_ext_cmd(get_clk_size, get_clock_cmd);
+  status = phNxpNciHal_send_ext_cmd(sizeof(get_clck_cmd), get_clck_cmd);
   phNxpNciClock.isClockSet = false;
 
   if (status != NFCSTATUS_SUCCESS) {
@@ -2895,42 +2767,24 @@ NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
     return status;
   }
 
-  nfcc_cfg_clock_src = phNxpNciHal_determineConfiguredClockSrc();
-  if (nfcFL.chipType < sn100u) {
-    nfcc_cur_clock_src = phNxpNciClock.p_rx_data[12];
-  } else {
-    nfcc_cur_clock_src = phNxpNciClock.p_rx_data[8];
-  }
-
-  if (nfcFL.chipType < sn100u) {
-    nfcc_clock_set_needed =
-        (nfcc_cfg_clock_src != nfcc_cur_clock_src ||
-         phNxpNciClock.p_rx_data[16] == nxpprofile_ctrl.bTimeout)
-            ? true
-            : false;
-  } else {
-    nfcc_clock_delay_req =
-        phNxpNciHal_determineClockDelayRequest(nfcc_cfg_clock_src);
-    /**Determine clock src is as expected*/
-    nfcc_clock_set_needed =
-        ((nfcc_cfg_clock_src != nfcc_cur_clock_src || nfcc_clock_delay_req)
-             ? true
-             : false);
-  }
-
-  if (nfcc_clock_set_needed) {
-    NXPLOG_NCIHAL_D("Setting Clock Source and Frequency");
-      /*Read the preset value from FW*/
-      memcpy(&set_clck_cmd[7], &phNxpNciClock.p_rx_data[8],
+  /* Set the system frequency only if, it's missmatch with current sys clk */
+  if(nxpprofile_ctrl.bClkFreqVal != phNxpNciClock.p_rx_data[9])
+  {
+    /*Read the preset value from FW*/
+    memcpy(&set_clck_cmd[7], &phNxpNciClock.p_rx_data[8],
              phNxpNciClock.p_rx_data[7]);
-      /*Update clock source and frequency as per DH configuration*/
-      set_clck_cmd[7] = nfcc_cfg_clock_src;
+    /*Update clock source and frequency as per DH configuration*/
+      set_clck_cmd[8] = nxpprofile_ctrl.bClkFreqVal;
       status = phNxpNciHal_send_ext_cmd(sizeof(set_clck_cmd), set_clck_cmd);
+      if (status != NFCSTATUS_SUCCESS) {
+          NXPLOG_NCIHAL_E("Failed to set system Frequency");
+       return status;
+      }
   }
-
   return status;
 }
 
+#if (NXP_EXTNS != TRUE)
 /******************************************************************************
  * Function         phNxpNciHal_get_mw_eeprom
  *
@@ -3502,35 +3356,6 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
   return status;
 }
 
-int phNxpNciHal_check_config_parameter() {
-  uint8_t param_clock_src = CLK_SRC_PLL;
-  if (nxpprofile_ctrl.bClkSrcVal == CLK_SRC_PLL) {
-      param_clock_src = param_clock_src << 3;
-
-    if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_13MHZ) {
-      param_clock_src |= 0x00;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_19_2MHZ) {
-      param_clock_src |= 0x01;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_24MHZ) {
-      param_clock_src |= 0x02;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_26MHZ) {
-      param_clock_src |= 0x03;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_38_4MHZ) {
-      param_clock_src |= 0x04;
-    } else if (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_52MHZ) {
-      param_clock_src |= 0x05;
-    } else {
-      NXPLOG_NCIHAL_E("Wrong clock freq, send default PLL@19.2MHz");
-      param_clock_src = 0x11;
-    }
-  } else if (nxpprofile_ctrl.bClkSrcVal == CLK_SRC_XTAL) {
-    param_clock_src = 0x08;
-
-  } else {
-    NXPLOG_NCIHAL_E("Wrong clock source. Don't apply any modification");
-  }
-  return param_clock_src;
-}
 #if (NXP_EXTNS != TRUE)
 /******************************************************************************
  * Function         phNxpNciHal_enable_i2c_fragmentation

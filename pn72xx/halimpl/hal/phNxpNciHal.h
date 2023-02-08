@@ -290,11 +290,8 @@ typedef enum {
 /* NXP Poll Profile control structure */
 typedef struct phNxpNciProfile_Control {
   phNxpNciProfile_t profile_type;
-  uint8_t bClkSrcVal; /* Holds the System clock source read from config file */
-  uint8_t
-      bClkFreqVal;  /* Holds the System clock frequency read from config file */
-  uint8_t bTimeout; /* Holds the Timeout Value */
-  uint8_t clkReqDelay; /* Holds default delay time before start clock request*/
+  uint8_t bClkSrcVal;   /* Holds the System clock source read from config file */
+  uint8_t bClkFreqVal;  /* Holds the System clock frequency read from config file */
 } phNxpNciProfile_Control_t;
 
 /* Internal messages to handle callbacks */

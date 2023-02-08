@@ -58,16 +58,12 @@
  ***********  System clock source selection configuration ********
  *****************************************************************
  */
-
-#define CLK_SRC_UNDEF 0
 #define CLK_SRC_XTAL 1
 #define CLK_SRC_PLL 2
-#define CLK_SRC_PADDIRECT 3
-#define CLK_CFG_XTAL 8
 
 /*Extern crystal clock source*/
 /* Use one of CLK_SRC_<value> */
-#define NXP_SYS_CLK_SRC_SEL CLK_SRC_PLL
+#define NXP_SYS_CLK_SRC_SEL CLK_SRC_XTAL
 /*Direct clock*/
 
 /*
@@ -76,20 +72,18 @@
  * If Clk_Src is set to PLL, make sure to set the Clk_Freq also*
  *****************************************************************
  */
-#define CLK_FREQ_UNDEF 0
-#define CLK_FREQ_13MHZ 1
-#define CLK_FREQ_19_2MHZ 2
-#define CLK_FREQ_24MHZ 3
-#define CLK_FREQ_26MHZ 4
-#define CLK_FREQ_38_4MHZ 5
-#define CLK_FREQ_52MHZ 6
-#define CLK_FREQ_32MHZ 7
+
+#define CLK_FREQ_8MHZ          0
+#define CLK_FREQ_12MHZ         1
+#define CLK_FREQ_16MHZ         2
+#define CLK_FREQ_24MHZ         3
+#define CLK_FREQ_32MHZ         4
+#define CLK_FREQ_48MHZ         5
+#define CLK_FREQ_22_5MHZ_HFO   7
+#define CLK_FREQ_XTAL          8
 
 /* Set to one of CLK_FREQ_<value> */
-#define NXP_SYS_CLK_FREQ_SEL CLK_FREQ_19_2MHZ
-
-#define CLK_TO_CFG_DEF 1
-#define CLK_TO_CFG_MAX 6
+#define NXP_SYS_CLK_FREQ_SEL CLK_FREQ_XTAL
 
 #define CLK_REQ_DELAY_MIN 1
 #define CLK_REQ_DELAY_MAX 31
