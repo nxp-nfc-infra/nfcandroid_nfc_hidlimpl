@@ -1282,9 +1282,6 @@ static NFCSTATUS phNxpNciHal_fw_dnld_complete(void* pContext, NFCSTATUS status,
   if ((gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) == true) {
     (gphNxpNciHal_fw_IoctlCtx.bLastStatus) = status;
     (gphNxpNciHal_fw_IoctlCtx.bDnldAttemptFailed) = true;
-#if (NXP_EXTNS != TRUE)
-    NXPLOG_FWDNLD_E("Invoking Pending Download Log Sequence..");
-#endif
     (gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) = false;
     /* Perform the Logging sequence */
 
