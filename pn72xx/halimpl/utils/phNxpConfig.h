@@ -20,7 +20,7 @@
  *
  *  The original Work has been changed by NXP.
  *
- *  Copyright (C) 2013-2021 NXP
+ *  Copyright (C) 2013-2021,2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ extern char Fw_Lib_Path[256];
 #define NAME_NXPLOG_FWDNLD_LOGLEVEL "NXPLOG_FWDNLD_LOGLEVEL"
 #define NAME_NXPLOG_TML_LOGLEVEL "NXPLOG_TML_LOGLEVEL"
 
+#define NAME_NXP_VAS_ECP "NXP_VAS_ECP"
 #define NAME_MIFARE_READER_ENABLE "MIFARE_READER_ENABLE"
 #define NAME_LEGACY_MIFARE_READER "LEGACY_MIFARE_READER"
 #define NAME_FW_STORAGE "FW_STORAGE"
