@@ -486,7 +486,9 @@ static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t* p_ntf,
       android_errorWriteLog(0x534e4554, "169258455");
       return NFCSTATUS_FAILED;
     }
-    if (p_ntf[3] == CORE_RESET_TRIGGER_TYPE_CORE_RESET_CMD_RECEIVED) {
+    if (p_ntf[3] == CORE_RESET_TRIGGER_TYPE_CORE_RESET_CMD_RECEIVED ||
+        p_ntf[3] == CORE_RESET_TRIGGER_TYPE_MODE_SWITCH_TO_NFC_FORUM ||
+        p_ntf[3] == CORE_RESET_TRIGGER_TYPE_MODE_SWITCH_TO_EMVCO) {
       if (*p_len < 6) {
         android_errorWriteLog(0x534e4554, "169258455");
         return NFCSTATUS_FAILED;
