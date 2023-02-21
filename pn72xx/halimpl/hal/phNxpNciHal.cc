@@ -148,8 +148,8 @@ static NFCSTATUS phNxpNciHal_do_swp_session_reset(void);
 static void phNxpNciHal_print_res_status(uint8_t* p_rx_data, uint16_t* p_len);
 #if (NXP_EXTNS != TRUE)
 static NFCSTATUS phNxpNciHal_get_mw_eeprom(void);
-static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
 #endif
+static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
 #if (NXP_EXTNS == TRUE)
 //static void phNxpNciHal_configNciParser(bool enable);
 #endif
@@ -1411,6 +1411,11 @@ retry_core_init:
     NXPLOG_NCIHAL_E("failed to apply VAS ECP configuration");
   }
 
+  // Update eeprom value
+  status = phNxpNciHal_set_mw_eeprom();
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("NXP Update MW EEPROM Proprietary Ext failed");
+  }
   // initialize recovery FW variables
   gRecFWDwnld = 0;
   gRecFwRetryCount = 0;
@@ -2189,6 +2194,75 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
           NXPLOG_NCIHAL_E("Failed to set system Frequency");
        return status;
       }
+  }
+  return status;
+}
+#if (NXP_EXTNS != TRUE)
+/******************************************************************************
+ * Function         phNxpNciHal_get_mw_eeprom
+ *
+ * Description      This function is called to retrieve data in mw eeprom area
+ *
+ * Returns          NFCSTATUS.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_get_mw_eeprom(void) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  uint8_t retry_cnt = 0;
+  static uint8_t get_mw_eeprom_cmd[] = {0x20, 0x03, 0x03, 0x01, 0xA0, 0x0F};
+
+retry_send_ext:
+  if (retry_cnt > 3) {
+    return NFCSTATUS_FAILED;
+  }
+
+  phNxpNciMwEepromArea.isGetEepromArea = true;
+  status =
+      phNxpNciHal_send_ext_cmd(sizeof(get_mw_eeprom_cmd), get_mw_eeprom_cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_D("unable to get the mw eeprom data");
+    phNxpNciMwEepromArea.isGetEepromArea = false;
+    retry_cnt++;
+    goto retry_send_ext;
+  }
+  phNxpNciMwEepromArea.isGetEepromArea = false;
+
+  if (phNxpNciMwEepromArea.p_rx_data[12]) {
+    fw_download_success = 1;
+  }
+  return status;
+}
+#endif
+/******************************************************************************
+ * Function         phNxpNciHal_set_mw_eeprom
+ *
+ * Description      This function is called to update data in mw eeprom area
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_set_mw_eeprom(void) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  uint8_t retry_cnt = 0;
+  uint8_t set_mw_eeprom_cmd[39] = {0};
+  uint8_t cmd_header[] = {0x20, 0x02, 0x24, 0x01, 0xA0, 0x0F, 0x20};
+
+  memcpy(set_mw_eeprom_cmd, cmd_header, sizeof(cmd_header));
+  phNxpNciMwEepromArea.p_rx_data[12] = 0;
+  memcpy(set_mw_eeprom_cmd + sizeof(cmd_header), phNxpNciMwEepromArea.p_rx_data,
+         sizeof(phNxpNciMwEepromArea.p_rx_data));
+
+retry_send_ext:
+  if (retry_cnt > 3) {
+    return NFCSTATUS_FAILED;
+  }
+
+  status =
+      phNxpNciHal_send_ext_cmd(sizeof(set_mw_eeprom_cmd), set_mw_eeprom_cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_D("unable to update the mw eeprom data");
+    retry_cnt++;
+    goto retry_send_ext;
   }
   return status;
 }
