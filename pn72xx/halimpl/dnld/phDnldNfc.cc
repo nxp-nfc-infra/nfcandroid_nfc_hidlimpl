@@ -281,66 +281,6 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
 
   return wStatus;
 }
-/*******************************************************************************
-**
-** Function         phDnldNfc_ReadLog
-**
-** Description      Retrieves log data from EEPROM
-**
-** Parameters       pData - response buffer which gets updated with data from
-**                          EEPROM
-**                  pNotify - notify caller after getting response
-**                  pContext - caller context
-**
-** Returns          NFC status:
-**                  NFCSTATUS_SUCCESS - Read request to NFCC is successful
-**                  NFCSTATUS_FAILED - Read request failed due to internal error
-**                  NFCSTATUS_NOT_ALLOWED - command not allowed
-**                  Other command specific errors
-**
-*******************************************************************************/
-NFCSTATUS phDnldNfc_ReadLog(pphDnldNfc_Buff_t pData, pphDnldNfc_RspCb_t pNotify,
-                            void* pContext) {
-  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-
-  if ((NULL == pNotify) || (NULL == pData) || (NULL == pContext)) {
-    NXPLOG_FWDNLD_E("Invalid Input Parameters!!");
-    wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
-  } else {
-    if (phDnldNfc_TransitionIdle != gpphDnldContext->tDnldInProgress) {
-      NXPLOG_FWDNLD_E("Dnld Cmd Request in Progress..Cannot Continue!!");
-      wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_BUSY);
-    } else {
-      if ((NULL != pData->pBuff) && (0 != pData->wLen)) {
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_READ;
-        (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTRead;
-        (gpphDnldContext->FrameInp.dwAddr) = PHDNLDNFC_EEPROM_LOG_START_ADDR;
-        (gpphDnldContext->tRspBuffInfo.pBuff) = pData->pBuff;
-        (gpphDnldContext->tRspBuffInfo.wLen) = pData->wLen;
-        (gpphDnldContext->tUserData.pBuff) = NULL;
-        (gpphDnldContext->tUserData.wLen) = 0;
-        (gpphDnldContext->UserCb) = pNotify;
-        (gpphDnldContext->UserCtxt) = pContext;
-
-        memset(&(gpphDnldContext->tRWInfo), 0,
-               sizeof(gpphDnldContext->tRWInfo));
-
-        wStatus = phDnldNfc_CmdHandler(gpphDnldContext, phDnldNfc_EventRead);
-
-        if (NFCSTATUS_PENDING == wStatus) {
-          NXPLOG_FWDNLD_D("Read Request submitted successfully");
-        } else {
-          NXPLOG_FWDNLD_E("Read Request Failed!!");
-        }
-      } else {
-        NXPLOG_FWDNLD_E("Invalid Buff Parameters!!");
-        wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
-      }
-    }
-  }
-
-  return wStatus;
-}
 
 /*******************************************************************************
 **

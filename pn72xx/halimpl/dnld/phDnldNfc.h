@@ -100,8 +100,6 @@ extern NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs,
                                  pphDnldNfc_RspCb_t pNotify, void* pContext);
 extern NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,
                                 pphDnldNfc_RspCb_t pNotify, void* pContext);
-extern NFCSTATUS phDnldNfc_ReadLog(pphDnldNfc_Buff_t pData,
-                                   pphDnldNfc_RspCb_t pNotify, void* pContext);
 extern NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
                                  pphDnldNfc_RspCb_t pNotify, void* pContext);
 extern NFCSTATUS phDnldNfc_Log(pphDnldNfc_Buff_t pData,

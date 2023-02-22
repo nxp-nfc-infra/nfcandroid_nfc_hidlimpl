@@ -27,7 +27,6 @@
 #include <phNxpNciHal_ext.h>
 #include <phTmlNfc.h>
 
-#include <EseAdaptation.h>
 #include <android-base/stringprintf.h>
 #include <sys/stat.h>
 
@@ -92,7 +91,6 @@ phNxpNci_getCfg_info_t* mGetCfg_info = NULL;
 /* global variable to get FW version from NCI response or dl get version
  * response*/
 uint32_t wFwVerRsp;
-EseAdaptation* gpEseAdapt = NULL;
 #ifdef NXP_BOOTTIME_UPDATE
 ese_update_state_t ese_update = ESE_UPDATE_COMPLETED;
 #endif
