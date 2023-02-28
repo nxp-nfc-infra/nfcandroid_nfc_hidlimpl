@@ -1433,14 +1433,19 @@ NFCSTATUS phNxpNciHal_enableDefaultUICC2SWPline(uint8_t uicc2_sel) {
  *
  ******************************************************************************/
 void phNxpNciHal_prop_conf_lpcd(bool enableLPCD) {
-  uint8_t cmd_get_lpcdval[] = {0x20, 0x03, 0x03, 0x01, 0xA0, 0x68};
-  vector<uint8_t> cmd_set_lpcdval{0x20, 0x02, 0x2E};
+  uint8_t cmd_get_lpcdval[] = {0x20, 0x03, 0x03, 0x01, 0xA2, 0x7C};
+  vector<uint8_t> cmd_set_lpcdval{0x20, 0x02, 0x0C};
+  uint8_t coreStandBy[] = {0x2F, 0x00, 0x01, 0x01};
 
   if (NFCSTATUS_SUCCESS ==
       phNxpNciHal_send_ext_cmd(sizeof(cmd_get_lpcdval), cmd_get_lpcdval)) {
     if (NFCSTATUS_SUCCESS == nxpncihal_ctrl.p_rx_data[3]) {
-      if (!(nxpncihal_ctrl.p_rx_data[17] & (1 << 7)) && enableLPCD) {
-        nxpncihal_ctrl.p_rx_data[17] |= (1 << 7);
+      if (!(nxpncihal_ctrl.p_rx_data[11] & (1 << 7)) && enableLPCD) {
+        if (NFCSTATUS_SUCCESS !=
+            phNxpNciHal_send_ext_cmd(sizeof(coreStandBy), coreStandBy)) {
+          NXPLOG_NCIHAL_E("Failed to enable NFCC Standby while enabling LPCD");
+        }
+        nxpncihal_ctrl.p_rx_data[11] |= (1 << 7);
         cmd_set_lpcdval.insert(
             cmd_set_lpcdval.end(), &nxpncihal_ctrl.p_rx_data[4],
             (&nxpncihal_ctrl.p_rx_data[4] + cmd_set_lpcdval[2]));
@@ -1449,8 +1454,8 @@ void phNxpNciHal_prop_conf_lpcd(bool enableLPCD) {
                                      &cmd_set_lpcdval[0])) {
           return;
         }
-      } else if (!enableLPCD && (nxpncihal_ctrl.p_rx_data[17] & (1 << 7))) {
-        nxpncihal_ctrl.p_rx_data[17] &= ~(1 << 7);
+      } else if (!enableLPCD && (nxpncihal_ctrl.p_rx_data[11] & (1 << 7))) {
+        nxpncihal_ctrl.p_rx_data[11] &= ~(1 << 7);
         cmd_set_lpcdval.insert(
             cmd_set_lpcdval.end(), &nxpncihal_ctrl.p_rx_data[4],
             (&nxpncihal_ctrl.p_rx_data[4] + cmd_set_lpcdval[2]));

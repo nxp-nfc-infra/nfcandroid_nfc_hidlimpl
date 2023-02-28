@@ -80,9 +80,6 @@ extern void phTmlNfc_set_fragmentation_enabled(
 
 extern NFCSTATUS phNxpNciHal_ext_send_sram_config_to_flash();
 extern NFCSTATUS phNxpNciHal_enableDefaultUICC2SWPline(uint8_t uicc2_sel);
-#if (NXP_EXTNS != TRUE)
-extern void phNxpNciHal_conf_nfc_forum_mode();
-#endif
 extern void phNxpNciHal_prop_conf_lpcd(bool enableLPCD);
 extern void phNxpNciHal_prop_conf_rssi();
 
@@ -1351,6 +1348,7 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
   NFCSTATUS status = NFCSTATUS_SUCCESS;
   core_init_rsp_params_len = 10;
   p_core_init_rsp_params = NULL;
+  unsigned long num = 0;
 
 #if (NXP_EXTNS != TRUE)
   /*NCI_INIT_CMD*/
@@ -1403,6 +1401,17 @@ retry_core_init:
 
   if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
     NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
+  }
+
+  if (GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_STANBY, &num, sizeof(num))) {
+    if (num == 0 || num == 1) {
+      uint8_t coreStandBy[] = {0x2F, 0x00, 0x01, 0x00};
+      coreStandBy[3] = num;
+      status = phNxpNciHal_send_ext_cmd(sizeof(coreStandBy), coreStandBy);
+      if (status != NFCSTATUS_SUCCESS) {
+        NXPLOG_NCIHAL_E("Failed to enable/disable NFCC Standby");
+      }
+    }
   }
 
   if (phNxpNciHal_vasEcpCfgApply() != NFCSTATUS_SUCCESS) {
@@ -2749,20 +2758,14 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
     status = phNxpNciHal_nfcc_core_reset_init(keep_config);
   }
   if (status == NFCSTATUS_SUCCESS) {
-#if (NXP_EXTNS != TRUE)
     unsigned long num = 0;
     int ret = 0;
-    phNxpNciHal_conf_nfc_forum_mode();
-    if (nfcFL.chipType >= sn100u) {
-      ret = GetNxpNumValue(NAME_NXP_RDR_DISABLE_ENABLE_LPCD, &num, sizeof(num));
-      if (!ret || num == 1 || num == 2) {
-        phNxpNciHal_prop_conf_lpcd(true);
-      } else if (ret && num == 0) {
-        phNxpNciHal_prop_conf_lpcd(false);
-      }
+    ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
+    if (!ret || num == 1) {
+      phNxpNciHal_prop_conf_lpcd(true);
+    } else if (ret && num == 0) {
+      phNxpNciHal_prop_conf_lpcd(false);
     }
-
-#endif
   }
   return status;
 }
