@@ -24,7 +24,7 @@
 
 #define NxpMfcReaderInstance (NxpMfcReader::getInstance())
 
-#define MAX_MFC_BUFF_SIZE 32
+#define MAX_MFC_BUFF_SIZE 300
 #define MFC_TAG_INCR_DECR_CMD_PART1_LEN 5
 #define MFC_TAG_INCR_DECR_CMD_PART2_LEN 4
 
