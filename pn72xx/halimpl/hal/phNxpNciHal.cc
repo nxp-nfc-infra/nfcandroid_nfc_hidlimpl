@@ -2125,7 +2125,8 @@ static void phNxpNciHal_nfccClockCfgRead(void) {
     NXPLOG_FWDNLD_E("Clock source value is wrong in config file, setting it as default XTAL");
     nxpprofile_ctrl.bClkSrcVal = NXP_SYS_CLK_SRC_SEL;
   }
-  if (nxpprofile_ctrl.bClkFreqVal > CLK_FREQ_XTAL) {
+  if ( (nxpprofile_ctrl.bClkFreqVal > CLK_FREQ_XTAL) ||
+            (nxpprofile_ctrl.bClkFreqVal == CLK_FREQ_RFU) ) {
     NXPLOG_FWDNLD_E("Clock frequency value is wrong in config file, setting it as default");
     nxpprofile_ctrl.bClkFreqVal = NXP_SYS_CLK_FREQ_SEL;
   }

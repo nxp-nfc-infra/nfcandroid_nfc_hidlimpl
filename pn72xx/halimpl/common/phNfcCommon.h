@@ -73,12 +73,17 @@
  *****************************************************************
  */
 
+/*
+ * Currently only 24MHz, 32MHz, 48MHz and XTAL configuration supported,
+ * others are RFUs.
+ */
 #define CLK_FREQ_8MHZ          0
 #define CLK_FREQ_12MHZ         1
 #define CLK_FREQ_16MHZ         2
 #define CLK_FREQ_24MHZ         3
 #define CLK_FREQ_32MHZ         4
 #define CLK_FREQ_48MHZ         5
+#define CLK_FREQ_RFU           6
 #define CLK_FREQ_22_5MHZ_HFO   7
 #define CLK_FREQ_XTAL          8
 
