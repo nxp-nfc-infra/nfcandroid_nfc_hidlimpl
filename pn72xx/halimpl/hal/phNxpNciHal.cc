@@ -143,9 +143,7 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
 static NFCSTATUS phNxpNciHal_vasEcpCfgApply(void);
 static NFCSTATUS phNxpNciHal_do_swp_session_reset(void);
 static void phNxpNciHal_print_res_status(uint8_t* p_rx_data, uint16_t* p_len);
-#if (NXP_EXTNS != TRUE)
 static NFCSTATUS phNxpNciHal_get_mw_eeprom(void);
-#endif
 static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
 #if (NXP_EXTNS == TRUE)
 //static void phNxpNciHal_configNciParser(bool enable);
@@ -1439,10 +1437,25 @@ retry_core_init:
   }
 
   // Update eeprom value
-  status = phNxpNciHal_set_mw_eeprom();
+  status = phNxpNciHal_get_mw_eeprom();
   if (status != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("NXP Update MW EEPROM Proprietary Ext failed");
+    NXPLOG_NCIHAL_E("NXP GET MW EEPROM failed");
   }
+  else
+  {
+    for(int i = 0; i < nxpncihal_ctrl.p_rx_data[7] ; i++)
+    {
+      if(nxpncihal_ctrl.p_rx_data[8 + i] != 0x00 )
+      {
+         status = phNxpNciHal_set_mw_eeprom();
+         if (status != NFCSTATUS_SUCCESS) {
+             NXPLOG_NCIHAL_E("NXP Update MW EEPROM Proprietary Ext failed");
+         }
+         break;
+      }
+    }
+  }
+
   // initialize recovery FW variables
   gRecFWDwnld = 0;
   gRecFwRetryCount = 0;
@@ -2225,7 +2238,7 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
   }
   return status;
 }
-#if (NXP_EXTNS != TRUE)
+
 /******************************************************************************
  * Function         phNxpNciHal_get_mw_eeprom
  *
@@ -2260,7 +2273,7 @@ retry_send_ext:
   }
   return status;
 }
-#endif
+
 /******************************************************************************
  * Function         phNxpNciHal_set_mw_eeprom
  *
