@@ -35,6 +35,8 @@
 #include "phNxpNciHal_IoctlOperations.h"
 #include "phNxpNciHal_extOperations.h"
 
+#include <sys/system_properties.h>
+
 using android::base::StringPrintf;
 using namespace android::hardware::nfc::V1_1;
 using namespace android::hardware::nfc::V1_2;
@@ -46,7 +48,9 @@ using android::hardware::nfc::V1_1::NfcEvent;
 #define CORE_RES_STATUS_BYTE 3
 #define MAX_NXP_HAL_EXTN_BYTES 10
 #define DEFAULT_MINIMAL_FW_VERSION 0x0110DE
-
+#if (NXP_EXTNS == TRUE)
+#define NFC_PROP_VALUE_MAX 2
+#endif
 bool bEnableMfcExtns = false;
 bool bEnableMfcReader = false;
 bool bDisableLegacyMfcExtns = true;
@@ -118,7 +122,9 @@ phNxpNciMwEepromArea_t phNxpNciMwEepromArea = {false, {0}};
 
 volatile bool_t gsIsFirstHalMinOpen = true;
 volatile bool_t gsIsFwRecoveryRequired = false;
-
+#if (NXP_EXTNS == TRUE)
+const char *spIsFirstHalMinOpen = "perisit.nfc.is_first_hal_min_open";
+#endif
 void* RfFwRegionDnld_handle = NULL;
 fpVerInfoStoreInEeprom_t fpVerInfoStoreInEeprom = NULL;
 fpRegRfFwDndl_t fpRegRfFwDndl = NULL;
@@ -726,7 +732,14 @@ int phNxpNciHal_MinOpen() {
     return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
   }
 
+#if (NXP_EXTNS == TRUE)
+  /* No need to check for download mode, if NFC Hal crashes and restarts */
+  char value[NFC_PROP_VALUE_MAX] = "0";
+  __system_property_get(spIsFirstHalMinOpen, value);
+  if (gsIsFirstHalMinOpen && (0 == std::strcmp("0", value))) {
+#else
   if (gsIsFirstHalMinOpen) {
+#endif
     phNxpNciHal_CheckAndHandleFwTearDown();
   }
 
@@ -737,13 +750,18 @@ int phNxpNciHal_MinOpen() {
 
   phTmlNfc_IoCtl(phTmlNfc_e_EnableVen);
 
+#if (NXP_EXTNS == TRUE)
+  /*mode switch gpio triggers core reset notification. Avoid core reset
+   * notification propagating to upper layer since it is initiated from HAL*/
+  nxpncihal_ctrl.nci_info.wait_for_ntf = TRUE;
+  HAL_ENABLE_EXT();
   status = phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOn);
   if (NFCSTATUS_SUCCESS == status) {
     NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - SUCCESS\n");
   } else {
     NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
   }
-
+#endif
   /* reset version info new version info will be fetch */
   wFwVerRsp = 0x00;
   wFwVer = 0x00;
@@ -911,6 +929,11 @@ int phNxpNciHal_fw_mw_ver_check() {
  ******************************************************************************/
 static void phNxpNciHal_MinOpen_complete(NFCSTATUS status) {
   gsIsFirstHalMinOpen = false;
+#if (NXP_EXTNS == TRUE)
+  if (__system_property_set(spIsFirstHalMinOpen, "1") != 0) {
+    NXPLOG_NCIHAL_E("Failed to set property perisit.nfc.is_first_hal_min_open");
+  }
+#endif
   if (status == NFCSTATUS_SUCCESS) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_MIN_OPEN;
   }
