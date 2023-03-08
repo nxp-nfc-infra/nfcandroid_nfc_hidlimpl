@@ -48,9 +48,7 @@ using android::hardware::nfc::V1_1::NfcEvent;
 #define CORE_RES_STATUS_BYTE 3
 #define MAX_NXP_HAL_EXTN_BYTES 10
 #define DEFAULT_MINIMAL_FW_VERSION 0x0110DE
-#if (NXP_EXTNS == TRUE)
 #define NFC_PROP_VALUE_MAX 2
-#endif
 bool bEnableMfcExtns = false;
 bool bEnableMfcReader = false;
 bool bDisableLegacyMfcExtns = true;
@@ -122,9 +120,7 @@ phNxpNciMwEepromArea_t phNxpNciMwEepromArea = {false, {0}};
 
 volatile bool_t gsIsFirstHalMinOpen = true;
 volatile bool_t gsIsFwRecoveryRequired = false;
-#if (NXP_EXTNS == TRUE)
-const char *spIsFirstHalMinOpen = "perisit.nfc.is_first_hal_min_open";
-#endif
+const char *spIsFirstHalMinOpen = "nfc.is_first_hal_min_open";
 void* RfFwRegionDnld_handle = NULL;
 fpVerInfoStoreInEeprom_t fpVerInfoStoreInEeprom = NULL;
 fpRegRfFwDndl_t fpRegRfFwDndl = NULL;
@@ -732,14 +728,15 @@ int phNxpNciHal_MinOpen() {
     return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
   }
 
-#if (NXP_EXTNS == TRUE)
   /* No need to check for download mode, if NFC Hal crashes and restarts */
-  char value[NFC_PROP_VALUE_MAX] = "0";
-  __system_property_get(spIsFirstHalMinOpen, value);
+  char value[NFC_PROP_VALUE_MAX];
+  if (__system_property_get(spIsFirstHalMinOpen, value) <= 0) {
+    NXPLOG_NCIHAL_D("nfc.is_first_hal_min_open property not found. assigning "
+                    "default value");
+    std::strcpy(value, "0");
+  }
+
   if (gsIsFirstHalMinOpen && (0 == std::strcmp("0", value))) {
-#else
-  if (gsIsFirstHalMinOpen) {
-#endif
     phNxpNciHal_CheckAndHandleFwTearDown();
   }
 
@@ -929,11 +926,11 @@ int phNxpNciHal_fw_mw_ver_check() {
  ******************************************************************************/
 static void phNxpNciHal_MinOpen_complete(NFCSTATUS status) {
   gsIsFirstHalMinOpen = false;
-#if (NXP_EXTNS == TRUE)
+
   if (__system_property_set(spIsFirstHalMinOpen, "1") != 0) {
-    NXPLOG_NCIHAL_E("Failed to set property perisit.nfc.is_first_hal_min_open");
+    NXPLOG_NCIHAL_E("Failed to set property nfc.is_first_hal_min_open");
   }
-#endif
+
   if (status == NFCSTATUS_SUCCESS) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_MIN_OPEN;
   }
