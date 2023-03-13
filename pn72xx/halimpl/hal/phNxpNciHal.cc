@@ -1335,7 +1335,12 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
   NFCSTATUS status = NFCSTATUS_SUCCESS;
   core_init_rsp_params_len = 10;
   p_core_init_rsp_params = NULL;
+  uint8_t* buffer = NULL;
+  long bufflen = 260;
+  uint8_t isfound = 0;
+  long retlen = 0;
   unsigned long num = 0;
+  uint8_t setConfigAlways = false;
 
 #if (NXP_EXTNS != TRUE)
   /*NCI_INIT_CMD*/
@@ -1379,6 +1384,17 @@ retry_core_init:
     NXPLOG_NCIHAL_E("%s: NXP get FW DW Flag failed", __FUNCTION__);
   }
 #endif
+
+  buffer = (uint8_t*)malloc(bufflen * sizeof(uint8_t));
+  if (NULL == buffer) {
+    return NFCSTATUS_FAILED;
+  }
+
+  setConfigAlways = false;
+  isfound = GetNxpNumValue(NAME_NXP_SET_CONFIG_ALWAYS, &num, sizeof(num));
+  if (isfound > 0) {
+    setConfigAlways = num;
+  }
 
   fw_dwnld_flag |= (bool)fw_download_success;
 
@@ -1425,6 +1441,38 @@ retry_core_init:
     }
   }
 
+  if ((true == fw_dwnld_flag) || (true == setConfigAlways) ||
+      isNxpConfigModified() || (wRfUpdateReq == true)) {
+    retlen = 0;
+    NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF_EXTN Settings");
+    isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF_EXTN, (char*)buffer,
+                                   bufflen, &retlen);
+    if (isfound > 0 && retlen > 0) {
+      /* NXP ACT Proprietary Ext */
+      status = phNxpNciHal_send_ext_cmd(retlen, buffer);
+      if (status != NFCSTATUS_SUCCESS) {
+        NXPLOG_NCIHAL_E("NXP Core configuration failed");
+      }
+    }
+
+    retlen = 0;
+    NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF Settings");
+    isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF, (char*)buffer, bufflen,
+                                   &retlen);
+    if (isfound > 0 && retlen > 0) {
+      /* NXP ACT Proprietary Ext */
+      status = phNxpNciHal_send_ext_cmd(retlen, buffer);
+      if (status != NFCSTATUS_SUCCESS) {
+        NXPLOG_NCIHAL_E("Core Set Config failed");
+      }
+    }
+  }
+
+  if (buffer) {
+    free(buffer);
+    buffer = NULL;
+  }
+
   // initialize recovery FW variables
   gRecFWDwnld = 0;
   gRecFwRetryCount = 0;
@@ -1438,6 +1486,9 @@ retry_core_init:
      } else {
        NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn - FAILED\n");
      }
+  }
+  if (isNxpConfigModified()) {
+    updateNxpConfigTimestamp();
   }
   return NFCSTATUS_SUCCESS;
 }
