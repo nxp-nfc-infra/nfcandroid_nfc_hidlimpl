@@ -314,7 +314,6 @@ typedef struct phNxpNciProfile_Control {
 int phNxpNciHal_check_ncicmd_write_window(uint16_t cmd_len, uint8_t* p_cmd);
 void phNxpNciHal_request_control(void);
 void phNxpNciHal_release_control(void);
-NFCSTATUS phNxpNciHal_send_get_cfgs();
 int phNxpNciHal_write_unlocked(uint16_t data_len, const uint8_t* p_data,
                                int origin);
 NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t* mEEPROM_info);
@@ -324,7 +323,6 @@ NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset = 0,
 NFCSTATUS phNxpNciHal_nfcc_core_reset_init(bool keep_config = false);
 int phNxpNciHal_fw_mw_ver_check();
 NFCSTATUS phNxpNciHal_check_clock_config(void);
-NFCSTATUS phNxpNciHal_china_tianjin_rf_setting(void);
 NFCSTATUS phNxpNciHal_CheckValidFwVersion(void);
 
 NFCSTATUS phNxpNciHal_send_nfcee_pwr_cntl_cmd(uint8_t type);
