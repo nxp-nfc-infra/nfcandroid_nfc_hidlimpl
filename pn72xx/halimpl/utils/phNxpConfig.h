@@ -20,7 +20,7 @@
  *
  *  The original Work has been changed by NXP.
  *
- *  Copyright (C) 2013-2021,2023 NXP
+ *  Copyright 2013-2021,2023 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@ int GetNxpByteArrayValue(const char* name, char* pValue, long bufflen,
 void resetNxpConfig(void);
 int isNxpRFConfigModified();
 int isNxpConfigModified();
+int isNxpEepromConfigModified();
 int updateNxpConfigTimestamp();
+int updateNxpEepromConfigTimestamp();
 int updateNxpRfConfigTimestamp();
 void setNxpRfConfigPath(const char* name);
 void setNxpFwConfigPath();

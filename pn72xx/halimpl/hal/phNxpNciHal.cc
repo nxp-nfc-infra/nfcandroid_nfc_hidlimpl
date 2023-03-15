@@ -806,8 +806,33 @@ int phNxpNciHal_MinOpen() {
     }
 
   } while (status != NFCSTATUS_SUCCESS || gsIsFwRecoveryRequired);
-  /* Call open complete */
 
+  /* Update the EEPROM area if libnfc-nxp-eeprom.conf modified*/
+  if(isNxpEepromConfigModified())
+  {
+      unsigned long num = 0;
+      int ret = 0;
+
+      if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
+          NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
+      }
+
+      ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
+      if (!ret || num == 1) {
+        phNxpNciHal_prop_conf_lpcd(true);
+      } else if (ret && num == 0) {
+        phNxpNciHal_prop_conf_lpcd(false);
+      }
+
+      /* VEN Reset is mandatory post EEPROM (0xA2 Config) update */
+      if (NFCSTATUS_SUCCESS == phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice)) {
+        NXPLOG_NCIHAL_D("VEN Reset - SUCCESS\n");
+      } else {
+        NXPLOG_NCIHAL_D("VEN Reset - FAILED\n");
+      }
+  }
+
+  /* Call open complete */
   phNxpNciHal_MinOpen_complete(wConfigStatus);
   NXPLOG_NCIHAL_D("phNxpNciHal_MinOpen(): exit");
   return wConfigStatus;
@@ -1402,10 +1427,6 @@ retry_core_init:
     fw_download_success = 0;
   }
 
-  if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
-  }
-
   if (GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_STANBY, &num, sizeof(num))) {
     if (num == 0 || num == 1) {
       uint8_t coreStandBy[] = {0x2F, 0x00, 0x01, 0x00};
@@ -1489,6 +1510,9 @@ retry_core_init:
   }
   if (isNxpConfigModified()) {
     updateNxpConfigTimestamp();
+  }
+  if (isNxpEepromConfigModified()) {
+    updateNxpEepromConfigTimestamp();
   }
   return NFCSTATUS_SUCCESS;
 }
@@ -2476,16 +2500,6 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
   NFCSTATUS status = NFCSTATUS_SUCCESS;
   if (fw_update_req) {
     status = phNxpNciHal_nfcc_core_reset_init(keep_config);
-  }
-  if (status == NFCSTATUS_SUCCESS) {
-    unsigned long num = 0;
-    int ret = 0;
-    ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
-    if (!ret || num == 1) {
-      phNxpNciHal_prop_conf_lpcd(true);
-    } else if (ret && num == 0) {
-      phNxpNciHal_prop_conf_lpcd(false);
-    }
   }
   return status;
 }

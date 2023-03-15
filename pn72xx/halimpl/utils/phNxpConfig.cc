@@ -32,7 +32,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Copyright 2013-2021 NXP
+ *  Copyright 2013-2021,2023 NXP
  *
  ******************************************************************************/
 
@@ -72,7 +72,8 @@ const int transport_config_path_size =
 typedef enum {
   CONF_FILE_NXP = 0x00,
   CONF_FILE_NXP_RF,
-  CONF_FILE_NXP_TRANSIT
+  CONF_FILE_NXP_TRANSIT,
+  CONF_FILE_NXP_EEPROM
 } tNXP_CONF_FILE;
 
 const char rf_config_timestamp_path[] =
@@ -81,6 +82,10 @@ const char tr_config_timestamp_path[] =
     "/data/vendor/nfc/libnfc-nxpTransitConfigState.bin";
 const char config_timestamp_path[] =
     "/data/vendor/nfc/libnfc-nxpConfigState.bin";
+const char eeprom_config_timestamp_path[] =
+    "/data/vendor/nfc/libnfc-nxpEepromConfigState.bin";
+char nxp_eeprom_config_path[50] =
+                  "/vendor/etc/libnfc-nxp-eeprom.conf";
 /*const char default_nxp_config_path[] =
         "/vendor/etc/libnfc-nxp.conf";*/
 char nxp_rf_config_path[256] = "/system/vendor/libnfc-nxp_RF.conf";
@@ -153,6 +158,7 @@ class CNfcConfig : public vector<const CNfcParam*> {
   bool getValue(const char* name, char* pValue, long len, long* readlen) const;
   const CNfcParam* find(const char* p_name) const;
   void readNxpTransitConfig(const char* fileName) const;
+  void readNxpEepromConfig(const char* fileName) const;
   void readNxpRFConfig(const char* fileName) const;
   void clean();
 
@@ -169,6 +175,7 @@ class CNfcConfig : public vector<const CNfcParam*> {
   uint32_t config_crc32_;
   uint32_t config_rf_crc32_;
   uint32_t config_tr_crc32_;
+  uint32_t config_eeprom_crc32_;
   string mCurrentFile;
 
   unsigned long state;
@@ -301,6 +308,8 @@ bool CNfcConfig::readConfig(const char* name, bool bResetContent) {
     config_rf_crc32_ = sparse_crc32(0, (const void*)p_config, (int)config_size);
   } else if (strcmp(name, transit_config_path) == 0) {
     config_tr_crc32_ = sparse_crc32(0, (const void*)p_config, (int)config_size);
+  } else if (strcmp(name, nxp_eeprom_config_path) == 0) {
+    config_eeprom_crc32_ = sparse_crc32(0, (const void*)p_config, (int)config_size);
   } else {
     config_crc32_ = sparse_crc32(0, (const void*)p_config, (int)config_size);
   }
@@ -459,6 +468,7 @@ CNfcConfig::CNfcConfig()
       config_crc32_(0),
       config_rf_crc32_(0),
       config_tr_crc32_(0),
+      config_eeprom_crc32_(0),
       state(0) {}
 
 /*******************************************************************************
@@ -512,6 +522,7 @@ CNfcConfig& CNfcConfig::GetInstance() {
     }
 
     theInstance.readConfig(strPath.c_str(), true);
+    theInstance.readNxpEepromConfig(nxp_eeprom_config_path);
 #if (NXP_EXTNS == TRUE)
     theInstance.readNxpRFConfig(nxp_rf_config_path);
     theInstance.readNxpTransitConfig(transit_config_path);
@@ -663,6 +674,20 @@ void CNfcConfig::readNxpRFConfig(const char* fileName) const {
 
 /*******************************************************************************
 **
+** Function:    CNfcConfig::readNxpEepromConfig()
+**
+** Description: read Config settings from EEPROM conf file
+**
+** Returns:     none
+**
+*******************************************************************************/
+void CNfcConfig::readNxpEepromConfig(const char* fileName) const {
+  ALOGD("readNxpEepromConfig-Enter..Reading %s", fileName);
+  CNfcConfig::GetInstance().readConfig(fileName, false);
+}
+
+/*******************************************************************************
+**
 ** Function:    CNfcConfig::clean()
 **
 ** Description: reset the setting array
@@ -794,6 +819,17 @@ void CNfcConfig::moveToList() {
     m_list.push_back(*it);
   clear();
 }
+
+/*******************************************************************************
+**
+** Function:    CNfcConfig::isModified()
+**
+** Description: compare the timestamp and check config file is modified or not
+**
+** Returns:     true  (modified)
+**              false (Not modified)
+**
+*******************************************************************************/
 bool CNfcConfig::isModified(tNXP_CONF_FILE aType) {
   FILE* fd = NULL;
   bool isModified = false;
@@ -808,6 +844,9 @@ bool CNfcConfig::isModified(tNXP_CONF_FILE aType) {
       break;
     case CONF_FILE_NXP_TRANSIT:
       fd = fopen(tr_config_timestamp_path, "r+");
+      break;
+    case CONF_FILE_NXP_EEPROM:
+      fd = fopen(eeprom_config_timestamp_path, "r+");
       break;
     default:
       ALOGD("Invalid conf file type");
@@ -836,6 +875,11 @@ bool CNfcConfig::isModified(tNXP_CONF_FILE aType) {
     case CONF_FILE_NXP_TRANSIT:
       isModified = stored_crc32 != config_tr_crc32_;
       break;
+    case CONF_FILE_NXP_EEPROM:
+      isModified = stored_crc32 != config_eeprom_crc32_;
+      break;
+    default:
+      ALOGD("Invalid conf file type");
   }
   return isModified;
 }
@@ -853,6 +897,9 @@ void CNfcConfig::resetModified(tNXP_CONF_FILE aType) {
       break;
     case CONF_FILE_NXP_TRANSIT:
       fd = fopen(tr_config_timestamp_path, "w+");
+      break;
+    case CONF_FILE_NXP_EEPROM:
+      fd = fopen(eeprom_config_timestamp_path, "w+");
       break;
     default:
       ALOGD("Invalid conf file type");
@@ -874,6 +921,11 @@ void CNfcConfig::resetModified(tNXP_CONF_FILE aType) {
     case CONF_FILE_NXP_TRANSIT:
       fwrite(&config_tr_crc32_, sizeof(uint32_t), 1, fd);
       break;
+    case CONF_FILE_NXP_EEPROM:
+      fwrite(&config_eeprom_crc32_, sizeof(uint32_t), 1, fd);
+      break;
+    default:
+      ALOGD("Invalid conf file type");
   }
   fclose(fd);
 }
@@ -1101,6 +1153,20 @@ extern "C" int isNxpConfigModified() {
   return rConfig.isModified(CONF_FILE_NXP);
 }
 
+
+/*******************************************************************************
+**
+** Function:    isEEPROMConfigModified()
+**
+** Description: check if config file has modified
+**
+** Returns:     0 if not modified, 1 otherwise.
+**
+*******************************************************************************/
+extern "C" int isNxpEepromConfigModified() {
+  CNfcConfig& rConfig = CNfcConfig::GetInstance();
+  return rConfig.isModified(CONF_FILE_NXP_EEPROM);
+}
 /*******************************************************************************
 **
 ** Function:    isNxpRFConfigModified()
@@ -1132,6 +1198,21 @@ extern "C" int isNxpRFConfigModified() {
 extern "C" int updateNxpConfigTimestamp() {
   CNfcConfig& rConfig = CNfcConfig::GetInstance();
   rConfig.resetModified(CONF_FILE_NXP);
+  return 0;
+}
+
+/*******************************************************************************
+**
+** Function:    updateNxpEepromConfigTimestamp()
+**
+** Description: update if config file has modified
+**
+** Returns:     0 if not modified, 1 otherwise.
+**
+*******************************************************************************/
+extern "C" int updateNxpEepromConfigTimestamp() {
+  CNfcConfig& rConfig = CNfcConfig::GetInstance();
+  rConfig.resetModified(CONF_FILE_NXP_EEPROM);
   return 0;
 }
 /*******************************************************************************
