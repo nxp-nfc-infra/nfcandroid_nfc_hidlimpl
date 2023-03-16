@@ -878,8 +878,6 @@ bool CNfcConfig::isModified(tNXP_CONF_FILE aType) {
     case CONF_FILE_NXP_EEPROM:
       isModified = stored_crc32 != config_eeprom_crc32_;
       break;
-    default:
-      ALOGD("Invalid conf file type");
   }
   return isModified;
 }
@@ -924,8 +922,6 @@ void CNfcConfig::resetModified(tNXP_CONF_FILE aType) {
     case CONF_FILE_NXP_EEPROM:
       fwrite(&config_eeprom_crc32_, sizeof(uint32_t), 1, fd);
       break;
-    default:
-      ALOGD("Invalid conf file type");
   }
   fclose(fd);
 }
