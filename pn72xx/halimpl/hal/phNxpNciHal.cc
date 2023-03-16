@@ -140,7 +140,6 @@ static void phNxpNciHal_kill_client_thread(
 static void phNxpNciHal_nfccClockCfgRead(void);
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
 static NFCSTATUS phNxpNciHal_vasEcpCfgApply(void);
-static NFCSTATUS phNxpNciHal_do_swp_session_reset(void);
 static void phNxpNciHal_print_res_status(uint8_t* p_rx_data, uint16_t* p_len);
 static NFCSTATUS phNxpNciHal_get_mw_eeprom(void);
 static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
@@ -2505,28 +2504,6 @@ NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
 }
 
 /******************************************************************************
- * Function         phNxpNciHal_do_se_session_reset
- *
- * Description      This function is called to set the session id to default
- *                  value.
- *
- * Returns          NFCSTATUS.
- *
- ******************************************************************************/
-static NFCSTATUS phNxpNciHal_do_swp_session_reset(void) {
-  NFCSTATUS status = NFCSTATUS_FAILED;
-  static uint8_t reset_swp_session_identity_set[] = {
-      0x20, 0x02, 0x17, 0x02, 0xA0, 0xEA, 0x08, 0xFF, 0xFF,
-      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xA0, 0x1E, 0x08,
-      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  status = phNxpNciHal_send_ext_cmd(sizeof(reset_swp_session_identity_set),
-                                    reset_swp_session_identity_set);
-  if (status != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("NXP reset_ese_session_identity_set command failed");
-  }
-  return status;
-}
-/******************************************************************************
  * Function         phNxpNciHal_do_factory_reset
  *
  * Description      This function is called during factory reset to clear/reset
@@ -2543,10 +2520,6 @@ void phNxpNciHal_do_factory_reset(void) {
       NXPLOG_NCIHAL_E("%s: NXP Nfc Open failed", __func__);
       return;
     }
-  }
-  status = phNxpNciHal_do_swp_session_reset();
-  if (status != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("%s failed. status = %x ", __func__, status);
   }
 }
 /******************************************************************************
