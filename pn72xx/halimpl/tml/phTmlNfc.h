@@ -77,7 +77,7 @@
 
 typedef struct phTmlNfc_TransactInfo {
   NFCSTATUS wStatus;       /* Status of the Transaction Completion*/
-  uint8_t* pBuff;          /* Response Data of the Transaction*/
+  uint8_t *pBuff;          /* Response Data of the Transaction*/
   uint16_t wLength;        /* Data size of the Transaction*/
 } phTmlNfc_TransactInfo_t; /* Instance of Transaction structure */
 
@@ -88,7 +88,7 @@ typedef struct phTmlNfc_TransactInfo {
  * pInfo    - Transaction info. See phTmlNfc_TransactInfo
  */
 typedef void (*pphTmlNfc_TransactCompletionCb_t)(
-    void* pContext, phTmlNfc_TransactInfo_t* pInfo);
+    void *pContext, phTmlNfc_TransactInfo_t *pInfo);
 
 /*
  * TML Deferred callback interface structure invoked by upper layer
@@ -99,7 +99,7 @@ typedef void (*pphTmlNfc_TransactCompletionCb_t)(
  * pParams Parameters for the deferred call processing
  */
 typedef void (*pphTmlNfc_DeferFuncPointer_t)(uint32_t dwMsgPostedThread,
-                                             void* pParams);
+                                             void *pParams);
 
 /*
  * Enum definition contains  supported ioctl control codes.
@@ -142,8 +142,8 @@ typedef struct phTmlNfc_ReadWriteInfo {
       bThreadBusy; /*Flag to indicate thread is busy on respective operation */
   /* Transaction completion Callback function */
   pphTmlNfc_TransactCompletionCb_t pThread_Callback;
-  void* pContext;        /*Context passed while invocation of operation */
-  uint8_t* pBuffer;      /*Buffer passed while invocation of operation */
+  void *pContext;        /*Context passed while invocation of operation */
+  uint8_t *pBuffer;      /*Buffer passed while invocation of operation */
   uint16_t wLength;      /*Length of data read/written */
   NFCSTATUS wWorkStatus; /*Status of the transaction performed */
 } phTmlNfc_ReadWriteInfo_t;
@@ -165,7 +165,7 @@ typedef struct phTmlNfc_Context {
   uint32_t dwTimerId;      /* Timer used to retransmit nci packet */
   phTmlNfc_ReadWriteInfo_t tReadInfo;  /*Pointer to Reader Thread Structure */
   phTmlNfc_ReadWriteInfo_t tWriteInfo; /*Pointer to Writer Thread Structure */
-  void* pDevHandle;                    /* Pointer to Device Handle */
+  void *pDevHandle;                    /* Pointer to Device Handle */
   uintptr_t dwCallbackThreadId; /* Thread ID to which message to be posted */
   uint8_t bEnableCrc;           /*Flag to validate/not CRC for input buffer */
   sem_t rxSemaphore;
@@ -191,7 +191,7 @@ typedef struct phTmlNfc_Config {
    *
    * e.g. On Linux based systems this would be /dev/nxpnfc
    */
-  int8_t* pDevName;
+  int8_t *pDevName;
   /* Callback Thread ID
    *
    * This is the thread ID on which the Reader & Writer thread posts message. */
@@ -218,7 +218,7 @@ typedef struct {
    *
    * This is passed as a parameter passed to the deferred callback function
    * pDef_call. */
-  void* pParams;
+  void *pParams;
 } phTmlNfc_DeferMsg_t; /* DeferMsg structure passed to User Thread */
 
 typedef enum {
@@ -230,17 +230,17 @@ NFCSTATUS phTmlNfc_Init(pphTmlNfc_Config_t pConfig);
 NFCSTATUS phTmlNfc_Shutdown(void);
 NFCSTATUS phTmlNfc_Shutdown_CleanUp();
 void phTmlNfc_CleanUp(void);
-NFCSTATUS phTmlNfc_Write(uint8_t* pBuffer, uint16_t wLength,
+NFCSTATUS phTmlNfc_Write(uint8_t *pBuffer, uint16_t wLength,
                          pphTmlNfc_TransactCompletionCb_t pTmlWriteComplete,
-                         void* pContext);
-NFCSTATUS phTmlNfc_Read(uint8_t* pBuffer, uint16_t wLength,
+                         void *pContext);
+NFCSTATUS phTmlNfc_Read(uint8_t *pBuffer, uint16_t wLength,
                         pphTmlNfc_TransactCompletionCb_t pTmlReadComplete,
-                        void* pContext);
+                        void *pContext);
 NFCSTATUS phTmlNfc_WriteAbort(void);
 NFCSTATUS phTmlNfc_ReadAbort(void);
 NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode);
 void phTmlNfc_DeferredCall(uintptr_t dwThreadId,
-                           phLibNfc_Message_t* ptWorkerMsg);
+                           phLibNfc_Message_t *ptWorkerMsg);
 void phTmlNfc_ConfigNciPktReTx(phTmlNfc_ConfigRetrans_t eConfig,
                                uint8_t bRetryCount);
 void phTmlNfc_set_fragmentation_enabled(phTmlNfc_i2cfragmentation_t enable);

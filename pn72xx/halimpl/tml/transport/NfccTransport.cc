@@ -18,16 +18,16 @@
 
 #include <NfccTransport.h>
 
-int NfccTransport::NfccReset(__attribute__((unused)) void* pDevHandle,
+int NfccTransport::NfccReset(__attribute__((unused)) void *pDevHandle,
                              __attribute__((unused)) NfccResetType eType) {
   return NFCSTATUS_SUCCESS;
 }
 
-int NfccTransport::EseReset(__attribute__((unused)) void* pDevHandle,
+int NfccTransport::EseReset(__attribute__((unused)) void *pDevHandle,
                             __attribute__((unused)) EseResetType eType) {
   return NFCSTATUS_SUCCESS;
 }
-int NfccTransport::EseGetPower(__attribute__((unused)) void* pDevHandle,
+int NfccTransport::EseGetPower(__attribute__((unused)) void *pDevHandle,
                                __attribute__((unused)) uint32_t level) {
   return NFCSTATUS_SUCCESS;
 }
@@ -44,13 +44,13 @@ bool NfccTransport::Flushdata(__attribute__((unused))
 }
 
 #if (NXP_EXTNS == TRUE)
- int NfccTransport::SetLED(__attribute__((unused)) void* pDevHandle,
-                           __attribute__((unused)) LEDControl eType) {
+int NfccTransport::SetLED(__attribute__((unused)) void *pDevHandle,
+                          __attribute__((unused)) LEDControl eType) {
   return true;
- }
- int NfccTransport::SetModeSwitch(
-     __attribute__((unused)) void *p_dev_handle,
-     __attribute__((unused)) enum ProfileMode eType) {
-   return NFCSTATUS_SUCCESS;
- }
+}
+int NfccTransport::SetModeSwitch(
+    __attribute__((unused)) void *p_dev_handle,
+    __attribute__((unused)) enum ProfileMode eType) {
+  return NFCSTATUS_SUCCESS;
+}
 #endif

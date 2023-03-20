@@ -77,15 +77,15 @@
  * Currently only 24MHz, 32MHz, 48MHz and XTAL configuration supported,
  * others are RFUs.
  */
-#define CLK_FREQ_8MHZ          0
-#define CLK_FREQ_12MHZ         1
-#define CLK_FREQ_16MHZ         2
-#define CLK_FREQ_24MHZ         3
-#define CLK_FREQ_32MHZ         4
-#define CLK_FREQ_48MHZ         5
-#define CLK_FREQ_RFU           6
-#define CLK_FREQ_22_5MHZ_HFO   7
-#define CLK_FREQ_XTAL          8
+#define CLK_FREQ_8MHZ 0
+#define CLK_FREQ_12MHZ 1
+#define CLK_FREQ_16MHZ 2
+#define CLK_FREQ_24MHZ 3
+#define CLK_FREQ_32MHZ 4
+#define CLK_FREQ_48MHZ 5
+#define CLK_FREQ_RFU 6
+#define CLK_FREQ_22_5MHZ_HFO 7
+#define CLK_FREQ_XTAL 8
 
 /* Set to one of CLK_FREQ_<value> */
 #define NXP_SYS_CLK_FREQ_SEL CLK_FREQ_XTAL
@@ -100,7 +100,7 @@
  *  information to configure OSAL
  */
 typedef struct phOsalNfc_Config {
-  uint8_t* pLogFile;            /* Log File Name*/
+  uint8_t *pLogFile;            /* Log File Name*/
   uintptr_t dwCallbackThreadId; /* Client ID to which message is posted */
 } phOsalNfc_Config_t, *pphOsalNfc_Config_t /* Pointer to #phOsalNfc_Config_t */;
 
@@ -109,14 +109,14 @@ typedef struct phOsalNfc_Config {
  * This type of API is called from ClientApplication (main thread) to notify
  * specific callback.
  */
-typedef void (*pphOsalNfc_DeferFuncPointer_t)(void*);
+typedef void (*pphOsalNfc_DeferFuncPointer_t)(void *);
 
 /*
  * Deferred message specific info declaration.
  */
 typedef struct phOsalNfc_DeferedCallInfo {
   pphOsalNfc_DeferFuncPointer_t pDeferedCall; /* pointer to Deferred callback */
-  void* pParam; /* contains timer message specific details*/
+  void *pParam; /* contains timer message specific details*/
 } phOsalNfc_DeferedCallInfo_t;
 
 /*
@@ -136,7 +136,7 @@ typedef struct phOsalNfc_TimerHandle {
   timer_t hTimerHandle; /* Handle of the timer */
   /* Timer callback function to be invoked */
   pphOsalNfc_TimerCallbck_t Application_callback;
-  void* pContext; /* Parameter to be passed to the callback function */
+  void *pContext; /* Parameter to be passed to the callback function */
   phOsalNfc_TimerStates_t eState; /* Timer states */
   /* Osal Timer message posted on User Thread */
   phLibNfc_Message_t tOsalMessage;

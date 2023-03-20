@@ -47,7 +47,7 @@
 /* End of EEPROM address for log */
 #define PHDNLDNFC_EEPROM_LOG_END_ADDR (0x201FBFU)
 
-#define PHDNLDNFC_MAX_LOG_SIZE \
+#define PHDNLDNFC_MAX_LOG_SIZE                                                 \
   ((PHDNLDNFC_EEPROM_LOG_END_ADDR - PHDNLDNFC_EEPROM_LOG_START_ADDR) + 1)
 
 /*
@@ -62,10 +62,10 @@ typedef enum phDnldNfc_Event {
   phDnldNfc_EventIntegChk,       /* Integrity Check event*/
   phDnldNfc_EventGetSesnSt,      /* Get Session State event*/
 #if (NXP_EXTNS == TRUE)
-  phDnldNfc_EventGetDieId,      /* Get Die ID event*/
+  phDnldNfc_EventGetDieId, /* Get Die ID event*/
 #endif
-  phDnldNfc_EventLog,            /* Log event*/
-  phDnldNfc_EventForce,          /* Force event*/
+  phDnldNfc_EventLog,   /* Log event*/
+  phDnldNfc_EventForce, /* Force event*/
   phDnldNfc_EventRaw, /* Raw Req/Rsp event,used currently for sending NCI RESET
                          cmd */
   phDnldNfc_EVENT_INT_MAX /* Max Event Count*/
@@ -173,20 +173,20 @@ typedef struct phDnldNfc_RWInfo {
  * Download context structure
  */
 typedef struct phDnldNfc_DlContext {
-  const uint8_t* nxp_nfc_fw; /* Pointer to firmware version from image */
-  const uint8_t*
-      nxp_nfc_fwp; /* Pointer to firmware version from get_version cmd */
+  const uint8_t *nxp_nfc_fw; /* Pointer to firmware version from image */
+  const uint8_t
+      *nxp_nfc_fwp; /* Pointer to firmware version from get_version cmd */
   uint32_t nxp_nfc_fwp_len; /* Length of firmware image length */
   uint32_t nxp_nfc_fw_len;  /* Firmware image length */
   uint16_t nxp_i2c_fragment_len;
-  bool_t bResendLastFrame;  /* Flag to resend the last write frame after MEM_BSY
-                               status */
+  bool_t bResendLastFrame; /* Flag to resend the last write frame after MEM_BSY
+                              status */
   phDnldNfc_Transition_t
       tDnldInProgress; /* Flag to indicate if download request is ongoing */
   phDnldNfc_Event_t tCurrEvent; /* Current event being processed */
   phDnldNfc_State_t tCurrState; /* Current state being processed */
   pphDnldNfc_RspCb_t UserCb;    /* Upper layer call back function */
-  void* UserCtxt;               /* Pointer to upper layer context */
+  void *UserCtxt;               /* Pointer to upper layer context */
   phDnldNfc_Buff_t tUserData;   /* Data buffer provided by caller */
   phDnldNfc_Buff_t
       tRspBuffInfo; /* Buffer to store payload field of the received response*/
@@ -210,7 +210,7 @@ typedef struct phDnldNfc_DlContext {
     *pphDnldNfc_DlContext_t; /* pointer to #phDnldNfc_DlContext_t structure */
 
 /* The phDnldNfc_CmdHandler function declaration */
-extern NFCSTATUS phDnldNfc_CmdHandler(void* pContext,
+extern NFCSTATUS phDnldNfc_CmdHandler(void *pContext,
                                       phDnldNfc_Event_t TrigEvent);
 
 #endif /* PHDNLDNFC_INTERNAL_H */

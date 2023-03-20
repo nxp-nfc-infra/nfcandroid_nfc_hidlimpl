@@ -35,7 +35,7 @@ extern "C" {
  *        TimerId  - Timer Id for which callback is called.
  *        pContext - Parameter to be passed to the callback function
  */
-typedef void (*pphOsalNfc_TimerCallbck_t)(uint32_t TimerId, void* pContext);
+typedef void (*pphOsalNfc_TimerCallbck_t)(uint32_t TimerId, void *pContext);
 
 /*
  * The Timer could not be created due to a
@@ -73,12 +73,12 @@ typedef void (*pphOsalNfc_TimerCallbck_t)(uint32_t TimerId, void* pContext);
 uint32_t phOsalNfc_Timer_Create(void);
 NFCSTATUS phOsalNfc_Timer_Start(uint32_t dwTimerId, uint32_t dwRegTimeCnt,
                                 pphOsalNfc_TimerCallbck_t pApplication_callback,
-                                void* pContext);
+                                void *pContext);
 NFCSTATUS phOsalNfc_Timer_Stop(uint32_t dwTimerId);
 NFCSTATUS phOsalNfc_Timer_Delete(uint32_t dwTimerId);
 void phOsalNfc_Timer_Cleanup(void);
 uint32_t phUtilNfc_CheckForAvailableTimer(void);
-NFCSTATUS phOsalNfc_CheckTimerPresence(void* pObjectHandle);
+NFCSTATUS phOsalNfc_CheckTimerPresence(void *pObjectHandle);
 
 #ifdef __cplusplus
 }

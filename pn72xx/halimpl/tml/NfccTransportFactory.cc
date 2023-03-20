@@ -44,7 +44,7 @@ NfccTransportFactory::NfccTransportFactory() {}
 **
 ** Returns          Selected transport channel
 ******************************************************************************/
-NfccTransportFactory& NfccTransportFactory::getInstance() {
+NfccTransportFactory &NfccTransportFactory::getInstance() {
   static NfccTransportFactory mTransprtFactoryInstance;
   return mTransprtFactoryInstance;
 }
@@ -64,13 +64,13 @@ spTransport NfccTransportFactory::getTransport(transportIntf transportType) {
   NXPLOG_TML_D("%s Requested transportType: %d\n", __func__, transportType);
   spTransport mspTransportInterface;
   switch (transportType) {
-    case I2C:
-    case UNKNOWN:
-      mspTransportInterface = std::make_shared<NfccI2cTransport>();
-      break;
-    default:
-      mspTransportInterface = std::make_shared<NfccI2cTransport>();
-      break;
+  case I2C:
+  case UNKNOWN:
+    mspTransportInterface = std::make_shared<NfccI2cTransport>();
+    break;
+  default:
+    mspTransportInterface = std::make_shared<NfccI2cTransport>();
+    break;
   }
   return mspTransportInterface;
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include <hardware/nfc.h>
 #include "NxpNfc.h"
 #include "phNfcStatus.h"
 #include "phNxpConfig.h"
 #include "phNxpLog.h"
+#include <hardware/nfc.h>
 
 /*******************************************************************************
 **
@@ -67,7 +67,7 @@ string phNxpNciHal_getNxpConfigIf();
 ** Returns          bool.
 **
 *******************************************************************************/
-bool phNxpNciHal_setNxpTransitConfig(char* transitConfValue);
+bool phNxpNciHal_setNxpTransitConfig(char *transitConfValue);
 
 /*******************************************************************************
  **
@@ -78,8 +78,8 @@ bool phNxpNciHal_setNxpTransitConfig(char* transitConfValue);
  ** Returns:         status
  **
  ********************************************************************************/
-int phNxpNciHal_CheckFwRegFlashRequired(uint8_t* fw_update_req,
-                                        uint8_t* rf_update_req,
+int phNxpNciHal_CheckFwRegFlashRequired(uint8_t *fw_update_req,
+                                        uint8_t *rf_update_req,
                                         uint8_t skipEEPROMRead);
 
 /*******************************************************************************
@@ -96,8 +96,8 @@ int phNxpNciHal_CheckFwRegFlashRequired(uint8_t* fw_update_req,
  ** Returns:         actual length of the property value
  **
  ********************************************************************************/
-int property_get_intf(const char* propName, char* valueStr,
-                      const char* defaultStr);
+int property_get_intf(const char *propName, char *valueStr,
+                      const char *defaultStr);
 
 /*******************************************************************************
  **
@@ -111,7 +111,7 @@ int property_get_intf(const char* propName, char* valueStr,
  ** Returns:        returns 0 on success, < 0 on failure
  **
  ********************************************************************************/
-int property_set_intf(const char* propName, const char* valueStr);
+int property_set_intf(const char *propName, const char *valueStr);
 
 /*******************************************************************************
  **

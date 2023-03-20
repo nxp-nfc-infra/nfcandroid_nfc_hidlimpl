@@ -20,19 +20,19 @@
 #include "phNxpConfig.h"
 #include "phNxpLog.h"
 #endif
-#include <log/log.h>
 #include "phNxpNciHal_IoctlOperations.h"
+#include <log/log.h>
 
-const char* NXPLOG_ITEM_EXTNS = "NxpExtns";
-const char* NXPLOG_ITEM_NCIHAL = "NxpHal";
-const char* NXPLOG_ITEM_NCIX = "NxpNciX";
-const char* NXPLOG_ITEM_NCIR = "NxpNciR";
-const char* NXPLOG_ITEM_FWDNLD = "NxpFwDnld";
-const char* NXPLOG_ITEM_TML = "NxpTml";
+const char *NXPLOG_ITEM_EXTNS = "NxpExtns";
+const char *NXPLOG_ITEM_NCIHAL = "NxpHal";
+const char *NXPLOG_ITEM_NCIX = "NxpNciX";
+const char *NXPLOG_ITEM_NCIR = "NxpNciR";
+const char *NXPLOG_ITEM_FWDNLD = "NxpFwDnld";
+const char *NXPLOG_ITEM_TML = "NxpTml";
 
 #ifdef NXP_HCI_REQ
-const char* NXPLOG_ITEM_HCPX = "NxpHcpX";
-const char* NXPLOG_ITEM_HCPR = "NxpHcpR";
+const char *NXPLOG_ITEM_HCPX = "NxpHcpX";
+const char *NXPLOG_ITEM_HCPR = "NxpHcpR";
 #endif /*NXP_HCI_REQ*/
 
 /* global log level structure */
@@ -249,8 +249,7 @@ void phNxpLog_InitializeLogLevel(void) {
   phNxpLog_SetDnldLogLevel(level);
   phNxpLog_SetNciTxLogLevel(level);
 
-  ALOGD_IF(nfc_debug_enabled,
-           "%s: global =%u, Fwdnld =%u, extns =%u, \
+  ALOGD_IF(nfc_debug_enabled, "%s: global =%u, Fwdnld =%u, extns =%u, \
                 hal =%u, tml =%u, ncir =%u, \
                 ncix =%u",
            __func__, gLog_level.global_log_level, gLog_level.dnld_log_level,

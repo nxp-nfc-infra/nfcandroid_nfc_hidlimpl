@@ -65,7 +65,7 @@ static uint16_t const aCrcTab[256] = {
 ** Returns          wCrc  - computed 2 byte CRC16 value
 **
 *******************************************************************************/
-uint16_t phDnldNfc_CalcCrc16(uint8_t* pBuff, uint16_t wLen) {
+uint16_t phDnldNfc_CalcCrc16(uint8_t *pBuff, uint16_t wLen) {
   uint16_t wTmp;
   uint16_t wValue;
   uint16_t wCrc = 0xffff;

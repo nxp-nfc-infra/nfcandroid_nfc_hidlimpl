@@ -43,10 +43,10 @@
  *     NFCSTATUS status = PHNFCSTVAL(phNfcCompID, phNfcStatus); ...
  *     if (status == PHNFCSTVAL(phNfcCompID, phNfcStatus)) ...
  */
-#define PHNFCSTVAL(phNfcCompID, phNfcStatus)               \
-  (((phNfcStatus) == (NFCSTATUS_SUCCESS))                  \
-       ? (NFCSTATUS_SUCCESS)                               \
-       : ((((NFCSTATUS)(phNfcStatus)) & (PHNFCSTBLOWER)) | \
+#define PHNFCSTVAL(phNfcCompID, phNfcStatus)                                   \
+  (((phNfcStatus) == (NFCSTATUS_SUCCESS))                                      \
+       ? (NFCSTATUS_SUCCESS)                                                   \
+       : ((((NFCSTATUS)(phNfcStatus)) & (PHNFCSTBLOWER)) |                     \
           (((uint16_t)(phNfcCompID)) << (PHNFCSTSHL8))))
 
 /*

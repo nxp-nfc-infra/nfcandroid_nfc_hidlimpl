@@ -33,11 +33,17 @@ typedef enum phDnldNfc_CmdId {
   PH_DL_CMD_GETVERSION = 0xE1,     /* Get Version */
   PH_DL_CMD_CHECKINTEGRITY = 0xE7, /* Check Integrity */
   PH_DL_CMD_WRITE = 0x8C,          /* Write */
-  PH_DL_CMD_READ = 0xA2,           /* Read */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid the compilation issue */
-  PH_DL_CMD_LOG = 0xA7,            /* Log */  /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid the compilation issue */
-  PH_DL_CMD_FORCE = 0xD0,          /* Force *//* TODO: Cuurently,this cmd is not support by FW, keep it to avoid the compilation issue */
+  PH_DL_CMD_READ = 0xA2,
+  /* Read */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid
+                the compilation issue */
+  PH_DL_CMD_LOG = 0xA7,
+  /* Log */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid
+               the compilation issue */
+  PH_DL_CMD_FORCE = 0xD0,
+  /* Force */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid
+                 the compilation issue */
   PH_DL_CMD_GETSESSIONSTATE = 0xDB, /* Get Session State */
-  PH_DL_CMD_GETDIE_ID = 0xDF          /* Fetch Die ID */
+  PH_DL_CMD_GETDIE_ID = 0xDF        /* Fetch Die ID */
 } phDnldNfc_CmdId_t;
 
 #endif /* PHDNLDNFC_CMD_H */

@@ -19,10 +19,10 @@
 #include <log/log.h>
 #include <pthread.h>
 
+#include "phNxpNciHal_extOperations.h"
 #include <phNxpLog.h>
 #include <phNxpNciHal.h>
 #include <phNxpNciHal_utils.h>
-#include "phNxpNciHal_extOperations.h"
 
 extern phNxpNciHal_Control_t nxpncihal_ctrl;
 /*********************** Link list functions **********************************/
@@ -36,7 +36,7 @@ extern phNxpNciHal_Control_t nxpncihal_ctrl;
 ** Returns          1, if list initialized, 0 otherwise
 **
 *******************************************************************************/
-int listInit(struct listHead* pList) {
+int listInit(struct listHead *pList) {
   pList->pFirst = NULL;
   if (pthread_mutex_init(&pList->mutex, NULL) != 0) {
     NXPLOG_NCIHAL_E("Mutex creation failed (errno=0x%08x)", errno);
@@ -55,7 +55,7 @@ int listInit(struct listHead* pList) {
 ** Returns          1, if list destroyed, 0 if failed
 **
 *******************************************************************************/
-int listDestroy(struct listHead* pList) {
+int listDestroy(struct listHead *pList) {
   int bListNotEmpty = 1;
   while (bListNotEmpty) {
     bListNotEmpty = listGetAndRemoveNext(pList, NULL);
@@ -78,13 +78,13 @@ int listDestroy(struct listHead* pList) {
 ** Returns          1, if added, 0 if otherwise
 **
 *******************************************************************************/
-int listAdd(struct listHead* pList, void* pData) {
-  struct listNode* pNode;
-  struct listNode* pLastNode;
+int listAdd(struct listHead *pList, void *pData) {
+  struct listNode *pNode;
+  struct listNode *pLastNode;
   int result;
 
   /* Create node */
-  pNode = (struct listNode*)malloc(sizeof(struct listNode));
+  pNode = (struct listNode *)malloc(sizeof(struct listNode));
   if (pNode == NULL) {
     result = 0;
     NXPLOG_NCIHAL_E("Failed to malloc");
@@ -125,9 +125,9 @@ clean_and_return:
 ** Returns          1, if removed, 0 if otherwise
 **
 *******************************************************************************/
-int listRemove(struct listHead* pList, void* pData) {
-  struct listNode* pNode;
-  struct listNode* pRemovedNode;
+int listRemove(struct listHead *pList, void *pData) {
+  struct listNode *pNode;
+  struct listNode *pRemovedNode;
   int result;
 
   pthread_mutex_lock(&pList->mutex);
@@ -188,8 +188,8 @@ clean_and_return:
 ** Returns          1, if successful, 0 if otherwise
 **
 *******************************************************************************/
-int listGetAndRemoveNext(struct listHead* pList, void** ppData) {
-  struct listNode* pNode;
+int listGetAndRemoveNext(struct listHead *pList, void **ppData) {
+  struct listNode *pNode;
   int result;
 
   pthread_mutex_lock(&pList->mutex);
@@ -230,8 +230,8 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-void listDump(struct listHead* pList) {
-  struct listNode* pNode = pList->pFirst;
+void listDump(struct listHead *pList) {
+  struct listNode *pNode = pList->pFirst;
 
   NXPLOG_NCIHAL_D("Node dump:");
   while (pNode != NULL) {
@@ -246,7 +246,7 @@ void listDump(struct listHead* pList) {
 
 /****************** Semaphore and mutex helper functions **********************/
 
-static phNxpNciHal_Monitor_t* nxpncihal_monitor = NULL;
+static phNxpNciHal_Monitor_t *nxpncihal_monitor = NULL;
 
 /*******************************************************************************
 **
@@ -257,12 +257,12 @@ static phNxpNciHal_Monitor_t* nxpncihal_monitor = NULL;
 ** Returns          Pointer to monitor, otherwise NULL if failed
 **
 *******************************************************************************/
-phNxpNciHal_Monitor_t* phNxpNciHal_init_monitor(void) {
+phNxpNciHal_Monitor_t *phNxpNciHal_init_monitor(void) {
   NXPLOG_NCIHAL_D("Entering phNxpNciHal_init_monitor");
 
   if (nxpncihal_monitor == NULL) {
     nxpncihal_monitor =
-        (phNxpNciHal_Monitor_t*)malloc(sizeof(phNxpNciHal_Monitor_t));
+        (phNxpNciHal_Monitor_t *)malloc(sizeof(phNxpNciHal_Monitor_t));
   }
 
   if (nxpncihal_monitor != NULL) {
@@ -338,7 +338,7 @@ void phNxpNciHal_cleanup_monitor(void) {
 ** Returns          Pointer to monitor
 **
 *******************************************************************************/
-phNxpNciHal_Monitor_t* phNxpNciHal_get_monitor(void) {
+phNxpNciHal_Monitor_t *phNxpNciHal_get_monitor(void) {
   if (nxpncihal_monitor == NULL) {
     NXPLOG_NCIHAL_E("nxpncihal_monitor is null");
   }
@@ -346,8 +346,8 @@ phNxpNciHal_Monitor_t* phNxpNciHal_get_monitor(void) {
 }
 
 /* Initialize the callback data */
-NFCSTATUS phNxpNciHal_init_cb_data(phNxpNciHal_Sem_t* pCallbackData,
-                                   void* pContext) {
+NFCSTATUS phNxpNciHal_init_cb_data(phNxpNciHal_Sem_t *pCallbackData,
+                                   void *pContext) {
   /* Create semaphore */
   if (sem_init(&pCallbackData->sem, 0, 0) == -1) {
     NXPLOG_NCIHAL_E("Semaphore creation failed (errno=0x%08x)", errno);
@@ -377,13 +377,12 @@ NFCSTATUS phNxpNciHal_init_cb_data(phNxpNciHal_Sem_t* pCallbackData,
 ** Returns          None
 **
 *******************************************************************************/
-void phNxpNciHal_cleanup_cb_data(phNxpNciHal_Sem_t* pCallbackData) {
+void phNxpNciHal_cleanup_cb_data(phNxpNciHal_Sem_t *pCallbackData) {
   /* Destroy semaphore */
   if (sem_destroy(&pCallbackData->sem)) {
-    NXPLOG_NCIHAL_E(
-        "phNxpNciHal_cleanup_cb_data: Failed to destroy semaphore "
-        "(errno=0x%08x)",
-        errno);
+    NXPLOG_NCIHAL_E("phNxpNciHal_cleanup_cb_data: Failed to destroy semaphore "
+                    "(errno=0x%08x)",
+                    errno);
   }
 
   /* Remove from active semaphore list */
@@ -406,10 +405,10 @@ void phNxpNciHal_cleanup_cb_data(phNxpNciHal_Sem_t* pCallbackData) {
 **
 *******************************************************************************/
 void phNxpNciHal_releaseall_cb_data(void) {
-  phNxpNciHal_Sem_t* pCallbackData;
+  phNxpNciHal_Sem_t *pCallbackData;
 
   while (listGetAndRemoveNext(&phNxpNciHal_get_monitor()->sem_list,
-                              (void**)&pCallbackData)) {
+                              (void **)&pCallbackData)) {
     pCallbackData->status = NFCSTATUS_FAILED;
     sem_post(&pCallbackData->sem);
   }
@@ -430,11 +429,11 @@ void phNxpNciHal_releaseall_cb_data(void) {
 ** Returns          None
 **
 *******************************************************************************/
-void phNxpNciHal_print_packet(const char* pString, const uint8_t* p_data,
+void phNxpNciHal_print_packet(const char *pString, const uint8_t *p_data,
                               uint16_t len) {
   uint32_t i;
 #if (NXP_EXTNS == TRUE)
-  char* print_buffer = (char*)calloc((len * 3 + 1), sizeof(char));
+  char *print_buffer = (char *)calloc((len * 3 + 1), sizeof(char));
   if (NULL != print_buffer) {
 #else
   char print_buffer[len * 3 + 1];
@@ -477,23 +476,23 @@ void phNxpNciHal_emergency_recovery(uint8_t status) {
   NXPLOG_NCIHAL_D("%s: %d", __func__, status);
 
   switch (status) {
-    case NCI2_0_CORE_RESET_TRIGGER_TYPE_OVER_TEMPERATURE:
-    case CORE_RESET_TRIGGER_TYPE_FW_ASSERT:
-    case CORE_RESET_TRIGGER_TYPE_WATCHDOG_RESET:
-    case CORE_RESET_TRIGGER_TYPE_INPUT_CLOCK_LOST:
-    case CORE_RESET_TRIGGER_TYPE_UNRECOVERABLE_ERROR: {
+  case NCI2_0_CORE_RESET_TRIGGER_TYPE_OVER_TEMPERATURE:
+  case CORE_RESET_TRIGGER_TYPE_FW_ASSERT:
+  case CORE_RESET_TRIGGER_TYPE_WATCHDOG_RESET:
+  case CORE_RESET_TRIGGER_TYPE_INPUT_CLOCK_LOST:
+  case CORE_RESET_TRIGGER_TYPE_UNRECOVERABLE_ERROR: {
+    NXPLOG_NCIHAL_E("abort()");
+    abort();
+  }
+  case CORE_RESET_TRIGGER_TYPE_POWERED_ON: {
+    if (nxpncihal_ctrl.hal_open_status == true) {
       NXPLOG_NCIHAL_E("abort()");
       abort();
     }
-    case CORE_RESET_TRIGGER_TYPE_POWERED_ON: {
-      if (nxpncihal_ctrl.hal_open_status == true) {
-        NXPLOG_NCIHAL_E("abort()");
-        abort();
-      }
-    } break;
-    default:
-      NXPLOG_NCIHAL_E("%s: Core reset with Invalid status : %d ", __func__,
-                      status);
-      break;
+  } break;
+  default:
+    NXPLOG_NCIHAL_E("%s: Core reset with Invalid status : %d ", __func__,
+                    status);
+    break;
   }
 }

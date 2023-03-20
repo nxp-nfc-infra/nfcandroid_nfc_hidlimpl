@@ -39,8 +39,8 @@
 /* Offset within frame where payload starts*/
 #define PHDNLDNFC_PLD_OFFSET (PHDNLDNFC_MIN_PLD_LEN - 1)
 
-#define PHDNLDNFC_FRAME_RDDATA_OFFSET \
-  ((PHDNLDNFC_FRAME_HDR_LEN) +        \
+#define PHDNLDNFC_FRAME_RDDATA_OFFSET                                          \
+  ((PHDNLDNFC_FRAME_HDR_LEN) +                                                 \
    (PHDNLDNFC_MIN_PLD_LEN)) /* recvd frame offset where data starts */
 
 /* Size of first secure write frame Signature */
@@ -53,11 +53,11 @@
 /* Status response for subsequent fragmented write frame */
 #define PHDNLDNFC_NEXT_FRAGFRAME_RESP (0x2EU)
 
-#define PHDNLDNFC_SET_HDR_FRAGBIT(n) \
+#define PHDNLDNFC_SET_HDR_FRAGBIT(n)                                           \
   ((n) | (1 << 10)) /* Header chunk bit set macro */
-#define PHDNLDNFC_CLR_HDR_FRAGBIT(n) \
+#define PHDNLDNFC_CLR_HDR_FRAGBIT(n)                                           \
   ((n) & ~(1U << 10)) /* Header chunk bit clear macro */
-#define PHDNLDNFC_CHK_HDR_FRAGBIT(n) \
+#define PHDNLDNFC_CHK_HDR_FRAGBIT(n)                                           \
   ((n)&0x04) /* macro to check if frag bit is set in Hdr */
 
 /* Timeout value to wait before resending the last frame */
@@ -74,22 +74,22 @@ static NfcHalThreadMutex sProcessSeqStateLock;
 static NfcHalThreadMutex sProcessRwSeqStateLock;
 
 /* Function prototype declarations */
-static void phDnldNfc_ProcessSeqState(void* pContext,
-                                      phTmlNfc_TransactInfo_t* pInfo);
-static void phDnldNfc_ProcessRWSeqState(void* pContext,
-                                        phTmlNfc_TransactInfo_t* pInfo);
-static NFCSTATUS phDnldNfc_ProcessFrame(void* pContext,
-                                        phTmlNfc_TransactInfo_t* pInfo);
-static NFCSTATUS phDnldNfc_ProcessRecvInfo(void* pContext,
-                                           phTmlNfc_TransactInfo_t* pInfo);
+static void phDnldNfc_ProcessSeqState(void *pContext,
+                                      phTmlNfc_TransactInfo_t *pInfo);
+static void phDnldNfc_ProcessRWSeqState(void *pContext,
+                                        phTmlNfc_TransactInfo_t *pInfo);
+static NFCSTATUS phDnldNfc_ProcessFrame(void *pContext,
+                                        phTmlNfc_TransactInfo_t *pInfo);
+static NFCSTATUS phDnldNfc_ProcessRecvInfo(void *pContext,
+                                           phTmlNfc_TransactInfo_t *pInfo);
 static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext);
 static NFCSTATUS phDnldNfc_CreateFramePld(pphDnldNfc_DlContext_t pDlContext);
 static NFCSTATUS phDnldNfc_SetupResendTimer(pphDnldNfc_DlContext_t pDlContext);
 static NFCSTATUS phDnldNfc_UpdateRsp(pphDnldNfc_DlContext_t pDlContext,
-                                     phTmlNfc_TransactInfo_t* pInfo,
+                                     phTmlNfc_TransactInfo_t *pInfo,
                                      uint16_t wPldLen);
-static void phDnldNfc_RspTimeOutCb(uint32_t TimerId, void* pContext);
-static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void* pContext);
+static void phDnldNfc_RspTimeOutCb(uint32_t TimerId, void *pContext);
+static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void *pContext);
 
 /*
 *************************** Function Definitions ***************************
@@ -119,7 +119,7 @@ static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void* pContext);
 **                  Other errors
 **
 *******************************************************************************/
-NFCSTATUS phDnldNfc_CmdHandler(void* pContext, phDnldNfc_Event_t TrigEvent) {
+NFCSTATUS phDnldNfc_CmdHandler(void *pContext, phDnldNfc_Event_t TrigEvent) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
   pphDnldNfc_DlContext_t pDlCtxt = (pphDnldNfc_DlContext_t)pContext;
 
@@ -129,51 +129,51 @@ NFCSTATUS phDnldNfc_CmdHandler(void* pContext, phDnldNfc_Event_t TrigEvent) {
   } else {
     switch (TrigEvent) {
 #if (NXP_EXTNS == TRUE)
-      case phDnldNfc_EventGetDieId:
+    case phDnldNfc_EventGetDieId:
 #endif
-      case phDnldNfc_EventReset:
-      case phDnldNfc_EventGetVer:
-      case phDnldNfc_EventIntegChk:
-      case phDnldNfc_EventGetSesnSt:
-      case phDnldNfc_EventRaw: {
-        if (phDnldNfc_EventInvalid == (pDlCtxt->tCurrEvent)) {
-          NXPLOG_FWDNLD_D("Processing Normal Sequence..");
-          pDlCtxt->tCurrEvent = TrigEvent;
-          pDlCtxt->tDnldInProgress = phDnldNfc_TransitionBusy;
+    case phDnldNfc_EventReset:
+    case phDnldNfc_EventGetVer:
+    case phDnldNfc_EventIntegChk:
+    case phDnldNfc_EventGetSesnSt:
+    case phDnldNfc_EventRaw: {
+      if (phDnldNfc_EventInvalid == (pDlCtxt->tCurrEvent)) {
+        NXPLOG_FWDNLD_D("Processing Normal Sequence..");
+        pDlCtxt->tCurrEvent = TrigEvent;
+        pDlCtxt->tDnldInProgress = phDnldNfc_TransitionBusy;
 
-          phDnldNfc_ProcessSeqState(pDlCtxt, NULL);
+        phDnldNfc_ProcessSeqState(pDlCtxt, NULL);
 
-          status = pDlCtxt->wCmdSendStatus;
-        } else {
-          NXPLOG_FWDNLD_E("Prev Norml Sequence not completed/restored!!");
-          status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_FAILED);
-        }
-        break;
+        status = pDlCtxt->wCmdSendStatus;
+      } else {
+        NXPLOG_FWDNLD_E("Prev Norml Sequence not completed/restored!!");
+        status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_FAILED);
       }
-      case phDnldNfc_EventWrite:
-      case phDnldNfc_EventRead:
-      case phDnldNfc_EventLog:
-      case phDnldNfc_EventForce: {
-        if (phDnldNfc_EventInvalid == (pDlCtxt->tCurrEvent)) {
-          NXPLOG_FWDNLD_D("Processing R/W Sequence..");
-          pDlCtxt->tCurrEvent = TrigEvent;
-          pDlCtxt->tDnldInProgress = phDnldNfc_TransitionBusy;
+      break;
+    }
+    case phDnldNfc_EventWrite:
+    case phDnldNfc_EventRead:
+    case phDnldNfc_EventLog:
+    case phDnldNfc_EventForce: {
+      if (phDnldNfc_EventInvalid == (pDlCtxt->tCurrEvent)) {
+        NXPLOG_FWDNLD_D("Processing R/W Sequence..");
+        pDlCtxt->tCurrEvent = TrigEvent;
+        pDlCtxt->tDnldInProgress = phDnldNfc_TransitionBusy;
 
-          phDnldNfc_ProcessRWSeqState(pDlCtxt, NULL);
+        phDnldNfc_ProcessRWSeqState(pDlCtxt, NULL);
 
-          status = pDlCtxt->wCmdSendStatus;
-        } else {
-          NXPLOG_FWDNLD_E("Prev R/W Sequence not completed/restored!!");
-          status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_FAILED);
-        }
-        break;
+        status = pDlCtxt->wCmdSendStatus;
+      } else {
+        NXPLOG_FWDNLD_E("Prev R/W Sequence not completed/restored!!");
+        status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_FAILED);
       }
-      default: {
-        /* Unknown Event */
-        NXPLOG_FWDNLD_E("Unknown Event Parameter!!");
-        status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
-        break;
-      }
+      break;
+    }
+    default: {
+      /* Unknown Event */
+      NXPLOG_FWDNLD_E("Unknown Event Parameter!!");
+      status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+      break;
+    }
     }
   }
 
@@ -193,8 +193,8 @@ NFCSTATUS phDnldNfc_CmdHandler(void* pContext, phDnldNfc_Event_t TrigEvent) {
 ** Returns          None
 **
 *******************************************************************************/
-static void phDnldNfc_ProcessSeqState(void* pContext,
-                                      phTmlNfc_TransactInfo_t* pInfo) {
+static void phDnldNfc_ProcessSeqState(void *pContext,
+                                      phTmlNfc_TransactInfo_t *pInfo) {
   NfcHalAutoThreadMutex a(sProcessSeqStateLock);
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   NFCSTATUS wIntStatus;
@@ -206,122 +206,121 @@ static void phDnldNfc_ProcessSeqState(void* pContext,
     wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
   } else {
     switch (pDlCtxt->tCurrState) {
-      case phDnldNfc_StateInit: {
-        NXPLOG_FWDNLD_D("Initializing Sequence..");
+    case phDnldNfc_StateInit: {
+      NXPLOG_FWDNLD_D("Initializing Sequence..");
 
-        if (0 == (pDlCtxt->TimerInfo.dwRspTimerId)) {
-          TimerId = phOsalNfc_Timer_Create();
+      if (0 == (pDlCtxt->TimerInfo.dwRspTimerId)) {
+        TimerId = phOsalNfc_Timer_Create();
 
-          if (0 == TimerId) {
-            NXPLOG_FWDNLD_W("Response Timer Create failed!!");
-            wStatus = NFCSTATUS_INSUFFICIENT_RESOURCES;
-            pDlCtxt->wCmdSendStatus = wStatus;
-            break;
-          } else {
-            NXPLOG_FWDNLD_D("Response Timer Created Successfully");
-            (pDlCtxt->TimerInfo.dwRspTimerId) = TimerId;
-            (pDlCtxt->TimerInfo.TimerStatus) = 0;
-            (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
-          }
-        }
-        pDlCtxt->tCurrState = phDnldNfc_StateSend;
-      }
-        [[fallthrough]];
-      case phDnldNfc_StateSend: {
-        wStatus = phDnldNfc_BuildFramePkt(pDlCtxt);
-
-        if (NFCSTATUS_SUCCESS == wStatus) {
-          pDlCtxt->tCurrState = phDnldNfc_StateRecv;
-          wStatus = phTmlNfc_Write(
-              (pDlCtxt->tCmdRspFrameInfo.aFrameBuff),
-              (uint16_t)(pDlCtxt->tCmdRspFrameInfo.dwSendlength),
-              (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessSeqState,
-              pDlCtxt);
-        }
-        pDlCtxt->wCmdSendStatus = wStatus;
-        break;
-      }
-      case phDnldNfc_StateRecv: {
-        wStatus = phDnldNfc_ProcessRecvInfo(pContext, pInfo);
-
-        if (NFCSTATUS_SUCCESS == wStatus) {
-          wStatus = phOsalNfc_Timer_Start((pDlCtxt->TimerInfo.dwRspTimerId),
-                                          pDlCtxt->TimerInfo.rspTimeout,
-                                          &phDnldNfc_RspTimeOutCb, pDlCtxt);
-          if (NFCSTATUS_SUCCESS == wStatus) {
-            NXPLOG_FWDNLD_D("Response timer started");
-            pDlCtxt->TimerInfo.TimerStatus = 1;
-            pDlCtxt->tCurrState = phDnldNfc_StateTimer;
-          } else {
-            NXPLOG_FWDNLD_W("Response timer not started");
-            pDlCtxt->tCurrState = phDnldNfc_StateResponse;
-          }
-          phTmlNfc_Read(
-              pDlCtxt->tCmdRspFrameInfo.aFrameBuff,
-              (uint16_t)pDlCtxt->nxp_i2c_fragment_len,
-              (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessSeqState,
-              (void*)pDlCtxt);
+        if (0 == TimerId) {
+          NXPLOG_FWDNLD_W("Response Timer Create failed!!");
+          wStatus = NFCSTATUS_INSUFFICIENT_RESOURCES;
+          pDlCtxt->wCmdSendStatus = wStatus;
           break;
         } else {
-          /* Setting TimerExpStatus below to avoid frame processing in response
-           * state */
-          (pDlCtxt->TimerInfo.wTimerExpStatus) = NFCSTATUS_RF_TIMEOUT;
-          pDlCtxt->tCurrState = phDnldNfc_StateResponse;
-        }
-      }
-        [[fallthrough]];
-      case phDnldNfc_StateTimer: {
-        if (1 == (pDlCtxt->TimerInfo.TimerStatus)) /*Is Timer Running*/
-        {
-          /*Stop Timer*/
-          (void)phOsalNfc_Timer_Stop(pDlCtxt->TimerInfo.dwRspTimerId);
-          (pDlCtxt->TimerInfo.TimerStatus) = 0; /*timer stopped*/
-        }
-        pDlCtxt->tCurrState = phDnldNfc_StateResponse;
-      }
-        [[fallthrough]];
-      case phDnldNfc_StateResponse: {
-        if (NFCSTATUS_RF_TIMEOUT != (pDlCtxt->TimerInfo.wTimerExpStatus)) {
-          /* Process response */
-          wStatus = phDnldNfc_ProcessFrame(pContext, pInfo);
-        } else {
-          if (phDnldNfc_EventReset != pDlCtxt->tCurrEvent) {
-            wStatus = (pDlCtxt->TimerInfo.wTimerExpStatus);
-          } else {
-            wStatus = NFCSTATUS_SUCCESS;
-          }
+          NXPLOG_FWDNLD_D("Response Timer Created Successfully");
+          (pDlCtxt->TimerInfo.dwRspTimerId) = TimerId;
+          (pDlCtxt->TimerInfo.TimerStatus) = 0;
           (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
         }
+      }
+      pDlCtxt->tCurrState = phDnldNfc_StateSend;
+    }
+      [[fallthrough]];
+    case phDnldNfc_StateSend: {
+      wStatus = phDnldNfc_BuildFramePkt(pDlCtxt);
 
-        /* Abort TML read operation which is always kept open */
-        wIntStatus = phTmlNfc_ReadAbort();
+      if (NFCSTATUS_SUCCESS == wStatus) {
+        pDlCtxt->tCurrState = phDnldNfc_StateRecv;
+        wStatus = phTmlNfc_Write(
+            (pDlCtxt->tCmdRspFrameInfo.aFrameBuff),
+            (uint16_t)(pDlCtxt->tCmdRspFrameInfo.dwSendlength),
+            (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessSeqState,
+            pDlCtxt);
+      }
+      pDlCtxt->wCmdSendStatus = wStatus;
+      break;
+    }
+    case phDnldNfc_StateRecv: {
+      wStatus = phDnldNfc_ProcessRecvInfo(pContext, pInfo);
 
-        if (NFCSTATUS_SUCCESS != wIntStatus) {
-          /* TODO:-Action to take in this case:-Tml read abort failed!? */
-          NXPLOG_FWDNLD_W("Tml Read Abort failed!!");
+      if (NFCSTATUS_SUCCESS == wStatus) {
+        wStatus = phOsalNfc_Timer_Start((pDlCtxt->TimerInfo.dwRspTimerId),
+                                        pDlCtxt->TimerInfo.rspTimeout,
+                                        &phDnldNfc_RspTimeOutCb, pDlCtxt);
+        if (NFCSTATUS_SUCCESS == wStatus) {
+          NXPLOG_FWDNLD_D("Response timer started");
+          pDlCtxt->TimerInfo.TimerStatus = 1;
+          pDlCtxt->tCurrState = phDnldNfc_StateTimer;
+        } else {
+          NXPLOG_FWDNLD_W("Response timer not started");
+          pDlCtxt->tCurrState = phDnldNfc_StateResponse;
         }
-
-        pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
-        pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
-        pDlCtxt->tCurrState = phDnldNfc_StateInit;
-
-        /* Delete the timer & reset timer primitives in context */
-        (void)phOsalNfc_Timer_Delete(pDlCtxt->TimerInfo.dwRspTimerId);
-        (pDlCtxt->TimerInfo.dwRspTimerId) = 0;
-        (pDlCtxt->TimerInfo.TimerStatus) = 0;
+        phTmlNfc_Read(
+            pDlCtxt->tCmdRspFrameInfo.aFrameBuff,
+            (uint16_t)pDlCtxt->nxp_i2c_fragment_len,
+            (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessSeqState,
+            (void *)pDlCtxt);
+        break;
+      } else {
+        /* Setting TimerExpStatus below to avoid frame processing in response
+         * state */
+        (pDlCtxt->TimerInfo.wTimerExpStatus) = NFCSTATUS_RF_TIMEOUT;
+        pDlCtxt->tCurrState = phDnldNfc_StateResponse;
+      }
+    }
+      [[fallthrough]];
+    case phDnldNfc_StateTimer: {
+      if (1 == (pDlCtxt->TimerInfo.TimerStatus)) /*Is Timer Running*/
+      {
+        /*Stop Timer*/
+        (void)phOsalNfc_Timer_Stop(pDlCtxt->TimerInfo.dwRspTimerId);
+        (pDlCtxt->TimerInfo.TimerStatus) = 0; /*timer stopped*/
+      }
+      pDlCtxt->tCurrState = phDnldNfc_StateResponse;
+    }
+      [[fallthrough]];
+    case phDnldNfc_StateResponse: {
+      if (NFCSTATUS_RF_TIMEOUT != (pDlCtxt->TimerInfo.wTimerExpStatus)) {
+        /* Process response */
+        wStatus = phDnldNfc_ProcessFrame(pContext, pInfo);
+      } else {
+        if (phDnldNfc_EventReset != pDlCtxt->tCurrEvent) {
+          wStatus = (pDlCtxt->TimerInfo.wTimerExpStatus);
+        } else {
+          wStatus = NFCSTATUS_SUCCESS;
+        }
         (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+      }
 
-        if ((NULL != (pDlCtxt->UserCb)) && (NULL != (pDlCtxt->UserCtxt))) {
-          pDlCtxt->UserCb((pDlCtxt->UserCtxt), wStatus,
-                          &(pDlCtxt->tRspBuffInfo));
-        }
-        break;
+      /* Abort TML read operation which is always kept open */
+      wIntStatus = phTmlNfc_ReadAbort();
+
+      if (NFCSTATUS_SUCCESS != wIntStatus) {
+        /* TODO:-Action to take in this case:-Tml read abort failed!? */
+        NXPLOG_FWDNLD_W("Tml Read Abort failed!!");
       }
-      default: {
-        pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
-        pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
-        break;
+
+      pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
+      pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
+      pDlCtxt->tCurrState = phDnldNfc_StateInit;
+
+      /* Delete the timer & reset timer primitives in context */
+      (void)phOsalNfc_Timer_Delete(pDlCtxt->TimerInfo.dwRspTimerId);
+      (pDlCtxt->TimerInfo.dwRspTimerId) = 0;
+      (pDlCtxt->TimerInfo.TimerStatus) = 0;
+      (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+
+      if ((NULL != (pDlCtxt->UserCb)) && (NULL != (pDlCtxt->UserCtxt))) {
+        pDlCtxt->UserCb((pDlCtxt->UserCtxt), wStatus, &(pDlCtxt->tRspBuffInfo));
       }
+      break;
+    }
+    default: {
+      pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
+      pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
+      break;
+    }
     }
   }
 
@@ -341,8 +340,8 @@ static void phDnldNfc_ProcessSeqState(void* pContext,
 ** Returns          None
 **
 *******************************************************************************/
-static void phDnldNfc_ProcessRWSeqState(void* pContext,
-                                        phTmlNfc_TransactInfo_t* pInfo) {
+static void phDnldNfc_ProcessRWSeqState(void *pContext,
+                                        phTmlNfc_TransactInfo_t *pInfo) {
   NfcHalAutoThreadMutex a(sProcessRwSeqStateLock);
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   NFCSTATUS wIntStatus = wStatus;
@@ -354,166 +353,166 @@ static void phDnldNfc_ProcessRWSeqState(void* pContext,
     wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
   } else {
     switch (pDlCtxt->tCurrState) {
-      case phDnldNfc_StateInit: {
-        if (0 == (pDlCtxt->TimerInfo.dwRspTimerId)) {
-          TimerId = phOsalNfc_Timer_Create();
+    case phDnldNfc_StateInit: {
+      if (0 == (pDlCtxt->TimerInfo.dwRspTimerId)) {
+        TimerId = phOsalNfc_Timer_Create();
 
-          if (0 == TimerId) {
-            NXPLOG_FWDNLD_E("Response Timer Create failed!!");
-            wStatus = NFCSTATUS_INSUFFICIENT_RESOURCES;
-          } else {
-            NXPLOG_FWDNLD_D("Response Timer Created Successfully");
-            (pDlCtxt->TimerInfo.dwRspTimerId) = TimerId;
-            (pDlCtxt->TimerInfo.TimerStatus) = 0;
-            (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+        if (0 == TimerId) {
+          NXPLOG_FWDNLD_E("Response Timer Create failed!!");
+          wStatus = NFCSTATUS_INSUFFICIENT_RESOURCES;
+        } else {
+          NXPLOG_FWDNLD_D("Response Timer Created Successfully");
+          (pDlCtxt->TimerInfo.dwRspTimerId) = TimerId;
+          (pDlCtxt->TimerInfo.TimerStatus) = 0;
+          (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+        }
+      }
+      pDlCtxt->tCurrState = phDnldNfc_StateSend;
+    }
+      [[fallthrough]];
+    case phDnldNfc_StateSend: {
+      if (pDlCtxt->bResendLastFrame == false) {
+        wStatus = phDnldNfc_BuildFramePkt(pDlCtxt);
+      } else {
+        pDlCtxt->bResendLastFrame = false;
+      }
+
+      if (NFCSTATUS_SUCCESS == wStatus) {
+        pDlCtxt->tCurrState = phDnldNfc_StateRecv;
+
+        wStatus = phTmlNfc_Write(
+            (pDlCtxt->tCmdRspFrameInfo.aFrameBuff),
+            (uint16_t)(pDlCtxt->tCmdRspFrameInfo.dwSendlength),
+            (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessRWSeqState,
+            pDlCtxt);
+      }
+      pDlCtxt->wCmdSendStatus = wStatus;
+      break;
+    }
+    case phDnldNfc_StateRecv: {
+      wStatus = phDnldNfc_ProcessRecvInfo(pContext, pInfo);
+
+      if (NFCSTATUS_SUCCESS == wStatus) {
+        /* processing For Pipelined write before calling timer below */
+        wStatus = phOsalNfc_Timer_Start((pDlCtxt->TimerInfo.dwRspTimerId),
+                                        pDlCtxt->TimerInfo.rspTimeout,
+                                        &phDnldNfc_RspTimeOutCb, pDlCtxt);
+
+        if (NFCSTATUS_SUCCESS == wStatus) {
+          NXPLOG_FWDNLD_D("Response timer started");
+          pDlCtxt->TimerInfo.TimerStatus = 1;
+          pDlCtxt->tCurrState = phDnldNfc_StateTimer;
+        } else {
+          NXPLOG_FWDNLD_W("Response timer not started");
+          pDlCtxt->tCurrState = phDnldNfc_StateResponse;
+          /* Todo:- diagnostic in this case */
+        }
+        /* Call TML_Read function and register the call back function */
+        phTmlNfc_Read(
+            pDlCtxt->tCmdRspFrameInfo.aFrameBuff,
+            (uint16_t)pDlCtxt->nxp_i2c_fragment_len,
+            (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessRWSeqState,
+            (void *)pDlCtxt);
+        break;
+      } else {
+        /* Setting TimerExpStatus below to avoid frame processing in response
+         * state */
+        (pDlCtxt->TimerInfo.wTimerExpStatus) = NFCSTATUS_RF_TIMEOUT;
+        pDlCtxt->tCurrState = phDnldNfc_StateResponse;
+      }
+    }
+      [[fallthrough]];
+    case phDnldNfc_StateTimer: {
+      if (1 == (pDlCtxt->TimerInfo.TimerStatus)) /*Is Timer Running*/
+      {
+        /* Stop Timer */
+        (void)phOsalNfc_Timer_Stop(pDlCtxt->TimerInfo.dwRspTimerId);
+        (pDlCtxt->TimerInfo.TimerStatus) = 0; /*timer stopped*/
+      }
+      pDlCtxt->tCurrState = phDnldNfc_StateResponse;
+    }
+      [[fallthrough]];
+    case phDnldNfc_StateResponse: {
+      if (NFCSTATUS_RF_TIMEOUT != (pDlCtxt->TimerInfo.wTimerExpStatus)) {
+        /* Process response */
+        wStatus = phDnldNfc_ProcessFrame(pContext, pInfo);
+
+        if (NFCSTATUS_BUSY == wStatus) {
+          /* store the status for use in subsequent processing */
+          wIntStatus = wStatus;
+
+          /* setup the resend wait timer */
+          wStatus = phDnldNfc_SetupResendTimer(pDlCtxt);
+
+          if (NFCSTATUS_SUCCESS == wStatus) {
+            /* restore the last mem_bsy status to avoid re-building frame
+             * below */
+            wStatus = wIntStatus;
           }
         }
-        pDlCtxt->tCurrState = phDnldNfc_StateSend;
+      } else {
+        wStatus = (pDlCtxt->TimerInfo.wTimerExpStatus);
+        (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
       }
-        [[fallthrough]];
-      case phDnldNfc_StateSend: {
-        if (pDlCtxt->bResendLastFrame == false) {
-          wStatus = phDnldNfc_BuildFramePkt(pDlCtxt);
-        } else {
-          pDlCtxt->bResendLastFrame = false;
+
+      if ((0 != (pDlCtxt->tRWInfo.wRemBytes)) &&
+          (NFCSTATUS_SUCCESS == wStatus)) {
+        /* Abort TML read operation which is always kept open */
+        wIntStatus = phTmlNfc_ReadAbort();
+
+        if (NFCSTATUS_SUCCESS != wIntStatus) {
+          NXPLOG_FWDNLD_W("Tml read abort failed!");
         }
+
+        wStatus = phDnldNfc_BuildFramePkt(pDlCtxt);
 
         if (NFCSTATUS_SUCCESS == wStatus) {
           pDlCtxt->tCurrState = phDnldNfc_StateRecv;
-
           wStatus = phTmlNfc_Write(
               (pDlCtxt->tCmdRspFrameInfo.aFrameBuff),
               (uint16_t)(pDlCtxt->tCmdRspFrameInfo.dwSendlength),
               (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessRWSeqState,
               pDlCtxt);
+
+          /* TODO:- Verify here if TML_Write returned NFC_PENDING status &
+             take appropriate
+                action otherwise ?? */
         }
-        pDlCtxt->wCmdSendStatus = wStatus;
-        break;
-      }
-      case phDnldNfc_StateRecv: {
-        wStatus = phDnldNfc_ProcessRecvInfo(pContext, pInfo);
+      } else if (NFCSTATUS_BUSY == wStatus) {
+        /* No processing to be done,since resend wait timer should have
+         * already been started */
+      } else {
+        (pDlCtxt->tRWInfo.bFramesSegmented) = false;
+        /* Abort TML read operation which is always kept open */
+        wIntStatus = phTmlNfc_ReadAbort();
 
-        if (NFCSTATUS_SUCCESS == wStatus) {
-          /* processing For Pipelined write before calling timer below */
-          wStatus = phOsalNfc_Timer_Start((pDlCtxt->TimerInfo.dwRspTimerId),
-                                          pDlCtxt->TimerInfo.rspTimeout,
-                                          &phDnldNfc_RspTimeOutCb, pDlCtxt);
-
-          if (NFCSTATUS_SUCCESS == wStatus) {
-            NXPLOG_FWDNLD_D("Response timer started");
-            pDlCtxt->TimerInfo.TimerStatus = 1;
-            pDlCtxt->tCurrState = phDnldNfc_StateTimer;
-          } else {
-            NXPLOG_FWDNLD_W("Response timer not started");
-            pDlCtxt->tCurrState = phDnldNfc_StateResponse;
-            /* Todo:- diagnostic in this case */
-          }
-          /* Call TML_Read function and register the call back function */
-          phTmlNfc_Read(
-              pDlCtxt->tCmdRspFrameInfo.aFrameBuff,
-              (uint16_t)pDlCtxt->nxp_i2c_fragment_len,
-              (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessRWSeqState,
-              (void*)pDlCtxt);
-          break;
-        } else {
-          /* Setting TimerExpStatus below to avoid frame processing in response
-           * state */
-          (pDlCtxt->TimerInfo.wTimerExpStatus) = NFCSTATUS_RF_TIMEOUT;
-          pDlCtxt->tCurrState = phDnldNfc_StateResponse;
-        }
-      }
-        [[fallthrough]];
-      case phDnldNfc_StateTimer: {
-        if (1 == (pDlCtxt->TimerInfo.TimerStatus)) /*Is Timer Running*/
-        {
-          /* Stop Timer */
-          (void)phOsalNfc_Timer_Stop(pDlCtxt->TimerInfo.dwRspTimerId);
-          (pDlCtxt->TimerInfo.TimerStatus) = 0; /*timer stopped*/
-        }
-        pDlCtxt->tCurrState = phDnldNfc_StateResponse;
-      }
-        [[fallthrough]];
-      case phDnldNfc_StateResponse: {
-        if (NFCSTATUS_RF_TIMEOUT != (pDlCtxt->TimerInfo.wTimerExpStatus)) {
-          /* Process response */
-          wStatus = phDnldNfc_ProcessFrame(pContext, pInfo);
-
-          if (NFCSTATUS_BUSY == wStatus) {
-            /* store the status for use in subsequent processing */
-            wIntStatus = wStatus;
-
-            /* setup the resend wait timer */
-            wStatus = phDnldNfc_SetupResendTimer(pDlCtxt);
-
-            if (NFCSTATUS_SUCCESS == wStatus) {
-              /* restore the last mem_bsy status to avoid re-building frame
-               * below */
-              wStatus = wIntStatus;
-            }
-          }
-        } else {
-          wStatus = (pDlCtxt->TimerInfo.wTimerExpStatus);
-          (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+        if (NFCSTATUS_SUCCESS != wIntStatus) {
+          NXPLOG_FWDNLD_W("Tml read abort failed!");
         }
 
-        if ((0 != (pDlCtxt->tRWInfo.wRemBytes)) &&
-            (NFCSTATUS_SUCCESS == wStatus)) {
-          /* Abort TML read operation which is always kept open */
-          wIntStatus = phTmlNfc_ReadAbort();
-
-          if (NFCSTATUS_SUCCESS != wIntStatus) {
-            NXPLOG_FWDNLD_W("Tml read abort failed!");
-          }
-
-          wStatus = phDnldNfc_BuildFramePkt(pDlCtxt);
-
-          if (NFCSTATUS_SUCCESS == wStatus) {
-            pDlCtxt->tCurrState = phDnldNfc_StateRecv;
-            wStatus = phTmlNfc_Write(
-                (pDlCtxt->tCmdRspFrameInfo.aFrameBuff),
-                (uint16_t)(pDlCtxt->tCmdRspFrameInfo.dwSendlength),
-                (pphTmlNfc_TransactCompletionCb_t)&phDnldNfc_ProcessRWSeqState,
-                pDlCtxt);
-
-            /* TODO:- Verify here if TML_Write returned NFC_PENDING status &
-               take appropriate
-                  action otherwise ?? */
-          }
-        } else if (NFCSTATUS_BUSY == wStatus) {
-          /* No processing to be done,since resend wait timer should have
-           * already been started */
-        } else {
-          (pDlCtxt->tRWInfo.bFramesSegmented) = false;
-          /* Abort TML read operation which is always kept open */
-          wIntStatus = phTmlNfc_ReadAbort();
-
-          if (NFCSTATUS_SUCCESS != wIntStatus) {
-            NXPLOG_FWDNLD_W("Tml read abort failed!");
-          }
-
-          pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
-          pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
-          pDlCtxt->tCurrState = phDnldNfc_StateInit;
-          pDlCtxt->bResendLastFrame = false;
-
-          /* Delete the timer & reset timer primitives in context */
-          (void)phOsalNfc_Timer_Delete(pDlCtxt->TimerInfo.dwRspTimerId);
-          (pDlCtxt->TimerInfo.dwRspTimerId) = 0;
-          (pDlCtxt->TimerInfo.TimerStatus) = 0;
-          (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
-
-          if ((NULL != (pDlCtxt->UserCb)) && (NULL != (pDlCtxt->UserCtxt))) {
-            pDlCtxt->UserCb((pDlCtxt->UserCtxt), wStatus,
-                            &(pDlCtxt->tRspBuffInfo));
-          }
-        }
-        break;
-      }
-      default: {
         pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
         pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
-        break;
+        pDlCtxt->tCurrState = phDnldNfc_StateInit;
+        pDlCtxt->bResendLastFrame = false;
+
+        /* Delete the timer & reset timer primitives in context */
+        (void)phOsalNfc_Timer_Delete(pDlCtxt->TimerInfo.dwRspTimerId);
+        (pDlCtxt->TimerInfo.dwRspTimerId) = 0;
+        (pDlCtxt->TimerInfo.TimerStatus) = 0;
+        (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+
+        if ((NULL != (pDlCtxt->UserCb)) && (NULL != (pDlCtxt->UserCtxt))) {
+          pDlCtxt->UserCb((pDlCtxt->UserCtxt), wStatus,
+                          &(pDlCtxt->tRspBuffInfo));
+        }
       }
+      break;
+    }
+    default: {
+      pDlCtxt->tCurrEvent = phDnldNfc_EventInvalid;
+      pDlCtxt->tDnldInProgress = phDnldNfc_TransitionIdle;
+      break;
+    }
     }
   }
 
@@ -535,7 +534,7 @@ static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   uint16_t wFrameLen = 0;
   uint16_t wCrcVal;
-  uint8_t* pFrameByte;
+  uint8_t *pFrameByte;
 
   if (NULL == pDlContext) {
     NXPLOG_FWDNLD_E("Invalid Input Parameter!!");
@@ -603,7 +602,7 @@ static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext) {
 
       if (phDnldNfc_FTRaw != (pDlContext->FrameInp.Type)) {
         if (phDnldNfc_FTWrite != (pDlContext->FrameInp.Type)) {
-          pFrameByte = (uint8_t*)&wFrameLen;
+          pFrameByte = (uint8_t *)&wFrameLen;
 
           pDlContext->tCmdRspFrameInfo.aFrameBuff[PHDNLDNFC_FRAME_HDR_OFFSET] =
               pFrameByte[1];
@@ -619,10 +618,10 @@ static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext) {
           if (0 != (pDlContext->tRWInfo.wRWPldSize)) {
             if ((pDlContext->tRWInfo.bFramesSegmented) == true) {
               /* Turning ON the Fragmentation bit in FrameLen */
-                wFrameLen = PHDNLDNFC_SET_HDR_FRAGBIT(wFrameLen);
+              wFrameLen = PHDNLDNFC_SET_HDR_FRAGBIT(wFrameLen);
             }
 
-            pFrameByte = (uint8_t*)&wFrameLen;
+            pFrameByte = (uint8_t *)&wFrameLen;
 
             pDlContext->tCmdRspFrameInfo
                 .aFrameBuff[PHDNLDNFC_FRAME_HDR_OFFSET] = pFrameByte[1];
@@ -643,7 +642,7 @@ static NFCSTATUS phDnldNfc_BuildFramePkt(pphDnldNfc_DlContext_t pDlContext) {
         wCrcVal = phDnldNfc_CalcCrc16((pDlContext->tCmdRspFrameInfo.aFrameBuff),
                                       wFrameLen);
 
-        pFrameByte = (uint8_t*)&wCrcVal;
+        pFrameByte = (uint8_t *)&wCrcVal;
 
         /* Insert the computed Crc value */
         pDlContext->tCmdRspFrameInfo.aFrameBuff[wFrameLen] = pFrameByte[1];
@@ -830,8 +829,8 @@ static NFCSTATUS phDnldNfc_CreateFramePld(pphDnldNfc_DlContext_t pDlContext) {
 **                  NFCSTATUS_INVALID_PARAMETER - invalid parameters
 **
 *******************************************************************************/
-static NFCSTATUS phDnldNfc_ProcessFrame(void* pContext,
-                                        phTmlNfc_TransactInfo_t* pInfo) {
+static NFCSTATUS phDnldNfc_ProcessFrame(void *pContext,
+                                        phTmlNfc_TransactInfo_t *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   uint16_t wCrcVal, wRecvdCrc, wRecvdLen, wPldLen;
   pphDnldNfc_DlContext_t pDlCtxt = (pphDnldNfc_DlContext_t)pContext;
@@ -908,8 +907,8 @@ static NFCSTATUS phDnldNfc_ProcessFrame(void* pContext,
 **                  NFCSTATUS_INVALID_PARAMETER - invalid parameters
 **
 *******************************************************************************/
-static NFCSTATUS phDnldNfc_ProcessRecvInfo(void* pContext,
-                                           phTmlNfc_TransactInfo_t* pInfo) {
+static NFCSTATUS phDnldNfc_ProcessRecvInfo(void *pContext,
+                                           phTmlNfc_TransactInfo_t *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if (NULL != pContext) {
@@ -982,7 +981,7 @@ static NFCSTATUS phDnldNfc_SetupResendTimer(pphDnldNfc_DlContext_t pDlContext) {
 ** Returns          None
 **
 *******************************************************************************/
-static void phDnldNfc_RspTimeOutCb(uint32_t TimerId, void* pContext) {
+static void phDnldNfc_RspTimeOutCb(uint32_t TimerId, void *pContext) {
   pphDnldNfc_DlContext_t pDlCtxt = (pphDnldNfc_DlContext_t)pContext;
 
   if (NULL != pDlCtxt) {
@@ -1031,7 +1030,7 @@ static void phDnldNfc_RspTimeOutCb(uint32_t TimerId, void* pContext) {
 ** Returns          None
 **
 *******************************************************************************/
-static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void* pContext) {
+static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void *pContext) {
   pphDnldNfc_DlContext_t pDlCtxt = (pphDnldNfc_DlContext_t)pContext;
 
   if (NULL != pDlCtxt) {
@@ -1072,7 +1071,7 @@ static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void* pContext) {
 **
 *******************************************************************************/
 static NFCSTATUS phDnldNfc_UpdateRsp(pphDnldNfc_DlContext_t pDlContext,
-                                     phTmlNfc_TransactInfo_t* pInfo,
+                                     phTmlNfc_TransactInfo_t *pInfo,
                                      uint16_t wPldLen) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   uint16_t wReadLen = 0;
@@ -1206,10 +1205,9 @@ static NFCSTATUS phDnldNfc_UpdateRsp(pphDnldNfc_DlContext_t pDlContext,
           NXPLOG_FWDNLD_D("Ignore the response");
         }
       } else {
-        NXPLOG_FWDNLD_E(
-            "Unsuccessful Status received!! wPldLen = 0x%x "
-            ",pDlContext->tRspBuffInfo.wLen = 0x%x",
-            wPldLen, pDlContext->tRspBuffInfo.wLen);
+        NXPLOG_FWDNLD_E("Unsuccessful Status received!! wPldLen = 0x%x "
+                        ",pDlContext->tRspBuffInfo.wLen = 0x%x",
+                        wPldLen, pDlContext->tRspBuffInfo.wLen);
         wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_FAILED);
       }
     }

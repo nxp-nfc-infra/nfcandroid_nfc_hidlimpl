@@ -36,8 +36,8 @@
 #define PHLIBNFC_DNLD_CHECKINTEGRITYLEN (0x1FU)
 #define MAX_GET_VER_RESP_LEN (0x0FU)
 
- /* Mask MSB Byte to ignore MSB Value */
- #define  MASK_MSB_BYTE 0xFFFF0000
+/* Mask MSB Byte to ignore MSB Value */
+#define MASK_MSB_BYTE 0xFFFF0000
 
 /* External global variable to get FW version */
 extern uint16_t wFwVer;
@@ -45,12 +45,12 @@ extern uint16_t wMwVer;
 extern uint8_t
     gRecFWDwnld; /* flag  set to true to  indicate recovery FW download */
 extern spTransport gpTransportObj;
-extern phTmlNfc_Context_t* gpphTmlNfc_Context;
+extern phTmlNfc_Context_t *gpphTmlNfc_Context;
 
 /* RF Configuration structure */
 typedef struct phLibNfc_IoctlSetRfConfig {
   uint8_t bNumOfParams;   /* Number of Rf configurable parameters to be set */
-  uint8_t* pInputBuffer;  /* Buffer containing Rf configurable parameters */
+  uint8_t *pInputBuffer;  /* Buffer containing Rf configurable parameters */
   uint8_t bSetSysPmuFlag; /* Flag to decide whether to set SystemPmu or no from
                              the first byte */
 } phLibNfc_IoctlSetRfConfig;
@@ -108,61 +108,59 @@ typedef struct {
 static phNxpNciHal_fw_Ioctl_Cntx_t gphNxpNciHal_fw_IoctlCtx;
 
 /* Local function prototype */
-static NFCSTATUS phNxpNciHal_fw_dnld_reset(void* pContext, NFCSTATUS status,
-                                           void* pInfo);
+static NFCSTATUS phNxpNciHal_fw_dnld_reset(void *pContext, NFCSTATUS status,
+                                           void *pInfo);
 
-static void phNxpNciHal_fw_dnld_reset_cb(void* pContext, NFCSTATUS status,
-                                         void* pInfo);
+static void phNxpNciHal_fw_dnld_reset_cb(void *pContext, NFCSTATUS status,
+                                         void *pInfo);
 
-static NFCSTATUS phNxpNciHal_fw_dnld_force(void* pContext, NFCSTATUS status,
-                                           void* pInfo);
+static NFCSTATUS phNxpNciHal_fw_dnld_force(void *pContext, NFCSTATUS status,
+                                           void *pInfo);
 
-static void phNxpNciHal_fw_dnld_force_cb(void* pContext, NFCSTATUS status,
-                                         void* pInfo);
+static void phNxpNciHal_fw_dnld_force_cb(void *pContext, NFCSTATUS status,
+                                         void *pInfo);
 
-static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
-                                               void* pInfo);
+static void phNxpNciHal_fw_dnld_get_version_cb(void *pContext, NFCSTATUS status,
+                                               void *pInfo);
 
-static NFCSTATUS phNxpNciHal_fw_dnld_get_version(void* pContext,
-                                                 NFCSTATUS status, void* pInfo);
+static NFCSTATUS phNxpNciHal_fw_dnld_get_version(void *pContext,
+                                                 NFCSTATUS status, void *pInfo);
 
-static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void* pContext,
+static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void *pContext,
                                                    NFCSTATUS status,
-                                                   void* pInfo);
+                                                   void *pInfo);
 
-static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void* pContext,
+static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void *pContext,
                                                      NFCSTATUS status,
-                                                     void* pInfo);
+                                                     void *pInfo);
 
-static void phNxpNciHal_fw_dnld_get_die_id_cb(void* pContext,
+static void phNxpNciHal_fw_dnld_get_die_id_cb(void *pContext, NFCSTATUS status,
+                                              void *pInfo);
+
+static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void *pContext,
+                                                NFCSTATUS status, void *pInfo);
+
+static void phNxpNciHal_fw_dnld_write_cb(void *pContext, NFCSTATUS status,
+                                         void *pInfo);
+
+static NFCSTATUS phNxpNciHal_fw_dnld_write(void *pContext, NFCSTATUS status,
+                                           void *pInfo);
+
+static void phNxpNciHal_fw_dnld_chk_integrity_cb(void *pContext,
+                                                 NFCSTATUS status, void *pInfo);
+
+static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void *pContext,
                                                    NFCSTATUS status,
-                                                   void* pInfo);
+                                                   void *pInfo);
 
-static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void* pContext,
-                                                     NFCSTATUS status,
-                                                     void* pInfo);
+static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void *pContext, NFCSTATUS status,
+                                               void *pInfo);
 
-static void phNxpNciHal_fw_dnld_write_cb(void* pContext, NFCSTATUS status,
-                                         void* pInfo);
+static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void *pContext,
+                                                 NFCSTATUS status, void *pInfo);
 
-static NFCSTATUS phNxpNciHal_fw_dnld_write(void* pContext, NFCSTATUS status,
-                                           void* pInfo);
-
-static void phNxpNciHal_fw_dnld_chk_integrity_cb(void* pContext,
-                                                 NFCSTATUS status, void* pInfo);
-
-static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void* pContext,
-                                                   NFCSTATUS status,
-                                                   void* pInfo);
-
-static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void* pContext, NFCSTATUS status,
-                                               void* pInfo);
-
-static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void* pContext,
-                                                 NFCSTATUS status, void* pInfo);
-
-static NFCSTATUS phNxpNciHal_fw_dnld_complete(void* pContext, NFCSTATUS status,
-                                              void* pInfo,
+static NFCSTATUS phNxpNciHal_fw_dnld_complete(void *pContext, NFCSTATUS status,
+                                              void *pInfo,
                                               bool bMinimalFw = false);
 
 /* Internal function to verify Crc Status byte received during CheckIntegrity */
@@ -170,36 +168,32 @@ static NFCSTATUS phLibNfc_VerifyCrcStatus(uint8_t bCrcStatus);
 
 /* Internal function to verify pallas Crc info  received during CheckIntegrity
  * response*/
-static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus);
+static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t *bCrcStatus);
 
 static NFCSTATUS phNxpNciHal_fw_seq_handler(
-    NFCSTATUS (*seq_handler[])(void* pContext, NFCSTATUS status, void* pInfo));
+    NFCSTATUS (*seq_handler[])(void *pContext, NFCSTATUS status, void *pInfo));
 
 static NFCSTATUS phNxpNciHal_releasePendingRead();
 
 /* Array of pointers to start fw download seq */
 /* Note: FW dnld sequence for PN7220 FW */
-static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void* pContext,
+static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void *pContext,
                                                    NFCSTATUS status,
-                                                   void* pInfo) = {
-    phNxpNciHal_fw_dnld_get_sessn_state,
-    phNxpNciHal_fw_dnld_get_version,
-    phNxpNciHal_fw_dnld_write,
-    phNxpNciHal_fw_dnld_get_sessn_state,
-    phNxpNciHal_fw_dnld_get_version,
-    phNxpNciHal_fw_dnld_chk_integrity,
-    phNxpNciHal_fw_dnld_get_die_id,
-    NULL};
+                                                   void *pInfo) = {
+    phNxpNciHal_fw_dnld_get_sessn_state, phNxpNciHal_fw_dnld_get_version,
+    phNxpNciHal_fw_dnld_write,           phNxpNciHal_fw_dnld_get_sessn_state,
+    phNxpNciHal_fw_dnld_get_version,     phNxpNciHal_fw_dnld_chk_integrity,
+    phNxpNciHal_fw_dnld_get_die_id,      NULL};
 
-static NFCSTATUS (*phNxpNciHal_minimal_dwnld_seqhandler[])(void* pContext,
+static NFCSTATUS (*phNxpNciHal_minimal_dwnld_seqhandler[])(void *pContext,
                                                            NFCSTATUS status,
-                                                           void* pInfo) = {
+                                                           void *pInfo) = {
     phNxpNciHal_fw_dnld_write, NULL};
 
 /* Download Recovery Sequence */
-static NFCSTATUS (*phNxpNciHal_dwnld_rec_seqhandler[])(void* pContext,
+static NFCSTATUS (*phNxpNciHal_dwnld_rec_seqhandler[])(void *pContext,
                                                        NFCSTATUS status,
-                                                       void* pInfo) = {
+                                                       void *pInfo) = {
     phNxpNciHal_fw_dnld_reset, phNxpNciHal_fw_dnld_force,
     phNxpNciHal_fw_dnld_send_ncicmd, NULL};
 
@@ -212,9 +206,9 @@ static NFCSTATUS (*phNxpNciHal_dwnld_rec_seqhandler[])(void* pContext,
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_reset_cb(void* pContext, NFCSTATUS status,
-                                         void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+static void phNxpNciHal_fw_dnld_reset_cb(void *pContext, NFCSTATUS status,
+                                         void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   UNUSED_PROP(pInfo);
   if (NFCSTATUS_SUCCESS == status) {
     NXPLOG_FWDNLD_D("phNxpNciHal_fw_dnld_reset_cb - Request Successful");
@@ -237,8 +231,8 @@ static void phNxpNciHal_fw_dnld_reset_cb(void* pContext, NFCSTATUS status,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_reset(void* pContext, NFCSTATUS status,
-                                           void* pInfo) {
+static NFCSTATUS phNxpNciHal_fw_dnld_reset(void *pContext, NFCSTATUS status,
+                                           void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phNxpNciHal_Sem_t cb_data;
   UNUSED_PROP(pContext);
@@ -257,7 +251,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_reset(void* pContext, NFCSTATUS status,
     return NFCSTATUS_FAILED;
   }
   wStatus = phDnldNfc_Reset((pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_reset_cb,
-                            (void*)&cb_data);
+                            (void *)&cb_data);
 
   if (wStatus != NFCSTATUS_PENDING) {
     NXPLOG_FWDNLD_E("phDnldNfc_Reset failed");
@@ -295,9 +289,9 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_force_cb(void* pContext, NFCSTATUS status,
-                                         void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+static void phNxpNciHal_fw_dnld_force_cb(void *pContext, NFCSTATUS status,
+                                         void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   UNUSED_PROP(pInfo);
   if (NFCSTATUS_SUCCESS == status) {
     NXPLOG_FWDNLD_D("phLibNfc_DnldForceCb - Request Successful");
@@ -327,8 +321,8 @@ static void phNxpNciHal_fw_dnld_force_cb(void* pContext, NFCSTATUS status,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_force(void* pContext, NFCSTATUS status,
-                                           void* pInfo) {
+static NFCSTATUS phNxpNciHal_fw_dnld_force(void *pContext, NFCSTATUS status,
+                                           void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   uint8_t bClkVal[2];
   phDnldNfc_Buff_t tData;
@@ -359,7 +353,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_force(void* pContext, NFCSTATUS status,
     }
     wStatus = phDnldNfc_Force(&tData,
                               (pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_force_cb,
-                              (void*)&cb_data);
+                              (void *)&cb_data);
 
     if (NFCSTATUS_PENDING != wStatus) {
       NXPLOG_FWDNLD_E("phDnldNfc_Force failed");
@@ -399,9 +393,9 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
-                                               void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+static void phNxpNciHal_fw_dnld_get_version_cb(void *pContext, NFCSTATUS status,
+                                               void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   NFCSTATUS wStatus = status;
   pphDnldNfc_Buff_t pRespBuff;
   uint16_t wFwVern = 0;
@@ -423,8 +417,8 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
           ((PHDNLDNFC_HWVER_MRA2_1 == bHwVer) ||
            (PHDNLDNFC_HWVER_MRA2_2 == bHwVer) ||
 #if (NXP_EXTNS == TRUE)
-          ((nfcFL.chipType == pn7220) &&
-           (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer))
+           ((nfcFL.chipType == pn7220) &&
+            (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer))
 #endif
           );
 
@@ -442,16 +436,14 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
       }
     } else {
       wStatus = NFCSTATUS_FAILED;
-      NXPLOG_FWDNLD_E(
-          "phNxpNciHal_fw_dnld_get_version_cb - Version Resp Buff "
-          "Invalid...\n");
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_get_version_cb - Version Resp Buff "
+                      "Invalid...\n");
     }
 
     if ((NFCSTATUS_SUCCESS == wStatus) && (bExpectedLen == pRespBuff->wLen) &&
         (NULL != pRespBuff->pBuff)) {
-      NXPLOG_FWDNLD_D(
-          "phNxpNciHal_fw_dnld_get_version_cb - Valid Version Resp "
-          "Buff!!...\n");
+      NXPLOG_FWDNLD_D("phNxpNciHal_fw_dnld_get_version_cb - Valid Version Resp "
+                      "Buff!!...\n");
 
       /* Validate version details to confirm if continue with the next sequence
        * of Operations. */
@@ -510,9 +502,8 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
         }
       }
     } else {
-      NXPLOG_FWDNLD_E(
-          "phNxpNciHal_fw_dnld_get_version_cb - Version Resp Buff "
-          "Invalid...\n");
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_get_version_cb - Version Resp Buff "
+                      "Invalid...\n");
     }
   } else {
     wStatus = NFCSTATUS_FAILED;
@@ -533,9 +524,8 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void* pContext, NFCSTATUS status,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_get_version(void* pContext,
-                                                 NFCSTATUS status,
-                                                 void* pInfo) {
+static NFCSTATUS
+phNxpNciHal_fw_dnld_get_version(void *pContext, NFCSTATUS status, void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phNxpNciHal_Sem_t cb_data;
   static uint8_t bGetVerRes[MAX_GET_VER_RESP_LEN];
@@ -558,7 +548,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_get_version(void* pContext,
 
   wStatus = phDnldNfc_GetVersion(
       &tDnldBuff, (pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_get_version_cb,
-      (void*)&cb_data);
+      (void *)&cb_data);
   if (wStatus != NFCSTATUS_PENDING) {
     NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_get_version failed");
     wStatus = NFCSTATUS_FAILED;
@@ -594,10 +584,10 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void* pContext,
+static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void *pContext,
                                                    NFCSTATUS status,
-                                                   void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+                                                   void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   NFCSTATUS wStatus = status;
   pphDnldNfc_Buff_t pRespBuff;
   if ((NFCSTATUS_SUCCESS == wStatus) && (NULL != pInfo)) {
@@ -668,9 +658,9 @@ static void phNxpNciHal_fw_dnld_get_sessn_state_cb(void* pContext,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void* pContext,
+static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void *pContext,
                                                      NFCSTATUS status,
-                                                     void* pInfo) {
+                                                     void *pInfo) {
   phDnldNfc_Buff_t tDnldBuff;
   static uint8_t bGSnStateRes[3];
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
@@ -691,7 +681,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void* pContext,
   tDnldBuff.wLen = sizeof(bGSnStateRes);
 
   wStatus = phDnldNfc_GetSessionState(
-      &tDnldBuff, &phNxpNciHal_fw_dnld_get_sessn_state_cb, (void*)&cb_data);
+      &tDnldBuff, &phNxpNciHal_fw_dnld_get_sessn_state_cb, (void *)&cb_data);
   if (wStatus != NFCSTATUS_PENDING) {
     NXPLOG_FWDNLD_E("phDnldNfc_GetSessionState failed");
     wStatus = NFCSTATUS_FAILED;
@@ -729,10 +719,9 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_get_die_id_cb(void* pContext,
-                                                   NFCSTATUS status,
-                                                   void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+static void phNxpNciHal_fw_dnld_get_die_id_cb(void *pContext, NFCSTATUS status,
+                                              void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   p_cb_data->status = status;
   UNUSED_PROP(pInfo);
   SEM_POST(p_cb_data);
@@ -749,9 +738,8 @@ static void phNxpNciHal_fw_dnld_get_die_id_cb(void* pContext,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void* pContext,
-                                                     NFCSTATUS status,
-                                                     void* pInfo) {
+static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void *pContext,
+                                                NFCSTATUS status, void *pInfo) {
   phDnldNfc_Buff_t tDnldBuff;
   static uint8_t bgetDieId[3];
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
@@ -771,8 +759,8 @@ static NFCSTATUS phNxpNciHal_fw_dnld_get_die_id(void* pContext,
   tDnldBuff.pBuff = bgetDieId;
   tDnldBuff.wLen = sizeof(bgetDieId);
 
-  wStatus = phDnldNfc_GetDieId(
-      &tDnldBuff, &phNxpNciHal_fw_dnld_get_die_id_cb, (void*)&cb_data);
+  wStatus = phDnldNfc_GetDieId(&tDnldBuff, &phNxpNciHal_fw_dnld_get_die_id_cb,
+                               (void *)&cb_data);
   if (wStatus != NFCSTATUS_PENDING) {
     NXPLOG_FWDNLD_E("phDnldNfc_GetDieId failed");
     wStatus = NFCSTATUS_FAILED;
@@ -802,7 +790,6 @@ clean_and_return:
 
 #endif
 
-
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_fw_dnld_write_cb
@@ -812,9 +799,9 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_write_cb(void* pContext, NFCSTATUS status,
-                                         void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+static void phNxpNciHal_fw_dnld_write_cb(void *pContext, NFCSTATUS status,
+                                         void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   UNUSED_PROP(pInfo);
   if (NFCSTATUS_SUCCESS == status) {
     NXPLOG_FWDNLD_D("phNxpNciHal_fw_dnld_write_cb - Request Successful");
@@ -869,8 +856,8 @@ static void phNxpNciHal_fw_dnld_write_cb(void* pContext, NFCSTATUS status,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_write(void* pContext, NFCSTATUS status,
-                                           void* pInfo) {
+static NFCSTATUS phNxpNciHal_fw_dnld_write(void *pContext, NFCSTATUS status,
+                                           void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phNxpNciHal_Sem_t cb_data;
   UNUSED_PROP(pContext);
@@ -899,7 +886,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_write(void* pContext, NFCSTATUS status,
   gphNxpNciHal_fw_IoctlCtx.bDnldInitiated = true;
   wStatus = phDnldNfc_Write(false, NULL,
                             (pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_write_cb,
-                            (void*)&cb_data);
+                            (void *)&cb_data);
   if ((gphNxpNciHal_fw_IoctlCtx.bForceDnld) == false) {
     if (wStatus != NFCSTATUS_PENDING) {
       NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_write failed");
@@ -940,10 +927,10 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_chk_integrity_cb(void* pContext,
+static void phNxpNciHal_fw_dnld_chk_integrity_cb(void *pContext,
                                                  NFCSTATUS status,
-                                                 void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+                                                 void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   NFCSTATUS wStatus = status;
   pphDnldNfc_Buff_t pRespBuff;
   // uint8_t bUserDataCrc[4];
@@ -953,9 +940,9 @@ static void phNxpNciHal_fw_dnld_chk_integrity_cb(void* pContext,
         "phNxpNciHal_fw_dnld_chk_integrity_cb - Request Successful");
     pRespBuff = (pphDnldNfc_Buff_t)pInfo;
     if ((nfcFL.chipType >= pn7220) && (NULL != (pRespBuff->pBuff))) {
-      NXPLOG_FWDNLD_D(
-          "pn72xx phNxpNciHal_fw_dnld_chk_integrity_cb - Valid Resp Buff!!...\n");
-     wStatus = phLibNfc_VerifyPN72xx_CrcStatus(&pRespBuff->pBuff[0]);
+      NXPLOG_FWDNLD_D("pn72xx phNxpNciHal_fw_dnld_chk_integrity_cb - Valid "
+                      "Resp Buff!!...\n");
+      wStatus = phLibNfc_VerifyPN72xx_CrcStatus(&pRespBuff->pBuff[0]);
     } else if ((PHLIBNFC_DNLD_CHECKINTEGRITYLEN == (pRespBuff->wLen)) &&
                (NULL != (pRespBuff->pBuff))) {
       NXPLOG_FWDNLD_D(
@@ -989,9 +976,9 @@ static void phNxpNciHal_fw_dnld_chk_integrity_cb(void* pContext,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void* pContext,
+static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void *pContext,
                                                    NFCSTATUS status,
-                                                   void* pInfo) {
+                                                   void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phNxpNciHal_Sem_t cb_data;
   phDnldNfc_Buff_t tDnldBuff;
@@ -1024,7 +1011,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void* pContext,
 
   wStatus = phDnldNfc_CheckIntegrity(
       (gphNxpNciHal_fw_IoctlCtx.bChipVer), &tDnldBuff,
-      &phNxpNciHal_fw_dnld_chk_integrity_cb, (void*)&cb_data);
+      &phNxpNciHal_fw_dnld_chk_integrity_cb, (void *)&cb_data);
   if (wStatus != NFCSTATUS_PENDING) {
     NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_chk_integrity failed");
     wStatus = NFCSTATUS_FAILED;
@@ -1060,9 +1047,9 @@ clean_and_return:
 ** Returns          None
 **
 *******************************************************************************/
-static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void* pContext, NFCSTATUS status,
-                                               void* pInfo) {
-  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void *pContext, NFCSTATUS status,
+                                               void *pInfo) {
+  phNxpNciHal_Sem_t *p_cb_data = (phNxpNciHal_Sem_t *)pContext;
   NFCSTATUS wStatus = status;
   pphDnldNfc_Buff_t pRespBuff;
   UNUSED_PROP(pContext);
@@ -1112,9 +1099,8 @@ static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void* pContext, NFCSTATUS status,
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void* pContext,
-                                                 NFCSTATUS status,
-                                                 void* pInfo) {
+static NFCSTATUS
+phNxpNciHal_fw_dnld_send_ncicmd(void *pContext, NFCSTATUS status, void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   static uint8_t bNciCmd[4] = {0x20, 0x00, 0x01,
                                0x00}; /* Nci Reset Cmd with KeepConfig option */
@@ -1150,7 +1136,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void* pContext,
       wStatus = phDnldNfc_RawReq(
           &tsData, &trData,
           (pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_send_ncicmd_cb,
-          (void*)&cb_data);
+          (void *)&cb_data);
       if (NFCSTATUS_PENDING != wStatus) {
         goto clean_and_return;
       }
@@ -1186,8 +1172,8 @@ static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void* pContext,
 **
 *******************************************************************************/
 static NFCSTATUS phNxpNciHal_fw_seq_handler(
-    NFCSTATUS (*seq_handler[])(void* pContext, NFCSTATUS status, void* pInfo)) {
-  const char* pContext = "FW-Download";
+    NFCSTATUS (*seq_handler[])(void *pContext, NFCSTATUS status, void *pInfo)) {
+  const char *pContext = "FW-Download";
   int16_t seq_counter = 0;
   phDnldNfc_Buff_t pInfo;
   NFCSTATUS status = NFCSTATUS_FAILED;
@@ -1206,7 +1192,7 @@ static NFCSTATUS phNxpNciHal_fw_seq_handler(
 
   while (seq_handler[seq_counter] != NULL) {
     status = NFCSTATUS_FAILED;
-    status = (seq_handler[seq_counter])((void*)pContext, status, &pInfo);
+    status = (seq_handler[seq_counter])((void *)pContext, status, &pInfo);
     if (NFCSTATUS_SUCCESS != status) {
       NXPLOG_FWDNLD_E(" phNxpNciHal_fw_seq_handler : FAILED");
       break;
@@ -1248,8 +1234,8 @@ NFCSTATUS phNxpNciHal_fw_dnld_switch_normal_mode() {
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-static NFCSTATUS phNxpNciHal_fw_dnld_complete(void* pContext, NFCSTATUS status,
-                                              void* pInfo, bool bMinimalFw) {
+static NFCSTATUS phNxpNciHal_fw_dnld_complete(void *pContext, NFCSTATUS status,
+                                              void *pInfo, bool bMinimalFw) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   NFCSTATUS fStatus = status;
   UNUSED_PROP(pInfo);
@@ -1426,7 +1412,7 @@ NFCSTATUS phNxpNciHal_fw_download_seq(uint8_t bClkSrcVal, uint8_t bClkFreqVal,
                                       bool bMinimalFw) {
   NFCSTATUS status = NFCSTATUS_FAILED;
   phDnldNfc_Buff_t pInfo;
-  const char* pContext = "FW-Download";
+  const char *pContext = "FW-Download";
 
   /* reset the global flags */
   gphNxpNciHal_fw_IoctlCtx.IoctlCode = NFC_FW_DOWNLOAD;
@@ -1457,8 +1443,8 @@ NFCSTATUS phNxpNciHal_fw_download_seq(uint8_t bClkSrcVal, uint8_t bClkFreqVal,
   }
 
   /* Chage to normal mode */
-  status =
-      phNxpNciHal_fw_dnld_complete((void*)pContext, status, &pInfo, bMinimalFw);
+  status = phNxpNciHal_fw_dnld_complete((void *)pContext, status, &pInfo,
+                                        bMinimalFw);
   /*if (NFCSTATUS_SUCCESS == status)
   {
       NXPLOG_FWDNLD_D(" phNxpNciHal_fw_dnld_complete : SUCCESS");
@@ -1478,44 +1464,44 @@ static NFCSTATUS phLibNfc_VerifyCrcStatus(uint8_t bCrcStatus) {
   while (bBitPos < 7) {
     if (!(bCrcStatus & bShiftVal)) {
       switch (bBitPos) {
-        case 0: {
-          NXPLOG_FWDNLD_E("User Data Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        case 1: {
-          NXPLOG_FWDNLD_E("Trim Data Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        case 2: {
-          NXPLOG_FWDNLD_E("Protected Data Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        case 3: {
-          NXPLOG_FWDNLD_E("Patch Code Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        case 4: {
-          NXPLOG_FWDNLD_E("Function Code Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        case 5: {
-          NXPLOG_FWDNLD_E("Patch Table Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        case 6: {
-          NXPLOG_FWDNLD_E("Function Table Crc is NOT OK!!");
-          wStatus = NFCSTATUS_FAILED;
-          break;
-        }
-        default: {
-          break;
-        }
+      case 0: {
+        NXPLOG_FWDNLD_E("User Data Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      case 1: {
+        NXPLOG_FWDNLD_E("Trim Data Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      case 2: {
+        NXPLOG_FWDNLD_E("Protected Data Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      case 3: {
+        NXPLOG_FWDNLD_E("Patch Code Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      case 4: {
+        NXPLOG_FWDNLD_E("Function Code Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      case 5: {
+        NXPLOG_FWDNLD_E("Patch Table Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      case 6: {
+        NXPLOG_FWDNLD_E("Function Table Crc is NOT OK!!");
+        wStatus = NFCSTATUS_FAILED;
+        break;
+      }
+      default: {
+        break;
+      }
       }
     }
 
@@ -1526,19 +1512,20 @@ static NFCSTATUS phLibNfc_VerifyCrcStatus(uint8_t bCrcStatus) {
   return wStatus;
 }
 
-static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
+static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t *bCrcStatus) {
   uint8_t CODEINFO_LEN = 0x06;
   uint8_t DATAINFO_LEN = 0x11;
-  uint8_t* crc_info_buf;
+  uint8_t *crc_info_buf;
   /*acceptable CRC values defined in little indian format
    * Actual CRC values are 3F80FFFF
-  */
- uint32_t acceptable_crc_values_devsample  = 0xFFFF803F;
+   */
+  uint32_t acceptable_crc_values_devsample = 0xFFFF803F;
 
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phDnldChkIntegrityRsp_Buff_t chkIntgRspBuf;
 
-  if (bCrcStatus == NULL) return NFCSTATUS_FAILED;
+  if (bCrcStatus == NULL)
+    return NFCSTATUS_FAILED;
   chkIntgRspBuf.pBuff = bCrcStatus;
   chkIntgRspBuf.data_len = chkIntgRspBuf.pBuff[0];
   chkIntgRspBuf.code_len = chkIntgRspBuf.pBuff[1];
@@ -1554,7 +1541,8 @@ static NFCSTATUS phLibNfc_VerifyPN72xx_CrcStatus(uint8_t* bCrcStatus)  {
   NXPLOG_FWDNLD_D("crc status code data len 0x%x", chkIntgRspBuf.data_len);
   NXPLOG_FWDNLD_D("crc status code area  0x%2x", chkIntgRspBuf.crc_status);
 
- if ((chkIntgRspBuf.crc_status | MASK_MSB_BYTE) != acceptable_crc_values_devsample) {
+  if ((chkIntgRspBuf.crc_status | MASK_MSB_BYTE) !=
+      acceptable_crc_values_devsample) {
     NXPLOG_FWDNLD_D("Error : Integrity CRC check failed");
     return NFCSTATUS_FAILED;
   }
@@ -1583,7 +1571,7 @@ static NFCSTATUS phNxpNciHal_releasePendingRead() {
         "/dev/nxpnfc");
     strlcpy(nfc_dev_node, "/dev/nxpnfc", (sizeof(nfc_dev_node)));
   }
-  tTmlConfig.pDevName = (int8_t*)nfc_dev_node;
+  tTmlConfig.pDevName = (int8_t *)nfc_dev_node;
   gpTransportObj->Close(gpphTmlNfc_Context->pDevHandle);
   if (!gpTransportObj->Flushdata(&tTmlConfig)) {
     NXPLOG_FWDNLD_E("Flushdata Failed");

@@ -21,8 +21,8 @@
 #define pConfigFL (capability::getInstance())
 
 class capability {
- private:
-  static capability* instance;
+private:
+  static capability *instance;
   const uint16_t offsetHwVersion = 24;
   const uint16_t offsetFwRomCodeVersion = 4;
   const uint16_t offsetFwMinorVersion = 6;
@@ -30,13 +30,13 @@ class capability {
   /*product[] will be used to print product version and
   should be kept in accordance with tNFC_chipType*/
 
-  const char* product[14] = {"UNKNOWN", "sn100u",  "sn220u", "pn7220"};
+  const char *product[14] = {"UNKNOWN", "sn100u", "sn220u", "pn7220"};
   capability();
 
- public:
+public:
   static tNFC_chipType chipType;
-  static capability* getInstance();
-  tNFC_chipType processChipType(uint8_t* msg, uint16_t msg_len);
-  uint32_t getFWVersionInfo(uint8_t* msg, uint16_t msg_len);
+  static capability *getInstance();
+  tNFC_chipType processChipType(uint8_t *msg, uint16_t msg_len);
+  uint32_t getFWVersionInfo(uint8_t *msg, uint16_t msg_len);
 };
 #endif

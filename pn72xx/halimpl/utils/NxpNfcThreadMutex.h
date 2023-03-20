@@ -20,39 +20,39 @@
 #include <pthread.h>
 
 class NfcHalThreadMutex {
- public:
+public:
   NfcHalThreadMutex();
   virtual ~NfcHalThreadMutex();
   void lock();
   void unlock();
-  operator pthread_mutex_t*() { return &mMutex; }
+  operator pthread_mutex_t *() { return &mMutex; }
 
- private:
+private:
   pthread_mutex_t mMutex;
 };
 
 class NfcHalThreadCondVar : public NfcHalThreadMutex {
- public:
+public:
   NfcHalThreadCondVar();
   virtual ~NfcHalThreadCondVar();
   void signal();
   void wait();
-  operator pthread_cond_t*() { return &mCondVar; }
-  operator pthread_mutex_t*() {
-    return NfcHalThreadMutex::operator pthread_mutex_t*();
+  operator pthread_cond_t *() { return &mCondVar; }
+  operator pthread_mutex_t *() {
+    return NfcHalThreadMutex::operator pthread_mutex_t *();
   }
 
- private:
+private:
   pthread_cond_t mCondVar;
 };
 
 class NfcHalAutoThreadMutex {
- public:
-  NfcHalAutoThreadMutex(NfcHalThreadMutex& m);
+public:
+  NfcHalAutoThreadMutex(NfcHalThreadMutex &m);
   virtual ~NfcHalAutoThreadMutex();
-  operator NfcHalThreadMutex&() { return mm; }
-  operator pthread_mutex_t*() { return (pthread_mutex_t*)mm; }
+  operator NfcHalThreadMutex &() { return mm; }
+  operator pthread_mutex_t *() { return (pthread_mutex_t *)mm; }
 
- private:
-  NfcHalThreadMutex& mm;
+private:
+  NfcHalThreadMutex &mm;
 };

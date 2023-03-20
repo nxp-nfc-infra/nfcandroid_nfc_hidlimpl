@@ -31,8 +31,8 @@
  *      wStatus  - Status of the transaction
  *      pInfo    - Contains the Transaction Info
  */
-typedef void (*pphDnldNfc_RspCb_t)(void* pContext, NFCSTATUS wStatus,
-                                   void* pInfo);
+typedef void (*pphDnldNfc_RspCb_t)(void *pContext, NFCSTATUS wStatus,
+                                   void *pInfo);
 
 /* Timeout value to wait for response from NFCC */
 #define PHDNLDNFC_RSP_TIMEOUT (2500)
@@ -63,12 +63,12 @@ typedef enum phDnldNfc_LC {
  * Struct contains buffer where user payload shall be stored
  */
 typedef struct phDnldNfc_Buff {
-  uint8_t* pBuff; /*pointer to the buffer where user payload shall be stored*/
+  uint8_t *pBuff; /*pointer to the buffer where user payload shall be stored*/
   uint32_t wLen;  /*Buffer length*/
 } phDnldNfc_Buff_t, *pphDnldNfc_Buff_t; /* pointer to #phDnldNfc_Buff_t */
 
 typedef struct phDnldChkIntegrityRsp_Buff {
-  uint8_t* pBuff; /* pointer to the buffer where chk integrity rsp is stored*/
+  uint8_t *pBuff; /* pointer to the buffer where chk integrity rsp is stored*/
   uint32_t wLen;  /* check integrity rsp Buffer length*/
   uint8_t
       data_len; /* length of data area whose CRC is checked, maximum 28 bits*/
@@ -80,42 +80,41 @@ typedef struct phDnldChkIntegrityRsp_Buff {
 *********************** Function Prototype Declaration *************************
 */
 
-extern NFCSTATUS phDnldNfc_Reset(pphDnldNfc_RspCb_t pNotify, void* pContext);
+extern NFCSTATUS phDnldNfc_Reset(pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_GetVersion(pphDnldNfc_Buff_t pVersionInfo,
                                       pphDnldNfc_RspCb_t pNotify,
-                                      void* pContext);
+                                      void *pContext);
 extern NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer,
                                           pphDnldNfc_Buff_t pCRCData,
                                           pphDnldNfc_RspCb_t pNotify,
-                                          void* pContext);
+                                          void *pContext);
 extern NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
                                            pphDnldNfc_RspCb_t pNotify,
-                                           void* pContext);
+                                           void *pContext);
 
 extern NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pSession,
-                                    pphDnldNfc_RspCb_t pNotify,
-                                    void* pContext);
+                                    pphDnldNfc_RspCb_t pNotify, void *pContext);
 
 extern NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs,
-                                 pphDnldNfc_RspCb_t pNotify, void* pContext);
+                                 pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,
-                                pphDnldNfc_RspCb_t pNotify, void* pContext);
+                                pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
-                                 pphDnldNfc_RspCb_t pNotify, void* pContext);
+                                 pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_Log(pphDnldNfc_Buff_t pData,
-                               pphDnldNfc_RspCb_t pNotify, void* pContext);
+                               pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern void phDnldNfc_SetHwDevHandle(void);
 void phDnldNfc_ReSetHwDevHandle(void);
-extern NFCSTATUS phDnldNfc_ReadMem(void* pHwRef, pphDnldNfc_RspCb_t pNotify,
-                                   void* pContext);
+extern NFCSTATUS phDnldNfc_ReadMem(void *pHwRef, pphDnldNfc_RspCb_t pNotify,
+                                   void *pContext);
 extern NFCSTATUS phDnldNfc_RawReq(pphDnldNfc_Buff_t pFrameData,
                                   pphDnldNfc_Buff_t pRspData,
-                                  pphDnldNfc_RspCb_t pNotify, void* pContext);
+                                  pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw = false);
 extern void phDnldNfc_CloseFwLibHandle(void);
-extern NFCSTATUS phDnldNfc_LoadFW(const char* pathName, uint8_t** pImgInfo,
-                                  uint32_t* pImgInfoLen);
-extern NFCSTATUS phDnldNfc_LoadBinFW(uint8_t** pImgInfo, uint32_t* pImgInfoLen);
+extern NFCSTATUS phDnldNfc_LoadFW(const char *pathName, uint8_t **pImgInfo,
+                                  uint32_t *pImgInfoLen);
+extern NFCSTATUS phDnldNfc_LoadBinFW(uint8_t **pImgInfo, uint32_t *pImgInfoLen);
 extern NFCSTATUS phDnldNfc_UnloadFW(void);
 extern void phDnldNfc_SetDlRspTimeout(uint16_t timeout);
 extern void phDnldNfc_SetI2CFragmentLength(uint16_t len);

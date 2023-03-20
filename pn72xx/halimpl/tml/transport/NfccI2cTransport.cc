@@ -30,11 +30,11 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "phNxpNciHal_utils.h"
 #include <NfccI2cTransport.h>
 #include <phNfcStatus.h>
 #include <phNxpLog.h>
 #include <string.h>
-#include "phNxpNciHal_utils.h"
 
 #define CRC_LEN 2
 #define NORMAL_MODE_HEADER_LEN 3
@@ -43,7 +43,7 @@
 #define NORMAL_MODE_LEN_OFFSET 2
 #define FLUSH_BUFFER_SIZE 0xFF
 extern phTmlNfc_i2cfragmentation_t fragmentation_enabled;
-extern phTmlNfc_Context_t* gpphTmlNfc_Context;
+extern phTmlNfc_Context_t *gpphTmlNfc_Context;
 /*******************************************************************************
 **
 ** Function         Close
@@ -55,7 +55,7 @@ extern phTmlNfc_Context_t* gpphTmlNfc_Context;
 ** Returns          None
 **
 *******************************************************************************/
-void NfccI2cTransport::Close(void* pDevHandle) {
+void NfccI2cTransport::Close(void *pDevHandle) {
   if (NULL != pDevHandle) {
     close((int)(intptr_t)pDevHandle);
   }
@@ -78,18 +78,18 @@ void NfccI2cTransport::Close(void* pDevHandle) {
 **
 *******************************************************************************/
 NFCSTATUS NfccI2cTransport::OpenAndConfigure(pphTmlNfc_Config_t pConfig,
-                                             void** pLinkHandle) {
+                                             void **pLinkHandle) {
   int nHandle;
   NFCSTATUS status = NFCSTATUS_SUCCESS;
   NXPLOG_TML_D("%s Opening port=%s\n", __func__, pConfig->pDevName);
   /* open port */
-  nHandle = open((const char*)pConfig->pDevName, O_RDWR);
+  nHandle = open((const char *)pConfig->pDevName, O_RDWR);
   if (nHandle < 0) {
     NXPLOG_TML_E("_i2c_open() Failed: retval %x", nHandle);
     *pLinkHandle = NULL;
     status = NFCSTATUS_INVALID_DEVICE;
   } else {
-    *pLinkHandle = (void*)((intptr_t)nHandle);
+    *pLinkHandle = (void *)((intptr_t)nHandle);
     if (0 != sem_init(&mTxRxSemaphore, 0, 1)) {
       NXPLOG_TML_E("%s Failed: reason sem_init : retval %x", __func__, nHandle);
       status = NFCSTATUS_FAILED;
@@ -114,7 +114,7 @@ bool NfccI2cTransport::Flushdata(pphTmlNfc_Config_t pConfig) {
   int nHandle;
   uint8_t pBuffer[FLUSH_BUFFER_SIZE];
   NXPLOG_TML_D("%s: Enter", __func__);
-  nHandle = open((const char*)pConfig->pDevName, O_RDWR | O_NONBLOCK);
+  nHandle = open((const char *)pConfig->pDevName, O_RDWR | O_NONBLOCK);
   if (nHandle < 0) {
     NXPLOG_TML_E("%s: _i2c_open() Failed: retval %x", __func__, nHandle);
     return false;
@@ -146,7 +146,7 @@ bool NfccI2cTransport::Flushdata(pphTmlNfc_Config_t pConfig) {
 **                  -1        - read operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::Read(void* pDevHandle, uint8_t* pBuffer,
+int NfccI2cTransport::Read(void *pDevHandle, uint8_t *pBuffer,
                            int nNbBytesToRead) {
   int ret_Read;
   int ret_Select;
@@ -263,7 +263,7 @@ int NfccI2cTransport::Read(void* pDevHandle, uint8_t* pBuffer,
 **                  -1         - write operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::Write(void* pDevHandle, uint8_t* pBuffer,
+int NfccI2cTransport::Write(void *pDevHandle, uint8_t *pBuffer,
                             int nNbBytesToWrite) {
   int ret;
   int numWrote = 0;
@@ -323,7 +323,7 @@ int NfccI2cTransport::Write(void* pDevHandle, uint8_t* pBuffer,
 **                  -1   - reset operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::NfccReset(void* pDevHandle, NfccResetType eType) {
+int NfccI2cTransport::NfccReset(void *pDevHandle, NfccResetType eType) {
   int ret = -1;
   NXPLOG_TML_D("%s, VEN eType %u", __func__, eType);
 
@@ -356,7 +356,7 @@ int NfccI2cTransport::NfccReset(void* pDevHandle, NfccResetType eType) {
 **                  else - reset operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::EseReset(void* pDevHandle, EseResetType eType) {
+int NfccI2cTransport::EseReset(void *pDevHandle, EseResetType eType) {
   int ret = -1;
   NXPLOG_TML_D("%s, eType %u", __func__, eType);
 
@@ -383,7 +383,7 @@ int NfccI2cTransport::EseReset(void* pDevHandle, EseResetType eType) {
 **                  else - reset operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::EseGetPower(void* pDevHandle, uint32_t level) {
+int NfccI2cTransport::EseGetPower(void *pDevHandle, uint32_t level) {
   return ioctl((int)(intptr_t)pDevHandle, ESE_GET_PWR, level);
 }
 
@@ -425,7 +425,7 @@ bool_t NfccI2cTransport::IsFwDnldModeEnabled(void) { return bFwDnldFlag; }
 **                   1   SetLED operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::SetLED(void* pDevHandle, LEDControl eType) {
+int NfccI2cTransport::SetLED(void *pDevHandle, LEDControl eType) {
   int ret = -1;
   NXPLOG_TML_D("%s, eType %u", __func__, eType);
 

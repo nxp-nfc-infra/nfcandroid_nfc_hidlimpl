@@ -19,20 +19,20 @@
 #include "NxpNfcCapability.h"
 #include <phNxpLog.h>
 
-capability* capability::instance = NULL;
+capability *capability::instance = NULL;
 tNFC_chipType capability::chipType = pn7220;
 tNfc_featureList nfcFL;
 
 capability::capability() {}
 
-capability* capability::getInstance() {
+capability *capability::getInstance() {
   if (NULL == instance) {
     instance = new capability();
   }
   return instance;
 }
 
-tNFC_chipType capability::processChipType(uint8_t* msg, uint16_t msg_len) {
+tNFC_chipType capability::processChipType(uint8_t *msg, uint16_t msg_len) {
   if ((msg != NULL) && (msg_len != 0)) {
     if (msg[0] == 0x60 && msg[1] == 0x00) {
       if (msg[msg_len - 3] == 0x03 && msg[msg_len - 2] == 0x00)
@@ -43,11 +43,11 @@ tNFC_chipType capability::processChipType(uint8_t* msg, uint16_t msg_len) {
     } else if (offsetHwVersion < msg_len) {
       ALOGD("%s HwVersion : 0x%02x", __func__, msg[msg_len - 4]);
       switch (msg[msg_len - 4]) {
-        case 0x53:
-          chipType = pn7220;
-          break;
-        default:
-          chipType = pn7220;
+      case 0x53:
+        chipType = pn7220;
+        break;
+      default:
+        chipType = pn7220;
       }
     } else {
       ALOGD("%s Wrong msg_len. Setting Default ChiptType pn7220", __func__);
@@ -58,7 +58,7 @@ tNFC_chipType capability::processChipType(uint8_t* msg, uint16_t msg_len) {
   return chipType;
 }
 
-uint32_t capability::getFWVersionInfo(uint8_t* msg, uint16_t msg_len) {
+uint32_t capability::getFWVersionInfo(uint8_t *msg, uint16_t msg_len) {
   uint32_t versionInfo = 0;
   if ((msg != NULL) && (msg_len != 0)) {
     if (msg[0] == 0x00) {

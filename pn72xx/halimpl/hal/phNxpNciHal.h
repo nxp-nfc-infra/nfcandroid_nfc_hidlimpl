@@ -16,11 +16,11 @@
 #ifndef _PHNXPNCIHAL_H_
 #define _PHNXPNCIHAL_H_
 
-#include <hardware/nfc.h>
-#include <phNxpNciHal_utils.h>
 #include "NxpMfcReader.h"
 #include "NxpNfcCapability.h"
 #include "phNxpNciHal_IoctlOperations.h"
+#include <hardware/nfc.h>
+#include <phNxpNciHal_utils.h>
 
 #include <vendor/nxp/nxpnfc/2.0/types.h>
 
@@ -144,19 +144,19 @@ typedef struct phNxpNciHal_Control {
   phLibNfc_sConfig_t gDrvCfg;   /* Driver config data */
 
   /* Rx data */
-  uint8_t* p_rx_data;
+  uint8_t *p_rx_data;
   uint16_t rx_data_len;
 
   /* Rx data */
-  uint8_t* p_rx_ese_data;
+  uint8_t *p_rx_ese_data;
   uint16_t rx_ese_data_len;
 
   /* libnfc-nci callbacks */
-  nfc_stack_callback_t* p_nfc_stack_cback;
-  nfc_stack_data_callback_t* p_nfc_stack_data_cback;
+  nfc_stack_callback_t *p_nfc_stack_cback;
+  nfc_stack_data_callback_t *p_nfc_stack_data_cback;
 
   /* control granted callback */
-  phNxpNciHal_control_granted_callback_t* p_control_granted_cback;
+  phNxpNciHal_control_granted_callback_t *p_control_granted_cback;
 
   /* HAL open status */
   bool_t hal_open_status;
@@ -208,9 +208,9 @@ typedef struct phNxpNciMwEepromArea {
 enum { SE_TYPE_ESE, SE_TYPE_UICC, SE_TYPE_UICC2, NUM_SE_TYPES };
 
 typedef void (*fpVerInfoStoreInEeprom_t)();
-typedef int (*fpVerifyCscEfsTest_t)(char* nfcc_csc, char* rffilepath,
-                                    char* fwfilepath);
-typedef int (*fpRegRfFwDndl_t)(uint8_t* fw_update_req, uint8_t* rf_update_req,
+typedef int (*fpVerifyCscEfsTest_t)(char *nfcc_csc, char *rffilepath,
+                                    char *fwfilepath);
+typedef int (*fpRegRfFwDndl_t)(uint8_t *fw_update_req, uint8_t *rf_update_req,
                                uint8_t skipEEPROMRead);
 typedef int (*fpPropConfCover_t)(bool attached, int type);
 void phNxpNciHal_initializeRegRfFwDnld();
@@ -267,7 +267,7 @@ typedef struct phNxpNci_EEPROM_info {
   uint8_t request_mode;
   phNxpNci_EEPROM_request_type_t request_type;
   uint8_t update_mode;
-  uint8_t* buffer;
+  uint8_t *buffer;
   uint8_t bufflen;
 } phNxpNci_EEPROM_info_t;
 
@@ -293,8 +293,9 @@ typedef enum {
 /* NXP Poll Profile control structure */
 typedef struct phNxpNciProfile_Control {
   phNxpNciProfile_t profile_type;
-  uint8_t bClkSrcVal;   /* Holds the System clock source read from config file */
-  uint8_t bClkFreqVal;  /* Holds the System clock frequency read from config file */
+  uint8_t bClkSrcVal; /* Holds the System clock source read from config file */
+  uint8_t
+      bClkFreqVal; /* Holds the System clock frequency read from config file */
 } phNxpNciProfile_Control_t;
 
 /* Internal messages to handle callbacks */
@@ -311,12 +312,12 @@ typedef struct phNxpNciProfile_Control {
 #define NCIHAL_CMD_CODE_BYTE_LEN (3U)
 
 /******************** NCI HAL exposed functions *******************************/
-int phNxpNciHal_check_ncicmd_write_window(uint16_t cmd_len, uint8_t* p_cmd);
+int phNxpNciHal_check_ncicmd_write_window(uint16_t cmd_len, uint8_t *p_cmd);
 void phNxpNciHal_request_control(void);
 void phNxpNciHal_release_control(void);
-int phNxpNciHal_write_unlocked(uint16_t data_len, const uint8_t* p_data,
+int phNxpNciHal_write_unlocked(uint16_t data_len, const uint8_t *p_data,
                                int origin);
-NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t* mEEPROM_info);
+NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t *mEEPROM_info);
 int phNxpNciHal_check_config_parameter();
 NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset = 0,
                                   bool bIsNfccDlState = false);
@@ -339,7 +340,7 @@ NFCSTATUS phNxpNciHal_send_nfcee_pwr_cntl_cmd(uint8_t type);
 **
 ** Returns          none
 *******************************************************************************/
-void phNxpNciHal_configFeatureList(uint8_t* init_rsp, uint16_t rsp_len);
+void phNxpNciHal_configFeatureList(uint8_t *init_rsp, uint16_t rsp_len);
 
 /******************************************************************************
  * Function         phNxpNciHal_read_and_update_se_state
@@ -374,7 +375,7 @@ extern bool phNxpNciHal_Abort();
  * Returns          status of the read
  *
  ******************************************************************************/
-NFCSTATUS phNxpNciHal_read_fw_dw_status(uint8_t& value);
+NFCSTATUS phNxpNciHal_read_fw_dw_status(uint8_t &value);
 
 /******************************************************************************
  * Function         phNxpNciHal_write_fw_dw_status

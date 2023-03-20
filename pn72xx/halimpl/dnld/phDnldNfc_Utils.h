@@ -22,6 +22,6 @@
 
 #include <phDnldNfc.h>
 
-extern uint16_t phDnldNfc_CalcCrc16(uint8_t* pBuff, uint16_t wLen);
+extern uint16_t phDnldNfc_CalcCrc16(uint8_t *pBuff, uint16_t wLen);
 
 #endif /* PHDNLDNFC_UTILS_H */

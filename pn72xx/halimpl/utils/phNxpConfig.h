@@ -43,10 +43,10 @@
 extern "C" {
 #endif
 
-int GetNxpStrValue(const char* name, char* p_value, unsigned long len);
-int GetNxpNumValue(const char* name, void* p_value, unsigned long len);
-int GetNxpByteArrayValue(const char* name, char* pValue, long bufflen,
-                         long* len);
+int GetNxpStrValue(const char *name, char *p_value, unsigned long len);
+int GetNxpNumValue(const char *name, void *p_value, unsigned long len);
+int GetNxpByteArrayValue(const char *name, char *pValue, long bufflen,
+                         long *len);
 void resetNxpConfig(void);
 int isNxpRFConfigModified();
 int isNxpConfigModified();
@@ -54,7 +54,7 @@ int isNxpEepromConfigModified();
 int updateNxpConfigTimestamp();
 int updateNxpEepromConfigTimestamp();
 int updateNxpRfConfigTimestamp();
-void setNxpRfConfigPath(const char* name);
+void setNxpRfConfigPath(const char *name);
 void setNxpFwConfigPath();
 
 #ifdef __cplusplus
@@ -91,7 +91,7 @@ extern char Fw_Lib_Path[256];
 #define NAME_NXP_CORE_CONF "NXP_CORE_CONF"
 #define NAME_NXP_CHINA_TIANJIN_RF_ENABLED "NXP_CHINA_TIANJIN_RF_ENABLED"
 #define NAME_NXP_CHINA_BLK_NUM_CHK_ENABLE "NXP_CN_TRANSIT_BLK_NUM_CHECK_ENABLE"
-#define NAME_NXP_CN_TRANSIT_CMA_BYPASSMODE_ENABLE \
+#define NAME_NXP_CN_TRANSIT_CMA_BYPASSMODE_ENABLE                              \
   "NXP_CN_TRANSIT_CMA_BYPASSMODE_ENABLE"
 #define NAME_NXP_ESE_POWER_DH_CONTROL "NXP_ESE_POWER_DH_CONTROL"
 #define NAME_NXP_ESE_POWER_EXT_PMU "NXP_ESE_POWER_EXT_PMU"
@@ -191,7 +191,7 @@ extern char Fw_Lib_Path[256];
 #define NAME_NXP_MINIMAL_FW_VERSION "NXP_MINIMAL_FW_VERSION"
 #define NAME_NXP_NFCC_RECOVERY_SUPPORT "NXP_NFCC_RECOVERY_SUPPORT"
 #define NAME_NXP_P2P_DISC_NTF_TIMEOUT "NXP_P2P_DISC_NTF_TIMEOUT"
-#define NAME_NXP_RESTART_RF_FOR_NFCEE_RECOVERY \
+#define NAME_NXP_RESTART_RF_FOR_NFCEE_RECOVERY                                 \
   "NXP_RESTART_RF_FOR_NFCEE_RECOVERY"
 #define NAME_NXP_PROP_CE_ACTION_NTF "NXP_PROP_CE_ACTION_NTF"
 #define NAME_NXP_AGC_DEBUG_ENABLE "NXP_AGC_DEBUG_ENABLE"

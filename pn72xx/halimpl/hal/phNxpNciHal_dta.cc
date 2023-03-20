@@ -79,8 +79,8 @@ void phNxpDta_T1TEnable(void) { nxpdta_ctrl.dta_t1t_flag = true; }
  *
  ******************************************************************************/
 
-NFCSTATUS phNxpNHal_DtaUpdate(uint16_t* cmd_len, uint8_t* p_cmd_data,
-                              uint16_t* rsp_len, uint8_t* p_rsp_data) {
+NFCSTATUS phNxpNHal_DtaUpdate(uint16_t *cmd_len, uint8_t *p_cmd_data,
+                              uint16_t *rsp_len, uint8_t *p_rsp_data) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
 
   if (nxpdta_ctrl.dta_ctrl_flag == true) {

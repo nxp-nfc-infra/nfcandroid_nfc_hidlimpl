@@ -97,11 +97,12 @@ static uint32_t crc32_tab[] = {
  * in sys/libkern.h, where it can be inlined.
  */
 
-uint32_t sparse_crc32(uint32_t crc_in, const void* buf, int size) {
-  const uint8_t* p = (const uint8_t*)buf;
+uint32_t sparse_crc32(uint32_t crc_in, const void *buf, int size) {
+  const uint8_t *p = (const uint8_t *)buf;
   uint32_t crc;
 
   crc = crc_in ^ ~0U;
-  while (size--) crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
+  while (size--)
+    crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
   return crc ^ ~0U;
 }

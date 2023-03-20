@@ -30,17 +30,17 @@
 #define NXP_NFC_PARAM_ID_SWPUICC3 0xDC
 
 void phNxpNciHal_ext_init(void);
-NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len);
-NFCSTATUS phNxpNciHal_send_ext_cmd(uint16_t cmd_len, uint8_t* p_cmd);
-NFCSTATUS phNxpNciHal_send_ese_hal_cmd(uint16_t cmd_len, uint8_t* p_cmd);
-NFCSTATUS phNxpNciHal_write_ext(uint16_t* cmd_len, uint8_t* p_cmd_data,
-                                uint16_t* rsp_len, uint8_t* p_rsp_data);
+NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len);
+NFCSTATUS phNxpNciHal_send_ext_cmd(uint16_t cmd_len, uint8_t *p_cmd);
+NFCSTATUS phNxpNciHal_send_ese_hal_cmd(uint16_t cmd_len, uint8_t *p_cmd);
+NFCSTATUS phNxpNciHal_write_ext(uint16_t *cmd_len, uint8_t *p_cmd_data,
+                                uint16_t *rsp_len, uint8_t *p_rsp_data);
 
 extern bool_t wFwUpdateReq;
 extern bool_t wRfUpdateReq;
 extern fpRegRfFwDndl_t fpRegRfFwDndl;
 extern fpPropConfCover_t fpPropConfCover;
-#define UINT8_TO_STREAM(p, u8) \
+#define UINT8_TO_STREAM(p, u8)                                                 \
   { *(p)++ = (uint8_t)(u8); }
 
 #endif /* _PHNXPNICHAL_EXT_H_ */

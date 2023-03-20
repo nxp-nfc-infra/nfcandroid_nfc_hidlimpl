@@ -26,8 +26,7 @@
 #include <phTmlNfc.h>
 #include <string>
 
-
-static void* pFwHandle; /* Global firmware handle*/
+static void *pFwHandle; /* Global firmware handle*/
 uint16_t wMwVer = 0;    /* Middleware version no */
 uint16_t wFwVer = 0;    /* Firmware version no */
 uint8_t gRecFWDwnld;    /* flag set to true to indicate recovery FW download */
@@ -52,7 +51,7 @@ static pphDnldNfc_DlContext_t gpphDnldContext = NULL; /* Download contex */
 **                  Other command specific errors
 **
 *******************************************************************************/
-NFCSTATUS phDnldNfc_Reset(pphDnldNfc_RspCb_t pNotify, void* pContext) {
+NFCSTATUS phDnldNfc_Reset(pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pNotify) || (NULL == pContext)) {
@@ -107,7 +106,7 @@ NFCSTATUS phDnldNfc_Reset(pphDnldNfc_RspCb_t pNotify, void* pContext) {
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_GetVersion(pphDnldNfc_Buff_t pVersionInfo,
-                               pphDnldNfc_RspCb_t pNotify, void* pContext) {
+                               pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pVersionInfo) || (NULL == pNotify) || (NULL == pContext)) {
@@ -167,7 +166,7 @@ NFCSTATUS phDnldNfc_GetVersion(pphDnldNfc_Buff_t pVersionInfo,
 *******************************************************************************/
 NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
                                     pphDnldNfc_RspCb_t pNotify,
-                                    void* pContext) {
+                                    void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pSession) || (NULL == pNotify) || (NULL == pContext)) {
@@ -232,7 +231,7 @@ NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
-                                   pphDnldNfc_RspCb_t pNotify, void* pContext) {
+                                   pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pNotify) || (NULL == pContext)) {
@@ -304,9 +303,9 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
-                          pphDnldNfc_RspCb_t pNotify, void* pContext) {
+                          pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-  uint8_t* pImgPtr = NULL;
+  uint8_t *pImgPtr = NULL;
   uint32_t wLen = 0;
   phDnldNfc_Buff_t tImgBuff;
 
@@ -323,7 +322,7 @@ NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
         wLen = pData->wLen;
       } else {
         if (bRecoverSeq == false) {
-          pImgPtr = (uint8_t*)gpphDnldContext->nxp_nfc_fw;
+          pImgPtr = (uint8_t *)gpphDnldContext->nxp_nfc_fw;
           wLen = gpphDnldContext->nxp_nfc_fw_len;
 
         } else {
@@ -387,7 +386,7 @@ NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_Log(pphDnldNfc_Buff_t pData, pphDnldNfc_RspCb_t pNotify,
-                        void* pContext) {
+                        void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pNotify) || (NULL == pData) || (NULL == pContext)) {
@@ -451,7 +450,7 @@ NFCSTATUS phDnldNfc_Log(pphDnldNfc_Buff_t pData, pphDnldNfc_RspCb_t pNotify,
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs, pphDnldNfc_RspCb_t pNotify,
-                          void* pContext) {
+                          void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   uint8_t bPldVal[3] = {
@@ -469,8 +468,8 @@ NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs, pphDnldNfc_RspCb_t pNotify,
       (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTForce;
       (gpphDnldContext->tRspBuffInfo.pBuff) = NULL;
       (gpphDnldContext->tRspBuffInfo.wLen) = 0;
-       bPldVal[0] = 0U;
-       bPldVal[0] = ((pInputs->pBuff[0] << 3U) | pInputs->pBuff[1]);
+      bPldVal[0] = 0U;
+      bPldVal[0] = ((pInputs->pBuff[0] << 3U) | pInputs->pBuff[1]);
 
       (gpphDnldContext->tUserData.pBuff) = bPldVal;
       (gpphDnldContext->tUserData.wLen) = sizeof(bPldVal);
@@ -514,13 +513,13 @@ void phDnldNfc_SetHwDevHandle(void) {
         (pphDnldNfc_DlContext_t)malloc(sizeof(phDnldNfc_DlContext_t));
 
     if (psDnldContext != NULL) {
-      (void)memset((void*)psDnldContext, 0, sizeof(phDnldNfc_DlContext_t));
+      (void)memset((void *)psDnldContext, 0, sizeof(phDnldNfc_DlContext_t));
       gpphDnldContext = psDnldContext;
     } else {
       NXPLOG_FWDNLD_E("Error Allocating Mem for Dnld Context..");
     }
   } else {
-    (void)memset((void*)gpphDnldContext, 0, sizeof(phDnldNfc_DlContext_t));
+    (void)memset((void *)gpphDnldContext, 0, sizeof(phDnldNfc_DlContext_t));
   }
   return;
 }
@@ -569,7 +568,7 @@ void phDnldNfc_ReSetHwDevHandle(void) {
 *******************************************************************************/
 NFCSTATUS phDnldNfc_RawReq(pphDnldNfc_Buff_t pFrameData,
                            pphDnldNfc_Buff_t pRspData,
-                           pphDnldNfc_RspCb_t pNotify, void* pContext) {
+                           pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pFrameData) || (NULL == pNotify) || (NULL == pRspData) ||
@@ -623,7 +622,7 @@ NFCSTATUS phDnldNfc_RawReq(pphDnldNfc_Buff_t pFrameData,
 *******************************************************************************/
 NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-  uint8_t* pImageInfo = NULL;
+  uint8_t *pImageInfo = NULL;
   uint32_t ImageInfoLen = 0;
   unsigned long fwType = FW_FORMAT_SO;
 
@@ -679,7 +678,7 @@ NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw) {
   }
 
   if (NFCSTATUS_SUCCESS == wStatus) {
-    gpphDnldContext->nxp_nfc_fw = (uint8_t*)pImageInfo;
+    gpphDnldContext->nxp_nfc_fw = (uint8_t *)pImageInfo;
     gpphDnldContext->nxp_nfc_fw_len = ImageInfoLen;
     if ((NULL != gpphDnldContext->nxp_nfc_fw) &&
         (0 != gpphDnldContext->nxp_nfc_fw_len)) {
@@ -708,7 +707,7 @@ NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw) {
   /* gpphDnldContext reset by phDnldNfc_SetHwDevHandle()
      so reassign the Fragment Length based on chip version */
   if (NFCSTATUS_SUCCESS == wStatus) {
-      phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX);
+    phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX);
   }
 
   return wStatus;
@@ -756,13 +755,14 @@ void phDnldNfc_CloseFwLibHandle(void) {
 ** Returns          NFC status
 **
 *******************************************************************************/
-NFCSTATUS phDnldNfc_LoadFW(const char* pathName, uint8_t** pImgInfo,
-                           uint32_t* pImgInfoLen) {
-  void* pImageInfo = NULL;
-  void* pImageInfoLen = NULL;
+NFCSTATUS phDnldNfc_LoadFW(const char *pathName, uint8_t **pImgInfo,
+                           uint32_t *pImgInfoLen) {
+  void *pImageInfo = NULL;
+  void *pImageInfoLen = NULL;
 
   /* check for path name */
-  if (pathName == NULL) pathName = nfcFL._FW_LIB_PATH.c_str();
+  if (pathName == NULL)
+    pathName = nfcFL._FW_LIB_PATH.c_str();
 
   /* check if the handle is not NULL then free the library */
   if (pFwHandle != NULL) {
@@ -784,25 +784,25 @@ NFCSTATUS phDnldNfc_LoadFW(const char* pathName, uint8_t** pImgInfo,
   dlerror(); /* Clear any existing error */
 
   /* load the address of download image pointer and image size */
-  pImageInfo = (void*)dlsym(pFwHandle, "gphDnldNfc_DlSeq");
+  pImageInfo = (void *)dlsym(pFwHandle, "gphDnldNfc_DlSeq");
 
   if (dlerror() || (NULL == pImageInfo)) {
     NXPLOG_FWDNLD_E("Problem loading symbol : gphDnldNfc_DlSeq");
     return NFCSTATUS_FAILED;
   }
-  (*pImgInfo) = (*(uint8_t**)pImageInfo);
+  (*pImgInfo) = (*(uint8_t **)pImageInfo);
 
-  pImageInfoLen = (void*)dlsym(pFwHandle, "gphDnldNfc_DlSeqSz");
+  pImageInfoLen = (void *)dlsym(pFwHandle, "gphDnldNfc_DlSeqSz");
   if (dlerror() || (NULL == pImageInfoLen)) {
     NXPLOG_FWDNLD_E("Problem loading symbol : gphDnldNfc_DlSeqSz");
     return NFCSTATUS_FAILED;
   }
 
   if (nfcFL.chipType >= sn100u) {
-    (*pImgInfoLen) = (uint32_t)(*((uint32_t*)pImageInfoLen));
+    (*pImgInfoLen) = (uint32_t)(*((uint32_t *)pImageInfoLen));
     NXPLOG_FWDNLD_D("FW image loded for chipType sn100u (%x)", nfcFL.chipType)
   } else {
-    (*pImgInfoLen) = (uint16_t)(*((uint16_t*)pImageInfoLen));
+    (*pImgInfoLen) = (uint16_t)(*((uint16_t *)pImageInfoLen));
     NXPLOG_FWDNLD_D("FW image loded for chipType pn557 (%x)", nfcFL.chipType)
   }
 
@@ -821,8 +821,8 @@ NFCSTATUS phDnldNfc_LoadFW(const char* pathName, uint8_t** pImgInfo,
 ** Returns          NFC status
 **
 *******************************************************************************/
-NFCSTATUS phDnldNfc_LoadBinFW(uint8_t** pImgInfo, uint32_t* pImgInfoLen) {
-  FILE* pFile = NULL;
+NFCSTATUS phDnldNfc_LoadBinFW(uint8_t **pImgInfo, uint32_t *pImgInfoLen) {
+  FILE *pFile = NULL;
   long fileSize = 0;
   long bytesRead = 0;
   long ftellFileSize = 0;
@@ -862,7 +862,7 @@ NFCSTATUS phDnldNfc_LoadBinFW(uint8_t** pImgInfo, uint32_t* pImgInfoLen) {
   fseek(pFile, 0, SEEK_SET);
 
   /* allocate the memory to read the FW binary image */
-  pFwHandle = (void*)malloc(sizeof(uint8_t) * fileSize);
+  pFwHandle = (void *)malloc(sizeof(uint8_t) * fileSize);
 
   /* check for valid memory allocation */
   if (NULL == pFwHandle) {
@@ -883,7 +883,7 @@ NFCSTATUS phDnldNfc_LoadBinFW(uint8_t** pImgInfo, uint32_t* pImgInfoLen) {
   }
 
   /* Update the image info pointer to the caller */
-  *pImgInfo = (uint8_t*)pFwHandle;
+  *pImgInfo = (uint8_t *)pFwHandle;
   *pImgInfoLen = (uint32_t)(bytesRead & 0xFFFFFFFF);
 
   /* close the FW binary image file */
@@ -961,10 +961,10 @@ void phDnldNfc_SetI2CFragmentLength(uint16_t len) {
 
 #ifdef EEPROM_Read_Mem_IMP
 static pphDnldNfc_RspCb_t UserCb; /* Upper layer call back function */
-static void* UserCtxt;            /* Pointer to upper layer context */
+static void *UserCtxt;            /* Pointer to upper layer context */
 /* Function prototype declaration */
-static void phDnldNfc_ReadComplete(void* pContext, NFCSTATUS status,
-                                   void* pInfo);
+static void phDnldNfc_ReadComplete(void *pContext, NFCSTATUS status,
+                                   void *pInfo);
 
 /*******************************************************************************
 **
@@ -984,12 +984,12 @@ static void phDnldNfc_ReadComplete(void* pContext, NFCSTATUS status,
 **                  Other command specific errors
 **
 *******************************************************************************/
-NFCSTATUS phDnldNfc_ReadMem(void* pHwRef, pphDnldNfc_RspCb_t pNotify,
-                            void* pContext) {
+NFCSTATUS phDnldNfc_ReadMem(void *pHwRef, pphDnldNfc_RspCb_t pNotify,
+                            void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   uint32_t wAddr = 0x2011C0; /* eeprom platform specific area start address */
   uint32_t wRdAddr = 0;
-  uint8_t* pAddr;
+  uint8_t *pAddr;
   static uint8_t bRdData[3519]; /* buffer to hold the read data */
   static phDnldNfc_Buff_t Data;
 
@@ -1011,7 +1011,7 @@ NFCSTATUS phDnldNfc_ReadMem(void* pHwRef, pphDnldNfc_RspCb_t pNotify,
     }
 
     if (NFCSTATUS_SUCCESS == wStatus) {
-      pAddr = (uint8_t*)&wAddr;
+      pAddr = (uint8_t *)&wAddr;
 
       wRdAddr = (pAddr[3]);
       wRdAddr <<= 8;
@@ -1058,8 +1058,8 @@ NFCSTATUS phDnldNfc_ReadMem(void* pHwRef, pphDnldNfc_RspCb_t pNotify,
 ** Returns          None
 **
 *******************************************************************************/
-static void phDnldNfc_ReadComplete(void* pContext, NFCSTATUS status,
-                                   void* pInfo) {
+static void phDnldNfc_ReadComplete(void *pContext, NFCSTATUS status,
+                                   void *pInfo) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   UNUSED_PROP(pContext);
 
@@ -1096,7 +1096,7 @@ static void phDnldNfc_ReadComplete(void* pContext, NFCSTATUS status,
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,
-                         pphDnldNfc_RspCb_t pNotify, void* pContext) {
+                         pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pNotify) || (NULL == pData) || (NULL == pContext)) {
@@ -1160,8 +1160,7 @@ NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,
 **
 *******************************************************************************/
 NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pGetDieId,
-                                    pphDnldNfc_RspCb_t pNotify,
-                                    void* pContext) {
+                             pphDnldNfc_RspCb_t pNotify, void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
 
   if ((NULL == pGetDieId) || (NULL == pNotify) || (NULL == pContext)) {

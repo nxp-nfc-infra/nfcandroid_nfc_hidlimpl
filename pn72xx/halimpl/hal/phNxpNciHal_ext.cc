@@ -37,7 +37,7 @@
 /******************* Global variables *****************************************/
 extern phNxpNciHal_Control_t nxpncihal_ctrl;
 extern phNxpNciProfile_Control_t nxpprofile_ctrl;
-extern phNxpNci_getCfg_info_t* mGetCfg_info;
+extern phNxpNci_getCfg_info_t *mGetCfg_info;
 
 extern bool_t gsIsFwRecoveryRequired;
 
@@ -62,7 +62,7 @@ static uint32_t iCoreInitRspLen;
 extern uint32_t timeoutTimerId;
 
 /************** HAL extension functions ***************************************/
-static void hal_extns_write_rsp_timeout_cb(uint32_t TimerId, void* pContext);
+static void hal_extns_write_rsp_timeout_cb(uint32_t TimerId, void *pContext);
 
 /*Proprietary cmd sent to HAL to send reader mode flag
  * Last byte of 4 byte proprietary cmd data contains ReaderMode flag
@@ -75,10 +75,10 @@ static void hal_extns_write_rsp_timeout_cb(uint32_t TimerId, void* pContext);
 static uint8_t gFelicaReaderMode;
 static bool mfc_mode = false;
 
-static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t* p_ntf,
-                                                      uint16_t* p_len);
-static void RemoveNfcDepIntfFromInitResp(uint8_t* coreInitResp,
-                                         uint16_t* coreInitRespLen);
+static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t *p_ntf,
+                                                      uint16_t *p_len);
+static void RemoveNfcDepIntfFromInitResp(uint8_t *coreInitResp,
+                                         uint16_t *coreInitRespLen);
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_ext_init
@@ -122,7 +122,7 @@ NFCSTATUS phNxpNciHal_ext_send_sram_config_to_flash() {
 ** Returns          NFCSTATUS_SUCCESS if success
 **
 *******************************************************************************/
-NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
+NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
 
 #if (NXP_SRD == TRUE)
@@ -204,105 +204,105 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
       NXPLOG_NCIHAL_D("NxpNci: RF Interface = Mifare Enable MifareExtns");
     }
     switch (p_ntf[4]) {
-      case 0x00:
-        NXPLOG_NCIHAL_D("NxpNci: RF Interface = NFCEE Direct RF");
-        break;
-      case 0x01:
-        NXPLOG_NCIHAL_D("NxpNci: RF Interface = Frame RF");
-        break;
-      case 0x02:
-        NXPLOG_NCIHAL_D("NxpNci: RF Interface = ISO-DEP");
-        break;
-      case 0x03:
-        NXPLOG_NCIHAL_D("NxpNci: RF Interface = NFC-DEP");
-        break;
-      case 0x80:
-        NXPLOG_NCIHAL_D("NxpNci: RF Interface = MIFARE");
-        break;
-      default:
-        NXPLOG_NCIHAL_D("NxpNci: RF Interface = Unknown");
-        break;
+    case 0x00:
+      NXPLOG_NCIHAL_D("NxpNci: RF Interface = NFCEE Direct RF");
+      break;
+    case 0x01:
+      NXPLOG_NCIHAL_D("NxpNci: RF Interface = Frame RF");
+      break;
+    case 0x02:
+      NXPLOG_NCIHAL_D("NxpNci: RF Interface = ISO-DEP");
+      break;
+    case 0x03:
+      NXPLOG_NCIHAL_D("NxpNci: RF Interface = NFC-DEP");
+      break;
+    case 0x80:
+      NXPLOG_NCIHAL_D("NxpNci: RF Interface = MIFARE");
+      break;
+    default:
+      NXPLOG_NCIHAL_D("NxpNci: RF Interface = Unknown");
+      break;
     }
 
     switch (p_ntf[5]) {
-      case 0x01:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = T1T");
-        phNxpDta_T1TEnable();
-        break;
-      case 0x02:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = T2T");
-        break;
-      case 0x03:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = T3T");
-        break;
-      case 0x04:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = ISO-DEP");
-        break;
-      case 0x05:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = NFC-DEP");
-        break;
-      case 0x06:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = 15693");
-        break;
-      case 0x80:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = MIFARE");
-        break;
-      case 0x81:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = Kovio");
-        break;
-      default:
-        NXPLOG_NCIHAL_D("NxpNci: Protocol = Unknown");
-        break;
+    case 0x01:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = T1T");
+      phNxpDta_T1TEnable();
+      break;
+    case 0x02:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = T2T");
+      break;
+    case 0x03:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = T3T");
+      break;
+    case 0x04:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = ISO-DEP");
+      break;
+    case 0x05:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = NFC-DEP");
+      break;
+    case 0x06:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = 15693");
+      break;
+    case 0x80:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = MIFARE");
+      break;
+    case 0x81:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = Kovio");
+      break;
+    default:
+      NXPLOG_NCIHAL_D("NxpNci: Protocol = Unknown");
+      break;
     }
 
     switch (p_ntf[6]) {
-      case 0x00:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = A Passive Poll");
-        break;
-      case 0x01:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = B Passive Poll");
-        break;
-      case 0x02:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = F Passive Poll");
-        break;
-      case 0x03:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = A Active Poll");
-        break;
-      case 0x05:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = F Active Poll");
-        break;
-      case 0x06:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = 15693 Passive Poll");
-        break;
-      case 0x70:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = Kovio");
-        break;
+    case 0x00:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = A Passive Poll");
+      break;
+    case 0x01:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = B Passive Poll");
+      break;
+    case 0x02:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = F Passive Poll");
+      break;
+    case 0x03:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = A Active Poll");
+      break;
+    case 0x05:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = F Active Poll");
+      break;
+    case 0x06:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = 15693 Passive Poll");
+      break;
+    case 0x70:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = Kovio");
+      break;
 #if (NXP_QTAG == TRUE)
-      case 0x71:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = Q Passive Poll");
-        break;
+    case 0x71:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = Q Passive Poll");
+      break;
 #endif
-      case 0x80:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = A Passive Listen");
-        break;
-      case 0x81:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = B Passive Listen");
-        break;
-      case 0x82:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = F Passive Listen");
-        break;
-      case 0x83:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = A Active Listen");
-        break;
-      case 0x85:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = F Active Listen");
-        break;
-      case 0x86:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = 15693 Passive Listen");
-        break;
-      default:
-        NXPLOG_NCIHAL_D("NxpNci: Mode = Unknown");
-        break;
+    case 0x80:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = A Passive Listen");
+      break;
+    case 0x81:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = B Passive Listen");
+      break;
+    case 0x82:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = F Passive Listen");
+      break;
+    case 0x83:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = A Active Listen");
+      break;
+    case 0x85:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = F Active Listen");
+      break;
+    case 0x86:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = 15693 Passive Listen");
+      break;
+    default:
+      NXPLOG_NCIHAL_D("NxpNci: Mode = Unknown");
+      break;
     }
   }
   phNxpNciHal_ext_process_nfc_init_rsp(p_ntf, p_len);
@@ -353,7 +353,8 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
   } else if (p_ntf[0] == 0x61 && p_ntf[1] == 0x06 && icode_detected == 1) {
     NXPLOG_NCIHAL_D("> Polling Loop Re-Started");
     icode_detected = 0;
-    if (nfcFL.chipType < sn100u) icode_send_eof = 0;
+    if (nfcFL.chipType < sn100u)
+      icode_send_eof = 0;
   } else if (*p_len == 4 && p_ntf[0] == 0x40 && p_ntf[1] == 0x02 &&
              p_ntf[2] == 0x01 && p_ntf[3] == 0x06) {
     /* NXPLOG_NCIHAL_D("> Deinit workaround for LLCP set_config 0x%x 0x%x 0x%x",
@@ -452,8 +453,8 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t* p_ntf, uint16_t* p_len) {
  *                  or returns failure.
  *
  ******************************************************************************/
-static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t* p_ntf,
-                                                      uint16_t* p_len) {
+static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t *p_ntf,
+                                                      uint16_t *p_len) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
   /* Parsing CORE_RESET_RSP and CORE_RESET_NTF to update NCI version.*/
   if (p_ntf == NULL || *p_len < 2) {
@@ -548,7 +549,8 @@ static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t* p_ntf,
       }
       wFwVerRsp = (((uint32_t)p_ntf[len - 2]) << 16U) |
                   (((uint32_t)p_ntf[len - 1]) << 8U) | p_ntf[len];
-      if (wFwVerRsp == 0) status = NFCSTATUS_FAILED;
+      if (wFwVerRsp == 0)
+        status = NFCSTATUS_FAILED;
       iCoreInitRspLen = *p_len;
       memcpy(bCoreInitRsp, p_ntf, *p_len);
       NXPLOG_NCIHAL_D("NxpNci> FW Version: %x.%x.%x", p_ntf[len - 2],
@@ -569,7 +571,7 @@ static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t* p_ntf,
  *
  ******************************************************************************/
 static NFCSTATUS phNxpNciHal_process_ext_cmd_rsp(uint16_t cmd_len,
-                                                 uint8_t* p_cmd) {
+                                                 uint8_t *p_cmd) {
   NFCSTATUS status = NFCSTATUS_FAILED;
   uint16_t data_written = 0;
 
@@ -711,11 +713,11 @@ clean_and_return:
  *                  do not send anything to NFCC.
  *
  ******************************************************************************/
-NFCSTATUS phNxpNciHal_write_ext(uint16_t* cmd_len, uint8_t* p_cmd_data,
-                                uint16_t* rsp_len, uint8_t* p_rsp_data) {
+NFCSTATUS phNxpNciHal_write_ext(uint16_t *cmd_len, uint8_t *p_cmd_data,
+                                uint16_t *rsp_len, uint8_t *p_rsp_data) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
 
-   if (phNxpDta_IsEnable() == true) {
+  if (phNxpDta_IsEnable() == true) {
     status = phNxpNHal_DtaUpdate(cmd_len, p_cmd_data, rsp_len, p_rsp_data);
   }
 
@@ -1010,7 +1012,7 @@ NFCSTATUS phNxpNciHal_write_ext(uint16_t* cmd_len, uint8_t* p_cmd_data,
  *                  response is received.
  *
  ******************************************************************************/
-NFCSTATUS phNxpNciHal_send_ext_cmd(uint16_t cmd_len, uint8_t* p_cmd) {
+NFCSTATUS phNxpNciHal_send_ext_cmd(uint16_t cmd_len, uint8_t *p_cmd) {
   NFCSTATUS status = NFCSTATUS_FAILED;
   nxpncihal_ctrl.cmd_len = cmd_len;
   memcpy(nxpncihal_ctrl.p_cmd_data, p_cmd, cmd_len);
@@ -1031,7 +1033,7 @@ NFCSTATUS phNxpNciHal_send_ext_cmd(uint16_t cmd_len, uint8_t* p_cmd) {
  *                  response is received.
  *
  ******************************************************************************/
-NFCSTATUS phNxpNciHal_send_ese_hal_cmd(uint16_t cmd_len, uint8_t* p_cmd) {
+NFCSTATUS phNxpNciHal_send_ese_hal_cmd(uint16_t cmd_len, uint8_t *p_cmd) {
   NFCSTATUS status = NFCSTATUS_FAILED;
   if (cmd_len > NCI_MAX_DATA_LEN) {
     NXPLOG_NCIHAL_E("cmd_len exceeds limit NCI_MAX_DATA_LEN");
@@ -1052,7 +1054,7 @@ NFCSTATUS phNxpNciHal_send_ese_hal_cmd(uint16_t cmd_len, uint8_t* p_cmd) {
  * Returns          None
  *
  ******************************************************************************/
-static void hal_extns_write_rsp_timeout_cb(uint32_t timerId, void* pContext) {
+static void hal_extns_write_rsp_timeout_cb(uint32_t timerId, void *pContext) {
   UNUSED_PROP(timerId);
   UNUSED_PROP(pContext);
   NXPLOG_NCIHAL_D("hal_extns_write_rsp_timeout_cb - write timeout!!!");
@@ -1081,7 +1083,7 @@ static void hal_extns_write_rsp_timeout_cb(uint32_t timerId, void* pContext) {
  **                  status failed if not successful
  **
  *******************************************************************************/
-NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t* mEEPROM_info) {
+NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t *mEEPROM_info) {
   NXPLOG_NCIHAL_D(
       "%s Enter  request_type : 0x%02x,  request_mode : 0x%02x,  bufflen : "
       "0x%02x",
@@ -1092,7 +1094,7 @@ NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t* mEEPROM_info) {
   uint8_t getCfgStartIndex = 0x08;
   uint8_t setCfgStartIndex = 0x07;
   uint8_t memIndex = 0x00;
-  uint8_t fieldLen = 0x01;  // Memory field len 1bytes
+  uint8_t fieldLen = 0x01; // Memory field len 1bytes
   char addr[2] = {0};
   uint8_t cur_value = 0, len = 5;
   uint8_t b_position = 0;
@@ -1103,206 +1105,206 @@ NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t* mEEPROM_info) {
   mEEPROM_info->update_mode = BITWISE;
 
   switch (mEEPROM_info->request_type) {
-    case EEPROM_RF_CFG:
-      memIndex = 0x00;
-      fieldLen = 0x20;
-      len = fieldLen + 4;  // 4 - numParam+2add+val
-      addr[0] = 0xA0;
-      addr[1] = 0x14;
-      mEEPROM_info->update_mode = BYTEWISE;
-      break;
+  case EEPROM_RF_CFG:
+    memIndex = 0x00;
+    fieldLen = 0x20;
+    len = fieldLen + 4; // 4 - numParam+2add+val
+    addr[0] = 0xA0;
+    addr[1] = 0x14;
+    mEEPROM_info->update_mode = BYTEWISE;
+    break;
 
-    case EEPROM_FW_DWNLD:
-      fieldLen = 0x20;
-      memIndex = 0x0C;
-      len = fieldLen + 4;
-      addr[0] = 0xA0;
-      addr[1] = 0x0F;
-      mEEPROM_info->update_mode = BYTEWISE;
-      break;
+  case EEPROM_FW_DWNLD:
+    fieldLen = 0x20;
+    memIndex = 0x0C;
+    len = fieldLen + 4;
+    addr[0] = 0xA0;
+    addr[1] = 0x0F;
+    mEEPROM_info->update_mode = BYTEWISE;
+    break;
 
-    case EEPROM_WIREDMODE_RESUME_TIMEOUT:
-      mEEPROM_info->update_mode = BYTEWISE;
-      memIndex = 0x00;
-      fieldLen = 0x04;
-      len = fieldLen + 4;
-      addr[0] = 0xA0;
-      addr[1] = 0xFC;
-      break;
+  case EEPROM_WIREDMODE_RESUME_TIMEOUT:
+    mEEPROM_info->update_mode = BYTEWISE;
+    memIndex = 0x00;
+    fieldLen = 0x04;
+    len = fieldLen + 4;
+    addr[0] = 0xA0;
+    addr[1] = 0xFC;
+    break;
 
-    case EEPROM_ESE_SVDD_POWER:
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xF2;
-      break;
-    case EEPROM_ESE_POWER_EXT_PMU:
-      mEEPROM_info->update_mode = BYTEWISE;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xD7;
-      break;
+  case EEPROM_ESE_SVDD_POWER:
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xF2;
+    break;
+  case EEPROM_ESE_POWER_EXT_PMU:
+    mEEPROM_info->update_mode = BYTEWISE;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xD7;
+    break;
 
-    case EEPROM_PROP_ROUTING:
-      b_position = 7;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0x98;
-      break;
+  case EEPROM_PROP_ROUTING:
+    b_position = 7;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0x98;
+    break;
 
-    case EEPROM_ESE_SESSION_ID:
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xEB;
-      break;
+  case EEPROM_ESE_SESSION_ID:
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xEB;
+    break;
 
-    case EEPROM_SWP1_INTF:
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xEC;
-      break;
+  case EEPROM_SWP1_INTF:
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xEC;
+    break;
 
-    case EEPROM_SWP1A_INTF:
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xD4;
-      break;
-    case EEPROM_SWP2_INTF:
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xED;
-      break;
-    case EEPROM_FLASH_UPDATE:
-      /* This flag is no more used in MW */
-      fieldLen = 0x20;
-      memIndex = 0x00;
-      len = fieldLen + 4;
-      addr[0] = 0xA0;
-      addr[1] = 0x0F;
-      break;
-    case EEPROM_AUTH_CMD_TIMEOUT:
-      mEEPROM_info->update_mode = BYTEWISE;
-      memIndex = 0x00;
-      fieldLen = 0x05;
-      len = fieldLen + 4;
-      addr[0] = 0xA0;
-      addr[1] = 0xF7;
-      break;
-    case EEPROM_GUARD_TIMER:
-      mEEPROM_info->update_mode = BYTEWISE;
-      memIndex = 0x00;
-      addr[0] = 0xA1;
-      addr[1] = 0x0B;
-      break;
-    case EEPROM_AUTONOMOUS_MODE:
-      mEEPROM_info->update_mode = BYTEWISE;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0x15;
-      break;
-    case EEPROM_T4T_NFCEE_ENABLE:
-      mEEPROM_info->update_mode = BYTEWISE;
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0x95;
-      break;
-    case EEPROM_CE_PHONE_OFF_CFG:
-      mEEPROM_info->update_mode = BYTEWISE;
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0x8E;
-      break;
-    case EEPROM_ENABLE_VEN_CFG:
-      mEEPROM_info->update_mode = BYTEWISE;
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0x07;
-      break;
-    case EEPROM_ISODEP_MERGE_SAK:
-      mEEPROM_info->update_mode = BYTEWISE;
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA1;
-      addr[1] = 0x1B;
-      break;
-    case EEPROM_SRD_TIMEOUT:
-      mEEPROM_info->update_mode = BYTEWISE;
-      memIndex = 0x00;
-      fieldLen = 0x02;
-      len = fieldLen + 4;
-      addr[0] = 0xA1;
-      addr[1] = 0x17;
-      break;
-    case EEPROM_UICC1_SESSION_ID:
-      fieldLen = mEEPROM_info->bufflen;
-      len = fieldLen + 4;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xE4;
-      mEEPROM_info->update_mode = BYTEWISE;
-      break;
-    case EEPROM_UICC2_SESSION_ID:
-      fieldLen = mEEPROM_info->bufflen;
-      len = fieldLen + 4;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xE5;
-      mEEPROM_info->update_mode = BYTEWISE;
-      break;
-    case EEPROM_CE_ACT_NTF:
-      mEEPROM_info->update_mode = BYTEWISE;
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0x96;
-      break;
-    case EEPROM_UICC_HCI_CE_STATE:
-      fieldLen = mEEPROM_info->bufflen;
-      len = fieldLen + 4;
-      memIndex = 0x00;
-      addr[0] = 0xA0;
-      addr[1] = 0xE6;
-      mEEPROM_info->update_mode = BYTEWISE;
-      break;
-    case EEPROM_EXT_FIELD_DETECT_MODE:
-      mEEPROM_info->update_mode = BYTEWISE;
-      b_position = 0;
-      memIndex = 0x00;
-      addr[0] = 0xA1;
-      addr[1] = 0x36;
-      break;
-    default:
-      ALOGE("No valid request information found");
-      break;
+  case EEPROM_SWP1A_INTF:
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xD4;
+    break;
+  case EEPROM_SWP2_INTF:
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xED;
+    break;
+  case EEPROM_FLASH_UPDATE:
+    /* This flag is no more used in MW */
+    fieldLen = 0x20;
+    memIndex = 0x00;
+    len = fieldLen + 4;
+    addr[0] = 0xA0;
+    addr[1] = 0x0F;
+    break;
+  case EEPROM_AUTH_CMD_TIMEOUT:
+    mEEPROM_info->update_mode = BYTEWISE;
+    memIndex = 0x00;
+    fieldLen = 0x05;
+    len = fieldLen + 4;
+    addr[0] = 0xA0;
+    addr[1] = 0xF7;
+    break;
+  case EEPROM_GUARD_TIMER:
+    mEEPROM_info->update_mode = BYTEWISE;
+    memIndex = 0x00;
+    addr[0] = 0xA1;
+    addr[1] = 0x0B;
+    break;
+  case EEPROM_AUTONOMOUS_MODE:
+    mEEPROM_info->update_mode = BYTEWISE;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0x15;
+    break;
+  case EEPROM_T4T_NFCEE_ENABLE:
+    mEEPROM_info->update_mode = BYTEWISE;
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0x95;
+    break;
+  case EEPROM_CE_PHONE_OFF_CFG:
+    mEEPROM_info->update_mode = BYTEWISE;
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0x8E;
+    break;
+  case EEPROM_ENABLE_VEN_CFG:
+    mEEPROM_info->update_mode = BYTEWISE;
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0x07;
+    break;
+  case EEPROM_ISODEP_MERGE_SAK:
+    mEEPROM_info->update_mode = BYTEWISE;
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA1;
+    addr[1] = 0x1B;
+    break;
+  case EEPROM_SRD_TIMEOUT:
+    mEEPROM_info->update_mode = BYTEWISE;
+    memIndex = 0x00;
+    fieldLen = 0x02;
+    len = fieldLen + 4;
+    addr[0] = 0xA1;
+    addr[1] = 0x17;
+    break;
+  case EEPROM_UICC1_SESSION_ID:
+    fieldLen = mEEPROM_info->bufflen;
+    len = fieldLen + 4;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xE4;
+    mEEPROM_info->update_mode = BYTEWISE;
+    break;
+  case EEPROM_UICC2_SESSION_ID:
+    fieldLen = mEEPROM_info->bufflen;
+    len = fieldLen + 4;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xE5;
+    mEEPROM_info->update_mode = BYTEWISE;
+    break;
+  case EEPROM_CE_ACT_NTF:
+    mEEPROM_info->update_mode = BYTEWISE;
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0x96;
+    break;
+  case EEPROM_UICC_HCI_CE_STATE:
+    fieldLen = mEEPROM_info->bufflen;
+    len = fieldLen + 4;
+    memIndex = 0x00;
+    addr[0] = 0xA0;
+    addr[1] = 0xE6;
+    mEEPROM_info->update_mode = BYTEWISE;
+    break;
+  case EEPROM_EXT_FIELD_DETECT_MODE:
+    mEEPROM_info->update_mode = BYTEWISE;
+    b_position = 0;
+    memIndex = 0x00;
+    addr[0] = 0xA1;
+    addr[1] = 0x36;
+    break;
+  default:
+    ALOGE("No valid request information found");
+    break;
   }
 
   uint8_t get_cfg_eeprom[6] = {
-      0x20,              // get_cfg header
-      0x03,              // get_cfg header
-      0x03,              // len of following value
-      0x01,              // Num Parameters
-      (uint8_t)addr[0],  // First byte of Address
-      (uint8_t)addr[1]   // Second byte of Address
+      0x20,             // get_cfg header
+      0x03,             // get_cfg header
+      0x03,             // len of following value
+      0x01,             // Num Parameters
+      (uint8_t)addr[0], // First byte of Address
+      (uint8_t)addr[1]  // Second byte of Address
   };
   uint8_t set_cfg_cmd_hdr[7] = {
-      0x20,              // set_cfg header
-      0x02,              // set_cfg header
-      len,               // len of following value
-      0x01,              // Num Param
-      (uint8_t)addr[0],  // First byte of Address
-      (uint8_t)addr[1],  // Second byte of Address
-      fieldLen           // Data len
+      0x20,             // set_cfg header
+      0x02,             // set_cfg header
+      len,              // len of following value
+      0x01,             // Num Param
+      (uint8_t)addr[0], // First byte of Address
+      (uint8_t)addr[1], // Second byte of Address
+      fieldLen          // Data len
   };
 
   set_cfg_cmd_len = sizeof(set_cfg_cmd_hdr) + fieldLen;
-  set_cfg_eeprom = (uint8_t*)malloc(set_cfg_cmd_len);
+  set_cfg_eeprom = (uint8_t *)malloc(set_cfg_cmd_len);
   if (set_cfg_eeprom == NULL) {
     ALOGE("memory allocation failed");
     return status;
@@ -1398,7 +1400,7 @@ NFCSTATUS phNxpNciHal_enableDefaultUICC2SWPline(uint8_t uicc2_sel) {
   NFCSTATUS status = NFCSTATUS_FAILED;
   uint8_t p_data[255] = {NCI_MT_CMD, NXP_CORE_SET_CONFIG_CMD};
   uint8_t LEN_INDEX = 2, PARAM_INDEX = 3;
-  uint8_t* p = p_data;
+  uint8_t *p = p_data;
   NXPLOG_NCIHAL_D("phNxpNciHal_enableDefaultUICC2SWPline %d", uicc2_sel);
   p_data[LEN_INDEX] = 1;
   p += 4;
@@ -1528,7 +1530,7 @@ void phNxpNciHal_conf_nfc_forum_mode() {
   long retlen = 0;
 
   if (GetNxpByteArrayValue(NAME_NXP_PROP_RESET_EMVCO_CMD,
-                           (char*)cmd_reset_emvcocfg, cmdlen, &retlen)) {
+                           (char *)cmd_reset_emvcocfg, cmdlen, &retlen)) {
   }
   if (retlen != 0x08) {
     NXPLOG_NCIHAL_E("%s: command is not provided", __func__);
@@ -1566,8 +1568,8 @@ void phNxpNciHal_conf_nfc_forum_mode() {
  * Returns          None
  *
  ******************************************************************************/
-void RemoveNfcDepIntfFromInitResp(uint8_t* coreInitResp,
-                                  uint16_t* coreInitRespLen) {
+void RemoveNfcDepIntfFromInitResp(uint8_t *coreInitResp,
+                                  uint16_t *coreInitRespLen) {
   /* As per NCI 2.0 index Number of Supported RF interfaces is 13 */
   uint8_t indexOfSupportedRfIntf = 13;
   /* as per NCI 2.0 Number of Supported RF Interfaces Payload field index is 13
@@ -1576,13 +1578,13 @@ void RemoveNfcDepIntfFromInitResp(uint8_t* coreInitResp,
       *(coreInitResp + indexOfSupportedRfIntf + NCI_HEADER_SIZE);
   uint8_t rfInterfacesLength =
       *coreInitRespLen - (indexOfSupportedRfIntf + 1 + NCI_HEADER_SIZE);
-  uint8_t* supportedRfInterfaces = NULL;
+  uint8_t *supportedRfInterfaces = NULL;
 
   if (noOfSupportedInterface) {
     supportedRfInterfaces =
         coreInitResp + indexOfSupportedRfIntf + 1 + NCI_HEADER_SIZE;
   }
-  uint8_t* supportedRfInterfacesDetails = supportedRfInterfaces;
+  uint8_t *supportedRfInterfacesDetails = supportedRfInterfaces;
   /* Get the index of Supported RF Interface for NFC-DEP interface in CORE_INIT
    * Response*/
   for (int i = 0; i < noOfSupportedInterface; i++) {

@@ -53,18 +53,18 @@
 typedef uint8_t tHAL_ESE_STATUS;
 typedef void(tHAL_ESE_STATUS_CBACK)(tHAL_ESE_STATUS status);
 typedef void(tHAL_ESE_CBACK)(uint8_t event, tHAL_ESE_STATUS status);
-typedef void(tHAL_ESE_DATA_CBACK)(uint16_t data_len, uint8_t* p_data);
+typedef void(tHAL_ESE_DATA_CBACK)(uint16_t data_len, uint8_t *p_data);
 
 /*******************************************************************************
 ** tHAL_ESE_ENTRY HAL entry-point lookup table
 *******************************************************************************/
 
-typedef void(tHAL_SPIAPI_OPEN)(tHAL_ESE_CBACK* p_hal_cback,
-                               tHAL_ESE_DATA_CBACK* p_data_cback);
+typedef void(tHAL_SPIAPI_OPEN)(tHAL_ESE_CBACK *p_hal_cback,
+                               tHAL_ESE_DATA_CBACK *p_data_cback);
 typedef void(tHAL_SPIAPI_CLOSE)(void);
-typedef void(tHAL_SPIAPI_WRITE)(uint16_t data_len, uint8_t* p_data);
-typedef void(tHAL_SPIAPI_READ)(uint16_t data_len, uint8_t* p_data);
-typedef int(tHAL_SPIAPI_IOCTL)(long arg, void* p_data);
+typedef void(tHAL_SPIAPI_WRITE)(uint16_t data_len, uint8_t *p_data);
+typedef void(tHAL_SPIAPI_READ)(uint16_t data_len, uint8_t *p_data);
+typedef int(tHAL_SPIAPI_IOCTL)(long arg, void *p_data);
 
 #define ESE_HAL_DM_PRE_SET_MEM_LEN 5
 typedef struct {
@@ -92,17 +92,17 @@ typedef struct {
 } tESE_HAL_CFG;
 
 typedef struct {
-  tHAL_SPIAPI_OPEN* open;
-  tHAL_SPIAPI_CLOSE* close;
-  tHAL_SPIAPI_WRITE* write;
-  tHAL_SPIAPI_READ* Read;
-  tHAL_SPIAPI_IOCTL* ioctl;
+  tHAL_SPIAPI_OPEN *open;
+  tHAL_SPIAPI_CLOSE *close;
+  tHAL_SPIAPI_WRITE *write;
+  tHAL_SPIAPI_READ *Read;
+  tHAL_SPIAPI_IOCTL *ioctl;
 } tHAL_ESE_ENTRY;
 
 typedef struct {
-  tHAL_ESE_ENTRY* hal_entry_func;
+  tHAL_ESE_ENTRY *hal_entry_func;
   uint8_t boot_mode;
 } tHAL_ESE_CONTEXT;
-tHAL_ESE_ENTRY* getInstance();
+tHAL_ESE_ENTRY *getInstance();
 
 #endif /* ESE_HAL_API_H  */

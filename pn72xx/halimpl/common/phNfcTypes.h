@@ -83,7 +83,7 @@ typedef enum {
  * This type of API is called from ClientApplication ( main thread) to notify
  * specific callback.
  */
-typedef void (*pphLibNfc_DeferredCallback_t)(void*);
+typedef void (*pphLibNfc_DeferredCallback_t)(void *);
 
 /*
  * Deferred parameter declaration.
@@ -91,7 +91,7 @@ typedef void (*pphLibNfc_DeferredCallback_t)(void*);
  * to the
  * callback.
  */
-typedef void* pphLibNfc_DeferredParameter_t;
+typedef void *pphLibNfc_DeferredParameter_t;
 
 /*
  * Possible Hardware Configuration exposed to upper layer.
@@ -99,7 +99,7 @@ typedef void* pphLibNfc_DeferredParameter_t;
  * the controller is connected to.
  */
 typedef struct phLibNfc_sConfig {
-  uint8_t* pLogFile; /* Log File Name*/
+  uint8_t *pLogFile; /* Log File Name*/
   /* Hardware communication link to the controller */
   phLibNfc_eConfigLinkType nLinkType;
   /* The client ID (thread ID or message queue ID) */
@@ -112,7 +112,7 @@ typedef struct phLibNfc_sConfig {
  */
 typedef struct phLibNfc_Message {
   uint32_t eMsgType; /* Type of the message to be posted*/
-  void* pMsgData;    /* Pointer to message specific data block in case any*/
+  void *pMsgData;    /* Pointer to message specific data block in case any*/
   uint32_t Size;     /* Size of the datablock*/
 } phLibNfc_Message_t, *pphLibNfc_Message_t;
 

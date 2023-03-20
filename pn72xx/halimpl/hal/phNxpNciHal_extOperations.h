@@ -72,7 +72,7 @@ NFCSTATUS phNxpNciHal_setGuardTimer();
  *
  *
  *****************************************************************************/
-NFCSTATUS phNxpNciHal_send_get_cfg(const uint8_t* cmd_get_cfg, long cmd_len);
+NFCSTATUS phNxpNciHal_send_get_cfg(const uint8_t *cmd_get_cfg, long cmd_len);
 
 /*****************************************************************************
  * Function         phNxpNciHal_configure_merge_sak
@@ -108,7 +108,7 @@ NFCSTATUS phNxpNciHal_setSrdtimeout();
  *
  ******************************************************************************/
 NFCSTATUS
-phNxpNciHal_set_uicc_hci_params(std::vector<uint8_t>& ptr, uint8_t bufflen,
+phNxpNciHal_set_uicc_hci_params(std::vector<uint8_t> &ptr, uint8_t bufflen,
                                 phNxpNci_EEPROM_request_type_t uiccType);
 /******************************************************************************
  * Function         phNxpNciHal_get_uicc_hci_params
@@ -123,7 +123,7 @@ phNxpNciHal_set_uicc_hci_params(std::vector<uint8_t>& ptr, uint8_t bufflen,
  *
  ******************************************************************************/
 NFCSTATUS
-phNxpNciHal_get_uicc_hci_params(std::vector<uint8_t>& ptr, uint8_t bufflen,
+phNxpNciHal_get_uicc_hci_params(std::vector<uint8_t> &ptr, uint8_t bufflen,
                                 phNxpNci_EEPROM_request_type_t uiccType);
 
 /******************************************************************************
