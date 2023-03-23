@@ -526,7 +526,7 @@ NFCSTATUS phNxpNciHal_CheckValidFwVersion(void) {
   NXPLOG_NCIHAL_D("HAL %s current_major_no = 0x%x", __func__,
                   ufw_current_major_no);
   NXPLOG_NCIHAL_D("%s fw_maj_ver = 0x%x", __func__, fw_maj_ver);
-  if (nfcFL.chipType == pn7220) {
+  if (nfcFL.chipType >= pn7220) {
     if (ufw_current_major_no >= fw_maj_ver) {
       /* if file major version is grater than the one from the
          Nfc init command allow FW download
@@ -909,7 +909,7 @@ int phNxpNciHal_fw_mw_ver_check() {
       (fw_maj_ver == SN1XX_FW_MAJOR_VERSION)) {
     status = NFCSTATUS_SUCCESS;
 #if (NXP_EXTNS == TRUE)
-  } else if ((nfcFL.chipType == pn7220) &&
+  } else if ((nfcFL.chipType >= pn7220) &&
              (rom_version == FW_MOBILE_ROM_VERSION_PN7720) &&
              (fw_maj_ver == 0x00)) {
     status = NFCSTATUS_SUCCESS;
@@ -1496,7 +1496,7 @@ retry_core_init:
 
   phNxpNciHal_core_initialized_complete(status);
 
-  if (nfcFL.chipType == pn7220) {
+  if (nfcFL.chipType >= pn7220) {
     status = phTmlNfc_IoCtl(phTmlNfc_e_RedLedOn);
     if (NFCSTATUS_SUCCESS == status) {
       NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn - SUCCESS\n");
@@ -1610,7 +1610,7 @@ close_and_return:
     NXPLOG_NCIHAL_E("Get config failed ");
   }
 
-  if ((nfcFL.chipType < sn220u) || (nfcFL.chipType == pn7220) || bShutdown) {
+  if ((nfcFL.chipType < sn220u) || (nfcFL.chipType >= pn7220) || bShutdown) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_CLOSE;
   }
   do { /*This is NXP_EXTNS code for retry*/
@@ -1631,7 +1631,7 @@ close_and_return:
   } while (retry < 3);
 
 #if (NXP_EXTNS == TRUE)
-  if (nfcFL.chipType == pn7220) {
+  if (nfcFL.chipType >= pn7220) {
     status = phTmlNfc_IoCtl(phTmlNfc_e_RedLedOff);
     if (NFCSTATUS_SUCCESS == status) {
       NXPLOG_NCIHAL_D("phTmlNfc_e_RedLedOn - SUCCESS\n");

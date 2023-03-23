@@ -35,16 +35,37 @@ capability *capability::getInstance() {
 tNFC_chipType capability::processChipType(uint8_t *msg, uint16_t msg_len) {
   if ((msg != NULL) && (msg_len != 0)) {
     if (msg[0] == 0x60 && msg[1] == 0x00) {
-      if (msg[msg_len - 3] == 0x03 && msg[msg_len - 2] == 0x00)
+      if ((msg[msg_len - 3] == 0x03) && (msg[msg_len - 2] == 0x00) &&
+          ((msg[msg_len - 5] == 0x20) || (msg[msg_len - 5] == 0x00))) {
         chipType = pn7220;
+      } else if ((msg[msg_len - 3] == 0x03) && (msg[msg_len - 2] == 0x00) &&
+                 (msg[msg_len - 5] == 0x21)) {
+        chipType = pn7221;
+      } else {
+        ALOGD("%s Setting Default ChiptType pn7220", __func__);
+        chipType = pn7220;
+      }
     } else if (msg[0] == 0x00) {
-      if (msg[offsetFwRomCodeVersion] == 0x03)
+      if ((msg[offsetFwRomCodeVersion] == 0x03) &&
+          ((msg[offsetModelID] == 0x20) || (msg[offsetModelID] == 0x00))) {
         chipType = pn7220;
+      } else if ((msg[offsetFwRomCodeVersion] == 0x03) &&
+                 (msg[offsetModelID] == 0x21)) {
+        chipType = pn7221;
+      } else {
+        ALOGD("%s Setting Default ChiptType pn7220 in FW DNLD Mode", __func__);
+        chipType = pn7220;
+      }
     } else if (offsetHwVersion < msg_len) {
-      ALOGD("%s HwVersion : 0x%02x", __func__, msg[msg_len - 4]);
-      switch (msg[msg_len - 4]) {
-      case 0x53:
+      ALOGD("%s HwVersion : 0x%02x  Product ID : 0x%02x", __func__,
+            msg[msg_len - 4], msg[msg_len - 5]);
+      switch (msg[msg_len - 5]) {
+      case 0x20:
+      case 0x00:
         chipType = pn7220;
+        break;
+      case 0x21:
+        chipType = pn7221;
         break;
       default:
         chipType = pn7220;

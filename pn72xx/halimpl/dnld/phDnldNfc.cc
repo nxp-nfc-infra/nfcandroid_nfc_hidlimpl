@@ -245,7 +245,7 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
       if ((PHDNLDNFC_HWVER_MRA2_1 == bChipVer) ||
           (PHDNLDNFC_HWVER_MRA2_2 == bChipVer) ||
 #if (NXP_EXTNS == TRUE)
-          ((nfcFL.chipType == pn7220) &&
+          ((nfcFL.chipType >= pn7220) &&
            (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer))
 #endif
       ) {

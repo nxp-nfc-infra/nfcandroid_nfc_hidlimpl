@@ -59,7 +59,8 @@ typedef enum {
   DEFAULT_CHIP_TYPE = 0x00,
   sn100u,
   sn220u,
-  pn7220
+  pn7220,
+  pn7221
 } tNFC_chipType;
 
 typedef struct {
@@ -130,48 +131,48 @@ extern tNfc_featureList nfcFL;
       CONFIGURE_FEATURELIST_NFCC(chipType)                                   \
   }
 
-#define CONFIGURE_FEATURELIST_NFCC(chipType)                                 \
-  {                                                                          \
-    nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                               \
-    nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = false;                         \
-                                                                             \
-    nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0;                                \
-                                                                             \
-    nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x00;                         \
-    nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x00;                          \
-    nfcFL.nfcMwFL._NCI_PWR_LINK_PARAM_CMD_SIZE = 0x02;                       \
-    nfcFL.nfcMwFL._NCI_EE_PWR_LINK_ALWAYS_ON = 0x01;                         \
-    nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET = 0x023CU;                       \
-    nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                          \
-    nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7220;           \
-    nfcFL.nfccFL._NFCC_DWNLD_MODE = NFCC_DWNLD_WITH_VEN_RESET;               \
-                                                                             \
-    if (chipType == pn7220) {                                                \
-      nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                  \
-      nfcFL.nfccFL._NFCC_MIFARE_TIANJIN = false;                             \
-      nfcFL.nfccFL._NFCC_MW_RCVRY_BLK_FW_DNLD = true;                        \
-      nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_EXT_SWITCH = false;               \
-      nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_WO_EXT_SWITCH = true;             \
-      nfcFL.nfccFL._NFCC_FW_WA = true;                                       \
-      nfcFL.nfccFL._NFCC_FORCE_NCI1_0_INIT = false;                          \
-      nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = true;                        \
-      nfcFL.nfccFL._HW_ANTENNA_LOOP4_SELF_TEST = false;                      \
-      nfcFL.nfccFL._NFCEE_REMOVED_NTF_RECOVERY = true;                       \
-      nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                           \
-      nfcFL.nfccFL._UICC_CREATE_CONNECTIVITY_PIPE = true;                    \
-      nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                             \
-      nfcFL.nfccFL._NFA_EE_MAX_EE_SUPPORTED = 3;                             \
-                                                                             \
-      nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0x10U;                          \
-                                                                             \
-      nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x82;                       \
-      nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x83;                        \
-                                                                             \
-      SRTCPY_FW("libpn7220_fw", "libpn7220_fw_platform",                     \
-      "libpn7220_fw_pku") STRCPY_FW_BIN("pn7220")                            \
-    } else if (chipType == DEFAULT_CHIP_TYPE) {                              \
-      nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                           \
-    }                                                                        \
+#define CONFIGURE_FEATURELIST_NFCC(chipType)                                   \
+  {                                                                            \
+    nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                                 \
+    nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = false;                           \
+                                                                               \
+    nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0;                                  \
+                                                                               \
+    nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x00;                           \
+    nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x00;                            \
+    nfcFL.nfcMwFL._NCI_PWR_LINK_PARAM_CMD_SIZE = 0x02;                         \
+    nfcFL.nfcMwFL._NCI_EE_PWR_LINK_ALWAYS_ON = 0x01;                           \
+    nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET = 0x023CU;                         \
+    nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                            \
+    nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7220;             \
+    nfcFL.nfccFL._NFCC_DWNLD_MODE = NFCC_DWNLD_WITH_VEN_RESET;                 \
+                                                                               \
+    if (chipType >= pn7220) {                                                  \
+      nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                    \
+      nfcFL.nfccFL._NFCC_MIFARE_TIANJIN = false;                               \
+      nfcFL.nfccFL._NFCC_MW_RCVRY_BLK_FW_DNLD = true;                          \
+      nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_EXT_SWITCH = false;                 \
+      nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_WO_EXT_SWITCH = true;               \
+      nfcFL.nfccFL._NFCC_FW_WA = true;                                         \
+      nfcFL.nfccFL._NFCC_FORCE_NCI1_0_INIT = false;                            \
+      nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = true;                          \
+      nfcFL.nfccFL._HW_ANTENNA_LOOP4_SELF_TEST = false;                        \
+      nfcFL.nfccFL._NFCEE_REMOVED_NTF_RECOVERY = true;                         \
+      nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                             \
+      nfcFL.nfccFL._UICC_CREATE_CONNECTIVITY_PIPE = true;                      \
+      nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                               \
+      nfcFL.nfccFL._NFA_EE_MAX_EE_SUPPORTED = 3;                               \
+                                                                               \
+      nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0x10U;                            \
+                                                                               \
+      nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x82;                         \
+      nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x83;                          \
+                                                                               \
+      SRTCPY_FW("libpn72xx_fw", "libpn72xx_fw_platform", "libpn72xx_fw_pku")   \
+      STRCPY_FW_BIN("pn72xx")                                                  \
+    } else if (chipType == DEFAULT_CHIP_TYPE) {                                \
+      nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                             \
+    }                                                                          \
   }
 #define STRCPY_FW_BIN(str)                       \
   {                                              \

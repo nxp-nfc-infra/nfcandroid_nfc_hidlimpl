@@ -417,7 +417,7 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void *pContext, NFCSTATUS status,
           ((PHDNLDNFC_HWVER_MRA2_1 == bHwVer) ||
            (PHDNLDNFC_HWVER_MRA2_2 == bHwVer) ||
 #if (NXP_EXTNS == TRUE)
-           ((nfcFL.chipType == pn7220) &&
+           ((nfcFL.chipType >= pn7220) &&
             (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer))
 #endif
           );
