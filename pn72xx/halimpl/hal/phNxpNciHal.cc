@@ -139,7 +139,6 @@ static void
 phNxpNciHal_kill_client_thread(phNxpNciHal_Control_t *p_nxpncihal_ctrl);
 static void phNxpNciHal_nfccClockCfgRead(void);
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
-static NFCSTATUS phNxpNciHal_vasEcpCfgApply(void);
 static void phNxpNciHal_print_res_status(uint8_t *p_rx_data, uint16_t *p_len);
 static NFCSTATUS phNxpNciHal_get_mw_eeprom(void);
 static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
@@ -1438,10 +1437,6 @@ retry_core_init:
     }
   }
 
-  if (phNxpNciHal_vasEcpCfgApply() != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("failed to apply VAS ECP configuration");
-  }
-
   // Update eeprom value
   status = phNxpNciHal_get_mw_eeprom();
   if (status != NFCSTATUS_SUCCESS) {
@@ -2091,38 +2086,7 @@ static void phNxpNciHal_nfccClockCfgRead(void) {
     nxpprofile_ctrl.bClkFreqVal = NXP_SYS_CLK_FREQ_SEL;
   }
 }
-/******************************************************************************
- * Function         phNxpNciHal_vasEcpCfgApply
- *
- * Description      This function is called to set the ECP VAS configuration
- *
- * Returns          NFCSTATUS success or failure.
- *
- ******************************************************************************/
-static NFCSTATUS phNxpNciHal_vasEcpCfgApply(void) {
-  long config_length = 0;
-  uint8_t config_buffer[MAX_ECP_CONFIG_LEN];
-  int status = 0;
 
-  status = GetNxpByteArrayValue(NAME_NXP_VAS_ECP, (char *)config_buffer,
-                                MAX_ECP_CONFIG_LEN, &config_length);
-  if (status <= 0 || config_length <= 0) {
-    NXPLOG_NCIHAL_E(
-        "unable to retrieve ecp configuration from configuration file");
-    return NFCSTATUS_FAILED;
-  }
-
-  if (config_length > MAX_ECP_CONFIG_LEN)
-    config_length = MAX_ECP_CONFIG_LEN;
-
-  if (NFCSTATUS_SUCCESS !=
-      phNxpNciHal_send_ext_cmd(config_length, config_buffer)) {
-    NXPLOG_NCIHAL_E("Sending ECP VAS conf failed");
-    return NFCSTATUS_FAILED;
-  }
-
-  return NFCSTATUS_SUCCESS;
-}
 /******************************************************************************
  * Function         phNxpNciHal_nfccClockCfgApply
  *

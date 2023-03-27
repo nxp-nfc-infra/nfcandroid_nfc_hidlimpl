@@ -25,7 +25,6 @@
 #include <vendor/nxp/nxpnfc/2.0/types.h>
 
 /********************* Definitions and structures *****************************/
-#define MAX_ECP_CONFIG_LEN 37
 #define MAX_RETRY_COUNT 5
 #define NCI_MAX_DATA_LEN 300
 #define NCI_POLL_DURATION 500
