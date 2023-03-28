@@ -35,6 +35,7 @@
 #define NFC_FW_DOWNLOAD (0x09F7U)
 #define PHLIBNFC_DNLD_CHECKINTEGRITYLEN (0x1FU)
 #define MAX_GET_VER_RESP_LEN (0x0FU)
+#define MAX_GET_DIE_ID_RESP_LEN (0x17U)
 
 /* Mask MSB Byte to ignore MSB Value */
 #define MASK_MSB_BYTE 0xFFFF0000
@@ -662,7 +663,7 @@ static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void *pContext,
                                                      NFCSTATUS status,
                                                      void *pInfo) {
   phDnldNfc_Buff_t tDnldBuff;
-  static uint8_t bGSnStateRes[3];
+  static uint8_t bGSnStateRes[MAX_GET_DIE_ID_RESP_LEN];
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   phNxpNciHal_Sem_t cb_data;
   UNUSED_PROP(pContext);
