@@ -815,7 +815,7 @@ int phNxpNciHal_MinOpen() {
     }
 
     ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
-    if (!ret || num == 1) {
+    if (ret && num == 1) {
       phNxpNciHal_prop_conf_lpcd(true);
     } else if (ret && num == 0) {
       phNxpNciHal_prop_conf_lpcd(false);
