@@ -816,7 +816,13 @@ int phNxpNciHal_MinOpen() {
 
     ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
     if (ret && num == 1) {
-      phNxpNciHal_prop_conf_lpcd(true);
+      ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_STANBY, &num, sizeof(num));
+      if (ret && num == 1) {
+        phNxpNciHal_prop_conf_lpcd(true);
+      } else {
+        NXPLOG_NCIHAL_E(
+            "Failed to enable LPCD as Standby config is not enabled");
+      }
     } else if (ret && num == 0) {
       phNxpNciHal_prop_conf_lpcd(false);
     }
