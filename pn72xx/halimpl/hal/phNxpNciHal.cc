@@ -100,6 +100,8 @@ static uint8_t write_unlocked_status = NFCSTATUS_SUCCESS;
 uint8_t wFwUpdateReq = false;
 uint8_t wRfUpdateReq = false;
 uint32_t timeoutTimerId = 0;
+// This flag will be used to update the EEPROM if FW DNLD completed successfully
+bool isFwDnldTriggered = false;
 #ifndef FW_DWNLD_FLAG
 uint8_t fw_dwnld_flag = false;
 #endif
@@ -494,6 +496,7 @@ NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset,
     status = NFCSTATUS_FAILED;
   }
   if (NFCSTATUS_SUCCESS == status) {
+    isFwDnldTriggered = true;
     phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_SCUCCESS);
   } else {
     phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_FAILED);
@@ -806,9 +809,10 @@ int phNxpNciHal_MinOpen() {
   } while (status != NFCSTATUS_SUCCESS || gsIsFwRecoveryRequired);
 
   /* Update the EEPROM area if libnfc-nxp-eeprom.conf modified*/
-  if (isNxpEepromConfigModified()) {
+  if (isNxpEepromConfigModified() || (isFwDnldTriggered == true)) {
     unsigned long num = 0;
     int ret = 0;
+    isFwDnldTriggered = false;
 
     if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
       NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
@@ -2262,6 +2266,7 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
   } else {
     property_set("nfc.fw.force_download", "0");
     fw_download_success = 1;
+    isFwDnldTriggered = true;
   }
 
   status = phNxpNciHal_dlResetInFwDnldMode();
