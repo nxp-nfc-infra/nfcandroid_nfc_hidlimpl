@@ -132,6 +132,7 @@ cc_binary {
         "libhidlbase",
         "vendor.nxp.nxpese@1.0",
         "vendor.nxp.nxpnfc@2.0",
+        "libmemunreachable",
     ],
 
     local_include_dirs: [

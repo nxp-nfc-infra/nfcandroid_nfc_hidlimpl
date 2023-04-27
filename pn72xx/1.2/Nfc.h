@@ -42,41 +42,44 @@ using ::android::hardware::nfc::V1_2::INfc;
 using ::android::hidl::base::V1_0::IBase;
 struct Nfc : public V1_2::INfc, public hidl_death_recipient {
  public:
-  // Methods from ::android::hardware::nfc::V1_0::INfc follow.
-  Return<V1_0::NfcStatus> open(
-      const sp<V1_0::INfcClientCallback>& clientCallback) override;
-  Return<V1_0::NfcStatus> open_1_1(
-      const sp<V1_1::INfcClientCallback>& clientCallback) override;
-  Return<uint32_t> write(const hidl_vec<uint8_t>& data) override;
-  Return<V1_0::NfcStatus> coreInitialized(
-      const hidl_vec<uint8_t>& data) override;
-  Return<V1_0::NfcStatus> prediscover() override;
-  Return<V1_0::NfcStatus> close() override;
-  Return<V1_0::NfcStatus> controlGranted() override;
-  Return<V1_0::NfcStatus> powerCycle() override;
+   // Methods from ::android::hidl::base::V1_0::IBase follow.
+   Return<void> debug(const hidl_handle &handle,
+                      const hidl_vec<hidl_string> &options) override;
+   // Methods from ::android::hardware::nfc::V1_0::INfc follow.
+   Return<V1_0::NfcStatus>
+   open(const sp<V1_0::INfcClientCallback> &clientCallback) override;
+   Return<V1_0::NfcStatus>
+   open_1_1(const sp<V1_1::INfcClientCallback> &clientCallback) override;
+   Return<uint32_t> write(const hidl_vec<uint8_t> &data) override;
+   Return<V1_0::NfcStatus>
+   coreInitialized(const hidl_vec<uint8_t> &data) override;
+   Return<V1_0::NfcStatus> prediscover() override;
+   Return<V1_0::NfcStatus> close() override;
+   Return<V1_0::NfcStatus> controlGranted() override;
+   Return<V1_0::NfcStatus> powerCycle() override;
 
-  // Methods from ::android::hardware::nfc::V1_1::INfc follow.
-  Return<void> factoryReset();
-  Return<V1_0::NfcStatus> closeForPowerOffCase();
-  Return<void> getConfig(getConfig_cb config);
-  Return<void> getConfig_1_2(getConfig_1_2_cb config);
+   // Methods from ::android::hardware::nfc::V1_1::INfc follow.
+   Return<void> factoryReset();
+   Return<V1_0::NfcStatus> closeForPowerOffCase();
+   Return<void> getConfig(getConfig_cb config);
+   Return<void> getConfig_1_2(getConfig_1_2_cb config);
 
-  // Methods from ::android::hidl::base::V1_0::IBase follow.
+   // Methods from ::android::hidl::base::V1_0::IBase follow.
 
-  static void eventCallback(uint8_t event, uint8_t status) {
-    if (mCallbackV1_1 != nullptr) {
-      auto ret = mCallbackV1_1->sendEvent_1_1((V1_1::NfcEvent)event,
-                                              (V1_0::NfcStatus)status);
-      if (!ret.isOk()) {
-        ALOGW("failed to send event!!!");
-      }
-    } else if (mCallbackV1_0 != nullptr) {
-      auto ret = mCallbackV1_0->sendEvent((V1_0::NfcEvent)event,
-                                          (V1_0::NfcStatus)status);
-      if (!ret.isOk()) {
-        ALOGE("failed to send event!!!");
-      }
-    }
+   static void eventCallback(uint8_t event, uint8_t status) {
+     if (mCallbackV1_1 != nullptr) {
+       auto ret = mCallbackV1_1->sendEvent_1_1((V1_1::NfcEvent)event,
+                                               (V1_0::NfcStatus)status);
+       if (!ret.isOk()) {
+         ALOGW("failed to send event!!!");
+       }
+     } else if (mCallbackV1_0 != nullptr) {
+       auto ret = mCallbackV1_0->sendEvent((V1_0::NfcEvent)event,
+                                           (V1_0::NfcStatus)status);
+       if (!ret.isOk()) {
+         ALOGE("failed to send event!!!");
+       }
+     }
   }
 
   static void dataCallback(uint16_t data_len, uint8_t* p_data) {
