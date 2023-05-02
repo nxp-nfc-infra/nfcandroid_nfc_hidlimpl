@@ -837,6 +837,10 @@ int phNxpNciHal_MinOpen() {
     } else {
       NXPLOG_NCIHAL_D("VEN Reset - FAILED\n");
     }
+    /* Core reset and core init must be perform post VEN reset */
+    if (NFCSTATUS_SUCCESS != phNxpNciHal_nfcc_core_reset_init(true)) {
+      NXPLOG_NCIHAL_E("Fail to perform core reset post ven reset\n");
+    }
   }
 
   /* Call open complete */
