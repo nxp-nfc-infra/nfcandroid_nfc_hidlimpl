@@ -31,7 +31,7 @@ private:
   /*product[] will be used to print product version and
   should be kept in accordance with tNFC_chipType*/
 
-  const char *product[14] = {"UNKNOWN", "sn100u", "sn220u", "pn7220", "pn7221"};
+  const char *product[14] = {"UNKNOWN", "pn7160", "sn100u", "sn220u", "pn7220", "pn7221"};
   capability();
 
 public:

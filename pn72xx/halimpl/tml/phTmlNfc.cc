@@ -937,7 +937,16 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
         if (nfcFL.chipType >= pn7220) {
           gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
                                     MODE_POWER_RESET);
-        } else {
+        } else if (nfcFL.chipType == pn7160) {
+                  /*Reset PN54X*/
+        gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
+                                  MODE_POWER_OFF);
+        usleep(10 * 1000);
+        gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
+                                  MODE_POWER_ON);
+        usleep(100 * 1000);
+        }
+        else {
           gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
                                     MODE_FW_GPIO_LOW);
         }

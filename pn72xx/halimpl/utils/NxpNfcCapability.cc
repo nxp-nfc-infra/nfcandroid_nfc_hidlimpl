@@ -41,6 +41,9 @@ tNFC_chipType capability::processChipType(uint8_t *msg, uint16_t msg_len) {
       } else if ((msg[msg_len - 3] == 0x03) && (msg[msg_len - 2] == 0x00) &&
                  (msg[msg_len - 5] == 0x21)) {
         chipType = pn7221;
+      } else if (((msg[msg_len - 3] == 0x12)) && ((msg[msg_len - 4] == 0x71) ||
+                 (msg[msg_len - 4] == 0x61) || (msg[msg_len - 4] == 0x41))) {
+        chipType = pn7160;
       } else {
         ALOGD("%s Setting Default ChiptType pn7220", __func__);
         chipType = pn7220;
@@ -69,6 +72,17 @@ tNFC_chipType capability::processChipType(uint8_t *msg, uint16_t msg_len) {
         break;
       default:
         chipType = pn7220;
+        break;
+      }
+      switch (msg[msg_len - 4]) {
+      case 0x61:// PN7160 (no ECP support)
+      case 0x71:// PN7161 (ECP support)
+      case 0x41://dev sample
+        chipType = pn7160;
+        break;
+      default:
+        chipType = pn7220;
+        break;
       }
     } else {
       ALOGD("%s Wrong msg_len. Setting Default ChiptType pn7220", __func__);
