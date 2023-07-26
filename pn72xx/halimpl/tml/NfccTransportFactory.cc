@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include <NfccI2cTransport.h>
+#include <NfccSpiTransport.h>
 #include <NfccTransportFactory.h>
 #include <phNxpLog.h>
 
@@ -67,6 +68,9 @@ spTransport NfccTransportFactory::getTransport(transportIntf transportType) {
   case I2C:
   case UNKNOWN:
     mspTransportInterface = std::make_shared<NfccI2cTransport>();
+    break;
+  case SPI:
+    mspTransportInterface = std::make_shared<NfccSpiTransport>();
     break;
   default:
     mspTransportInterface = std::make_shared<NfccI2cTransport>();
