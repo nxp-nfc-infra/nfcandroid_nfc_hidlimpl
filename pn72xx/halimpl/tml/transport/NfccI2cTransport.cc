@@ -95,6 +95,11 @@ NFCSTATUS NfccI2cTransport::OpenAndConfigure(pphTmlNfc_Config_t pConfig,
       status = NFCSTATUS_FAILED;
     }
   }
+  if (nfcFL.chipType == pn7160) {
+    NfccReset((void *)((intptr_t)nHandle), MODE_POWER_OFF);
+    usleep(10 * 1000);
+    NfccReset((void *)((intptr_t)nHandle), MODE_POWER_ON);
+  }
   return status;
 }
 
@@ -339,7 +344,11 @@ int NfccI2cTransport::NfccReset(void *pDevHandle, NfccResetType eType) {
       ret == 0) {
     bFwDnldFlag = false;
   }
-
+  if (nfcFL.chipType == pn7160) {
+    if ((((eType == MODE_FW_DWNLD_WITH_VEN) || (eType == MODE_FW_DWND_HIGH)) && (ret == 0))) {
+      bFwDnldFlag = true;
+    }
+  }
   return ret;
 }
 
