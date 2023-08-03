@@ -144,6 +144,7 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
 static void phNxpNciHal_print_res_status(uint8_t *p_rx_data, uint16_t *p_len);
 static NFCSTATUS phNxpNciHal_get_mw_eeprom(void);
 static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
+static NFCSTATUS phNxpNciHal_config_t4t_ndef(uint8_t t4tFlag);
 static void phNxpNciHal_initialize_debug_enabled_flag();
 static void phNxpNciHal_initialize_mifare_flag();
 static void phNxpNciHal_UpdateFwStatus(HalNfcFwUpdateStatus fwStatus);
@@ -734,6 +735,7 @@ int phNxpNciHal_MinOpen() {
   phTmlNfc_IoCtl(phTmlNfc_e_EnableVen);
 
 #if (NXP_EXTNS == TRUE)
+  if (nfcFL.chipType != pn7160) {
   /*mode switch gpio triggers core reset notification. Avoid core reset
    * notification propagating to upper layer since it is initiated from HAL*/
   nxpncihal_ctrl.nci_info.wait_for_ntf = TRUE;
@@ -744,6 +746,7 @@ int phNxpNciHal_MinOpen() {
   } else {
     NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
   }
+}
 #endif
   /* reset version info new version info will be fetch */
   wFwVerRsp = 0x00;
@@ -1380,7 +1383,21 @@ int phNxpNciHal_core_initialized(uint16_t core_init_rsp_params_len,
   unsigned long num = 0;
   uint8_t setConfigAlways = false;
 
-#if (NXP_EXTNS != TRUE)
+
+if (nfcFL.chipType == pn7160) {
+ /* static uint8_t p2p_listen_mode_routing_cmd[] = {0x21, 0x01, 0x07, 0x00, 0x01,
+                                                  0x01, 0x03, 0x00, 0x01, 0x05};
+
+  uint8_t swp_full_pwr_mode_on_cmd[] = {0x20, 0x02, 0x05, 0x01,
+                                        0xA0, 0xF1, 0x01, 0x01};*/
+
+  static uint8_t cmd_ven_pulld_enable_nci[] = {0x20, 0x02, 0x05, 0x01,
+                                               0xA0, 0x07, 0x01, 0x03};
+
+/*  static uint8_t android_l_aid_matching_mode_on_cmd[] = {
+      0x20, 0x02, 0x05, 0x01, 0xA0, 0x91, 0x01, 0x01};
+  static uint8_t swp_switch_timeout_cmd[] = {0x20, 0x02, 0x06, 0x01, 0xA0,
+                                             0xF3, 0x02, 0x00, 0x00};  */
   /*NCI_INIT_CMD*/
   static uint8_t cmd_init_nci[] = {0x20, 0x01, 0x00};
   /*NCI_RESET_CMD*/
@@ -1421,7 +1438,43 @@ retry_core_init:
   if (status != NFCSTATUS_SUCCESS) {
     NXPLOG_NCIHAL_E("%s: NXP get FW DW Flag failed", __FUNCTION__);
   }
-#endif
+  buffer = (uint8_t*)malloc(bufflen * sizeof(uint8_t));
+  if (NULL == buffer) {
+    return NFCSTATUS_FAILED;
+  }
+  config_access = true;
+  retlen = 0;
+  isfound = GetNxpByteArrayValue(NAME_NXP_ACT_PROP_EXTN, (char*)buffer, bufflen,
+                                 &retlen);
+  if (retlen > 0) {
+    /* NXP ACT Proprietary Ext */
+    status = phNxpNciHal_send_ext_cmd(retlen, buffer);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("NXP ACT Proprietary Ext failed");
+      retry_core_init_cnt++;
+      goto retry_core_init;
+    }
+  }
+  status = phNxpNciHal_send_ext_cmd(sizeof(cmd_ven_pulld_enable_nci),
+                                    cmd_ven_pulld_enable_nci);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("cmd_ven_pulld_enable_nci: Failed");
+    retry_core_init_cnt++;
+    goto retry_core_init;
+  }
+    if (!GetNxpNumValue(NAME_NXP_T4T_NFCEE_ENABLE, (void*)&retlen,
+                      sizeof(retlen))) {
+    retlen = 0x00;
+    NXPLOG_NCIHAL_D(
+        "T4T_NFCEE_ENABLE not found. Taking default value : 0x%02lx", retlen);
+  }
+   retlen = 0x01;
+  // Configure t4t ndef emulation
+  status = phNxpNciHal_config_t4t_ndef((uint8_t)retlen);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("NXP Update MW EEPROM Proprietary Ext failed");
+  }
+}
 
   buffer = (uint8_t *)malloc(bufflen * sizeof(uint8_t));
   if (NULL == buffer) {
@@ -1481,6 +1534,19 @@ retry_core_init:
       }
     }
 
+    retlen = 0;
+    NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF Settings");
+    isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF, (char *)buffer, bufflen,
+                                   &retlen);
+    if (isfound > 0 && retlen > 0) {
+      /* NXP ACT Proprietary Ext */
+      status = phNxpNciHal_send_ext_cmd(retlen, buffer);
+      if (status != NFCSTATUS_SUCCESS) {
+        NXPLOG_NCIHAL_E("Core Set Config failed");
+      }
+    }
+  }
+if (nfcFL.chipType == pn7160) {
     retlen = 0;
     NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF Settings");
     isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF, (char *)buffer, bufflen,
@@ -2211,7 +2277,37 @@ retry_send_ext:
   }
   return status;
 }
+/******************************************************************************
+ * Function         phNxpNciHal_config_t4t_ndef
+ *
+ * Description      This function is called to configure T4T Ndef emulation
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_config_t4t_ndef(uint8_t t4tFlag) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  NXPLOG_NCIHAL_D("NxpNci phNxpNciHal_enable_ndef");
+  uint8_t retry_cnt = 0;
+  uint8_t set_mw_eeprom_cmd[8] = {0};
+  uint8_t cmd_header[] = {0x20, 0x02, 0x05, 0x01, 0xA0, 0x95, 0x01, t4tFlag};
 
+  memcpy(set_mw_eeprom_cmd, cmd_header, sizeof(cmd_header));
+
+retry_send_ext:
+  if (retry_cnt > 3) {
+    return NFCSTATUS_FAILED;
+  }
+
+  status =
+      phNxpNciHal_send_ext_cmd(sizeof(set_mw_eeprom_cmd), set_mw_eeprom_cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_D("unable to update the mw eeprom data");
+    retry_cnt++;
+    goto retry_send_ext;
+  }
+  return status;
+}
 /******************************************************************************
  * Function         phNxpNciHal_CheckAndHandleFwTearDown
  *
