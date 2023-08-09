@@ -295,6 +295,7 @@ typedef struct phNxpNciProfile_Control {
   uint8_t bClkSrcVal; /* Holds the System clock source read from config file */
   uint8_t
       bClkFreqVal; /* Holds the System clock frequency read from config file */
+  uint8_t bTimeout; /* Holds the Timeout Value */
 } phNxpNciProfile_Control_t;
 
 /* Internal messages to handle callbacks */
@@ -410,5 +411,27 @@ NFCSTATUS phNxpNciHal_save_uicc_params();
  *
  ******************************************************************************/
 NFCSTATUS phNxpNciHal_restore_uicc_params();
+
+/******************************************************************************
+ * Function         phNxpNciHal_txNfccClockSetCmd
+ *
+ * Description      This function is called after successfull download
+ *                  to apply the clock setting provided in config file
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
+void phNxpNciHal_txNfccClockSetCmd(void);
+
+/******************************************************************************
+ * Function         phNxpNciHal_determineConfiguredClockSrc
+ *
+ * Description      This function determines and encodes clock source based on
+ *                  clock frequency
+ *
+ * Returns          encoded form of clock source
+ *
+ *****************************************************************************/
+int phNxpNciHal_determineConfiguredClockSrc(void);
 
 #endif /* _PHNXPNCIHAL_H_ */

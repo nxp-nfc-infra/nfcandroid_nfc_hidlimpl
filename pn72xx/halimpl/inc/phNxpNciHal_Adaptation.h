@@ -37,6 +37,8 @@ int phNxpNciHal_write(uint16_t data_len, const uint8_t *p_data);
 int phNxpNciHal_write_internal(uint16_t data_len, const uint8_t *p_data);
 int phNxpNciHal_core_initialized(uint16_t core_init_rsp_len,
                                  uint8_t *p_core_init_rsp_params);
+int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_len,
+                                 uint8_t* p_core_init_rsp_params);
 int phNxpNciHal_pre_discover(void);
 int phNxpNciHal_close(bool);
 int phNxpNciHal_configDiscShutdown(void);

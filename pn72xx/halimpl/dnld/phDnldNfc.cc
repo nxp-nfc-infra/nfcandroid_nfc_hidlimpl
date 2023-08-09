@@ -452,7 +452,7 @@ NFCSTATUS phDnldNfc_Log(pphDnldNfc_Buff_t pData, pphDnldNfc_RspCb_t pNotify,
 NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs, pphDnldNfc_RspCb_t pNotify,
                           void *pContext) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
-
+  uint8_t bClkSrc = 0x00, bClkFreq = 0x00;
   uint8_t bPldVal[3] = {
       0x11, 0x00, 0x00}; /* default values to be used if input not provided */
 
@@ -468,8 +468,51 @@ NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs, pphDnldNfc_RspCb_t pNotify,
       (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTForce;
       (gpphDnldContext->tRspBuffInfo.pBuff) = NULL;
       (gpphDnldContext->tRspBuffInfo.wLen) = 0;
+      if(nfcFL.chipType == pn7160) {
+              if ((0 != (pInputs->wLen)) || (NULL != (pInputs->pBuff))) {
+        if (CLK_SRC_XTAL == (pInputs->pBuff[0])) {
+          bClkSrc = phDnldNfc_ClkSrcXtal;
+        } else if (CLK_SRC_PLL == (pInputs->pBuff[0])) {
+          bClkSrc = phDnldNfc_ClkSrcPLL;
+          if (CLK_FREQ_13MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_13Mhz;
+          } else if (CLK_FREQ_19_2MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_19_2Mhz;
+          } else if (CLK_FREQ_24MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_24Mhz;
+          } else if (CLK_FREQ_26MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_26Mhz;
+          } else if (CLK_FREQ_38_4MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_38_4Mhz;
+          } else if (CLK_FREQ_52MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_52Mhz;
+          } else if (CLK_FREQ_32MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_32Mhz;
+          } else if (CLK_FREQ_48MHZ == (pInputs->pBuff[1])) {
+            bClkFreq = phDnldNfc_ClkFreq_48Mhz;
+          }else {
+            NXPLOG_FWDNLD_E(
+                "Invalid Clk Frequency !! Using default value of 19.2Mhz..");
+            bClkFreq = phDnldNfc_ClkFreq_19_2Mhz;
+          }
+
+        } else if (CLK_SRC_PADDIRECT == (pInputs->pBuff[0])) {
+          bClkSrc = phDnldNfc_ClkSrcPad;
+        } else {
+          NXPLOG_FWDNLD_E("Invalid Clk src !! Using default value of PLL..");
+          bClkSrc = phDnldNfc_ClkSrcPLL;
+        }
+
+        bPldVal[0] = 0U;
+        bPldVal[0] = ((bClkSrc << 3U) | bClkFreq);
+      } else {
+        NXPLOG_FWDNLD_E("Clk src inputs not provided!! Using default values..");
+      }
+    }
+    if(nfcFL.chipType != pn7160) {
       bPldVal[0] = 0U;
       bPldVal[0] = ((pInputs->pBuff[0] << 3U) | pInputs->pBuff[1]);
+    }
 
       (gpphDnldContext->tUserData.pBuff) = bPldVal;
       (gpphDnldContext->tUserData.wLen) = sizeof(bPldVal);

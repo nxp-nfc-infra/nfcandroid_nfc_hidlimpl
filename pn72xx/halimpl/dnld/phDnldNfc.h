@@ -60,6 +60,29 @@ typedef enum phDnldNfc_LC {
 } phDnldNfc_LC_t;
 
 /*
+ * Enum definition contains Clk Source Options for Force command request
+ */
+typedef enum phDnldNfc_ClkSrc {
+  phDnldNfc_ClkSrcXtal = 1U, /* Crystal */
+  phDnldNfc_ClkSrcPLL = 2U,  /* PLL output */
+  phDnldNfc_ClkSrcPad = 3U   /* Directly use clk on CLK_IN Pad */
+} phDnldNfc_ClkSrc_t;
+
+/*
+ * Enum definition contains Clk Frequency value for Force command request
+ */
+typedef enum phDnldNfc_ClkFreq {
+  phDnldNfc_ClkFreq_13Mhz = 0U,   /* 13Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_19_2Mhz = 1U, /* 19.2Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_24Mhz = 2U,   /* 24Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_26Mhz = 3U,   /* 26Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_38_4Mhz = 4U, /* 38.4Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_52Mhz = 5U,    /* 52Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_32Mhz = 6U,   /* 32Mhz Clk Frequency */
+  phDnldNfc_ClkFreq_48Mhz = 0x0AU    /* 48Mhz Clk Frequency */
+} phDnldNfc_ClkFreq_t;
+
+/*
  * Struct contains buffer where user payload shall be stored
  */
 typedef struct phDnldNfc_Buff {
