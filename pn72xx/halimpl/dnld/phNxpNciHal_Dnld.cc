@@ -135,6 +135,11 @@ static NFCSTATUS phNxpNciHal_fw_dnld_get_sessn_state(void *pContext,
                                                      NFCSTATUS status,
                                                      void *pInfo);
 
+static void phNxpNciHal_fw_dnld_log_read_cb(void* pContext, NFCSTATUS status,
+                                            void* pInfo);
+
+static NFCSTATUS phNxpNciHal_fw_dnld_log_read(void* pContext, NFCSTATUS status,
+                                              void* pInfo);
 static void phNxpNciHal_fw_dnld_get_die_id_cb(void *pContext, NFCSTATUS status,
                                               void *pInfo);
 
@@ -154,12 +159,20 @@ static NFCSTATUS phNxpNciHal_fw_dnld_chk_integrity(void *pContext,
                                                    NFCSTATUS status,
                                                    void *pInfo);
 
+static void phNxpNciHal_fw_dnld_log_cb(void* pContext, NFCSTATUS status,
+                                       void* pInfo);
+
+static NFCSTATUS phNxpNciHal_fw_dnld_log(void* pContext, NFCSTATUS status,
+                                         void* pInfo);
+
 static void phNxpNciHal_fw_dnld_send_ncicmd_cb(void *pContext, NFCSTATUS status,
                                                void *pInfo);
 
 static NFCSTATUS phNxpNciHal_fw_dnld_send_ncicmd(void *pContext,
                                                  NFCSTATUS status, void *pInfo);
 
+static NFCSTATUS phNxpNciHal_fw_dnld_recover(void* pContext, NFCSTATUS status,
+                                             void* pInfo);
 static NFCSTATUS phNxpNciHal_fw_dnld_complete(void *pContext, NFCSTATUS status,
                                               void *pInfo,
                                               bool bMinimalFw = false);
@@ -181,10 +194,17 @@ static NFCSTATUS phNxpNciHal_releasePendingRead();
 static NFCSTATUS (*phNxpNciHal_dwnld_seqhandler[])(void *pContext,
                                                    NFCSTATUS status,
                                                    void *pInfo) = {
-    phNxpNciHal_fw_dnld_get_sessn_state, phNxpNciHal_fw_dnld_get_version,
-    phNxpNciHal_fw_dnld_write,           phNxpNciHal_fw_dnld_get_sessn_state,
-    phNxpNciHal_fw_dnld_get_version,     phNxpNciHal_fw_dnld_chk_integrity,
-    phNxpNciHal_fw_dnld_get_die_id,      NULL};
+
+    phNxpNciHal_fw_dnld_get_sessn_state,
+    phNxpNciHal_fw_dnld_get_version,
+    phNxpNciHal_fw_dnld_log_read,
+    phNxpNciHal_fw_dnld_write,
+    phNxpNciHal_fw_dnld_get_sessn_state,
+    phNxpNciHal_fw_dnld_get_version,
+    phNxpNciHal_fw_dnld_log,
+    phNxpNciHal_fw_dnld_chk_integrity,
+    phNxpNciHal_fw_dnld_get_die_id,
+    NULL};
 
 static NFCSTATUS (*phNxpNciHal_minimal_dwnld_seqhandler[])(void *pContext,
                                                            NFCSTATUS status,
@@ -196,7 +216,7 @@ static NFCSTATUS (*phNxpNciHal_dwnld_rec_seqhandler[])(void *pContext,
                                                        NFCSTATUS status,
                                                        void *pInfo) = {
     phNxpNciHal_fw_dnld_reset, phNxpNciHal_fw_dnld_force,
-    phNxpNciHal_fw_dnld_send_ncicmd, NULL};
+    phNxpNciHal_fw_dnld_recover, phNxpNciHal_fw_dnld_send_ncicmd, NULL};
 
 /*******************************************************************************
 **
@@ -419,7 +439,9 @@ static void phNxpNciHal_fw_dnld_get_version_cb(void *pContext, NFCSTATUS status,
            (PHDNLDNFC_HWVER_MRA2_2 == bHwVer) ||
 #if (NXP_EXTNS == TRUE)
            ((nfcFL.chipType >= pn7220) &&
-            (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer))
+            (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bHwVer)) ||
+          ((nfcFL.chipType == pn7160) &&
+            (PHDNLDNFC_HWVER_PN557_MRA1_0 == bHwVer))
 #endif
           );
 
@@ -790,6 +812,98 @@ clean_and_return:
 }
 
 #endif
+/*******************************************************************************
+**
+** Function         phNxpNciHal_fw_dnld_log_read_cb
+**
+** Description      Download Logread callback
+**
+** Returns          None
+**
+*******************************************************************************/
+static void phNxpNciHal_fw_dnld_log_read_cb(void* pContext, NFCSTATUS status,
+                                            void* pInfo) {
+  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+
+  if ((NFCSTATUS_SUCCESS == status) && (NULL != pInfo)) {
+    NXPLOG_FWDNLD_D("phNxpNciHal_fw_dnld_log_read_cb - Request Successful");
+  } else {
+    status = NFCSTATUS_FAILED;
+    NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log_read_cb - Request Failed!!");
+  }
+
+  p_cb_data->status = status;
+  SEM_POST(p_cb_data);
+
+  return;
+}
+/*******************************************************************************
+**
+** Function         phNxpNciHal_fw_dnld_log_read
+**
+** Description      Download Log Read
+**
+** Returns          NFCSTATUS_SUCCESS if success
+**
+*******************************************************************************/
+static NFCSTATUS phNxpNciHal_fw_dnld_log_read(void* pContext, NFCSTATUS status,
+                                              void* pInfo) {
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+  if (nfcFL.chipType != pn7160) {
+    return wStatus;
+  }
+  phNxpNciHal_Sem_t cb_data;
+  phDnldNfc_Buff_t Data;
+  UNUSED_PROP(pContext);
+  UNUSED_PROP(status);
+  UNUSED_PROP(pInfo);
+  if (((((gphNxpNciHal_fw_IoctlCtx.bSkipSeq) == true) ||
+        ((gphNxpNciHal_fw_IoctlCtx.bForceDnld) == true)) &&
+       ((gphNxpNciHal_fw_IoctlCtx.bPrevSessnOpen) == false)) ||
+      ((((gphNxpNciHal_fw_IoctlCtx.bPrevSessnOpen) == true)) &&
+       ((gphNxpNciHal_fw_IoctlCtx.bRetryDnld) == true)))
+
+  {
+    return NFCSTATUS_SUCCESS;
+  }
+
+  if (phNxpNciHal_init_cb_data(&cb_data, NULL) != NFCSTATUS_SUCCESS) {
+    NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log_read cb_data creation failed");
+    return NFCSTATUS_FAILED;
+  }
+
+  (Data.pBuff) = (uint8_t*)&(gphNxpNciHal_fw_IoctlCtx.tLogParams);
+  (Data.wLen) = sizeof(phLibNfc_EELogParams_t);
+
+  wStatus = phDnldNfc_ReadLog(
+      &Data, (pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_log_read_cb,
+      (void*)&cb_data);
+  if (wStatus != NFCSTATUS_PENDING) {
+    NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log_read failed");
+    wStatus = NFCSTATUS_FAILED;
+    goto clean_and_return;
+  }
+
+  /* Wait for callback response */
+  if (SEM_WAIT(cb_data)) {
+    NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log_read semaphore error");
+    wStatus = NFCSTATUS_FAILED;
+    goto clean_and_return;
+  }
+
+  if (cb_data.status != NFCSTATUS_SUCCESS) {
+    NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log_read cb failed");
+    wStatus = NFCSTATUS_FAILED;
+    goto clean_and_return;
+  }
+
+  wStatus = NFCSTATUS_SUCCESS;
+
+clean_and_return:
+  phNxpNciHal_cleanup_cb_data(&cb_data);
+
+  return wStatus;
+}
 
 /*******************************************************************************
 **
@@ -1041,6 +1155,66 @@ clean_and_return:
 
 /*******************************************************************************
 **
+** Function         phNxpNciHal_fw_dnld_recover
+**
+** Description      Download Recover
+**
+** Returns          NFCSTATUS_SUCCESS if success
+**
+*******************************************************************************/
+static NFCSTATUS phNxpNciHal_fw_dnld_recover(void* pContext, NFCSTATUS status,
+                                             void* pInfo) {
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+  if (nfcFL.chipType != pn7160) {
+    return wStatus;
+  }
+  phNxpNciHal_Sem_t cb_data;
+
+  UNUSED_PROP(pInfo);
+  UNUSED_PROP(status);
+  UNUSED_PROP(pContext);
+  if ((gphNxpNciHal_fw_IoctlCtx.bDnldRecovery) == true) {
+    if (phNxpNciHal_init_cb_data(&cb_data, NULL) != NFCSTATUS_SUCCESS) {
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_recover cb_data creation failed");
+      return NFCSTATUS_FAILED;
+    }
+    (gphNxpNciHal_fw_IoctlCtx.bDnldAttempts)++;
+
+    /* resetting this flag to avoid cyclic issuance of recovery sequence in case
+     * of failure */
+    (gphNxpNciHal_fw_IoctlCtx.bDnldRecovery) = false;
+
+
+    wStatus = NFCSTATUS_SUCCESS;
+
+    if (NFCSTATUS_PENDING != wStatus) {
+      (gphNxpNciHal_fw_IoctlCtx.bSkipForce) = false;
+      (gphNxpNciHal_fw_IoctlCtx.bRetryDnld) = false;
+      goto clean_and_return;
+    }
+    /* Wait for callback response */
+    if (SEM_WAIT(cb_data)) {
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_recover semaphore error");
+      wStatus = NFCSTATUS_FAILED;
+      goto clean_and_return;
+    }
+
+    if (cb_data.status != NFCSTATUS_SUCCESS) {
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_recover cb failed");
+      wStatus = NFCSTATUS_FAILED;
+      goto clean_and_return;
+    }
+    wStatus = NFCSTATUS_SUCCESS;
+
+  clean_and_return:
+    phNxpNciHal_cleanup_cb_data(&cb_data);
+  }
+
+  return wStatus;
+}
+
+/*******************************************************************************
+**
 ** Function         phNxpNciHal_fw_dnld_send_ncicmd_cb
 **
 ** Description      Download Send NCI Command callback
@@ -1165,6 +1339,100 @@ phNxpNciHal_fw_dnld_send_ncicmd(void *pContext, NFCSTATUS status, void *pInfo) {
 
 /*******************************************************************************
 **
+** Function         phNxpNciHal_fw_dnld_log_cb
+**
+** Description      Download Log callback
+**
+** Returns          None
+**
+*******************************************************************************/
+static void phNxpNciHal_fw_dnld_log_cb(void* pContext, NFCSTATUS status,
+                                       void* pInfo) {
+  phNxpNciHal_Sem_t* p_cb_data = (phNxpNciHal_Sem_t*)pContext;
+  NFCSTATUS wStatus = status;
+  UNUSED_PROP(pContext);
+  UNUSED_PROP(pInfo);
+
+  if (NFCSTATUS_SUCCESS == wStatus) {
+    NXPLOG_FWDNLD_D("phLibNfc_DnldLogCb - Request Successful");
+    (gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) = false;
+  } else {
+    wStatus = NFCSTATUS_FAILED;
+    NXPLOG_FWDNLD_E("phLibNfc_DnldLogCb - Request Failed!!");
+  }
+  p_cb_data->status = wStatus;
+
+  SEM_POST(p_cb_data);
+  return;
+}
+
+/*******************************************************************************
+**
+** Function         phNxpNciHal_fw_dnld_log
+**
+** Description      Download Log
+**
+** Returns          NFCSTATUS_SUCCESS if success
+**
+*******************************************************************************/
+static NFCSTATUS phNxpNciHal_fw_dnld_log(void* pContext, NFCSTATUS status,
+                                         void* pInfo) {
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+  if (nfcFL.chipType != pn7160) {
+    return wStatus;
+  }
+  phNxpNciHal_Sem_t cb_data;
+  phDnldNfc_Buff_t tData;
+
+  UNUSED_PROP(pInfo);
+  UNUSED_PROP(status);
+  UNUSED_PROP(pContext);
+  if ((((gphNxpNciHal_fw_IoctlCtx.bSkipSeq) == true) ||
+       ((gphNxpNciHal_fw_IoctlCtx.bForceDnld) == true)) &&
+      ((gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) == false)) {
+    return NFCSTATUS_SUCCESS;
+  } else {
+    if (phNxpNciHal_init_cb_data(&cb_data, NULL) != NFCSTATUS_SUCCESS) {
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log cb_data creation failed");
+      return NFCSTATUS_FAILED;
+    }
+    (tData.pBuff) = (uint8_t*)&(gphNxpNciHal_fw_IoctlCtx.tLogParams);
+    (tData.wLen) = sizeof(gphNxpNciHal_fw_IoctlCtx.tLogParams);
+
+    wStatus =
+        phDnldNfc_Log(&tData, (pphDnldNfc_RspCb_t)&phNxpNciHal_fw_dnld_log_cb,
+                      (void*)&cb_data);
+
+    if (wStatus != NFCSTATUS_PENDING) {
+      NXPLOG_FWDNLD_E("phDnldNfc_Log failed");
+      (gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) = false;
+      wStatus = NFCSTATUS_FAILED;
+      goto clean_and_return;
+    }
+    /* Wait for callback response */
+    if (SEM_WAIT(cb_data)) {
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log semaphore error");
+      wStatus = NFCSTATUS_FAILED;
+      goto clean_and_return;
+    }
+
+    if (cb_data.status != NFCSTATUS_SUCCESS) {
+      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_log_cb failed");
+      wStatus = NFCSTATUS_FAILED;
+      goto clean_and_return;
+    }
+
+    wStatus = NFCSTATUS_SUCCESS;
+
+  clean_and_return:
+    phNxpNciHal_cleanup_cb_data(&cb_data);
+
+    return wStatus;
+  }
+}
+
+/*******************************************************************************
+**
 ** Function         phNxpNciHal_fw_seq_handler
 **
 ** Description      Sequence Handler
@@ -1185,11 +1453,13 @@ static NFCSTATUS phNxpNciHal_fw_seq_handler(
     return status;
   }
 
+if(nfcFL.chipType >= pn7220 ) {
   status = phNxpNciHal_releasePendingRead();
   if (NFCSTATUS_SUCCESS != status) {
     NXPLOG_FWDNLD_E("%s: Failed phNxpNciHal_releasePendingRead() !!", __func__);
     return status;
   }
+}
 
   while (seq_handler[seq_counter] != NULL) {
     status = NFCSTATUS_FAILED;
@@ -1269,9 +1539,10 @@ static NFCSTATUS phNxpNciHal_fw_dnld_complete(void *pContext, NFCSTATUS status,
   if ((gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) == true) {
     (gphNxpNciHal_fw_IoctlCtx.bLastStatus) = status;
     (gphNxpNciHal_fw_IoctlCtx.bDnldAttemptFailed) = true;
+
+    NXPLOG_FWDNLD_E("Invoking Pending Download Log Sequence..");
     (gphNxpNciHal_fw_IoctlCtx.bDnldInitiated) = false;
     /* Perform the Logging sequence */
-
     if (NFCSTATUS_SUCCESS != gphNxpNciHal_fw_IoctlCtx.bLastStatus) {
       /* update the previous Download Write status to upper layer and not the
        * status of Log command */

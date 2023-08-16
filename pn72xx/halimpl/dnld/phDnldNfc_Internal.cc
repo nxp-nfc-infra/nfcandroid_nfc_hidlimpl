@@ -60,6 +60,7 @@
 #define PHDNLDNFC_CHK_HDR_FRAGBIT(n)                                           \
   ((n)&0x04) /* macro to check if frag bit is set in Hdr */
 
+#define PHDNLDNFC_RSP_TIMEOUT (2500)
 /* Timeout value to wait before resending the last frame */
 #define PHDNLDNFC_RETRY_FRAME_WRITE (50)
 
@@ -128,9 +129,7 @@ NFCSTATUS phDnldNfc_CmdHandler(void *pContext, phDnldNfc_Event_t TrigEvent) {
     status = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
   } else {
     switch (TrigEvent) {
-#if (NXP_EXTNS == TRUE)
     case phDnldNfc_EventGetDieId:
-#endif
     case phDnldNfc_EventReset:
     case phDnldNfc_EventGetVer:
     case phDnldNfc_EventIntegChk:
@@ -691,7 +690,7 @@ static NFCSTATUS phDnldNfc_CreateFramePld(pphDnldNfc_DlContext_t pDlContext) {
       (pDlContext->tCmdRspFrameInfo.dwSendlength) += PHDNLDNFC_MIN_PLD_LEN;
     } else if (phDnldNfc_ChkIntg == (pDlContext->FrameInp.Type)) {
       (pDlContext->tCmdRspFrameInfo.dwSendlength) += PHDNLDNFC_MIN_PLD_LEN;
-      if (nfcFL.chipType < sn100u) {
+      if(nfcFL.chipType == pn7160) {
         wChkIntgVal = nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET;
 
         memcpy(&(pDlContext->tCmdRspFrameInfo
@@ -708,7 +707,7 @@ static NFCSTATUS phDnldNfc_CreateFramePld(pphDnldNfc_DlContext_t pDlContext) {
             PHDNLDNFC_USERDATA_EEPROM_LENSIZE;
         (pDlContext->tCmdRspFrameInfo.dwSendlength) +=
             PHDNLDNFC_USERDATA_EEPROM_OFFSIZE;
-      }
+        }
     } else if (phDnldNfc_FTWrite == (pDlContext->FrameInp.Type)) {
       wBuffIdx = (pDlContext->tRWInfo.wOffset);
 
@@ -1080,7 +1079,8 @@ static NFCSTATUS phDnldNfc_UpdateRsp(pphDnldNfc_DlContext_t pDlContext,
     NXPLOG_FWDNLD_E("Invalid Input Parameters!!");
     wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
   } else {
-    if (PH_DL_CMD_WRITE == (pDlContext->tCmdId)) {
+    if (PH_DL_CMD_WRITE == (pDlContext->tCmdId) ||
+        PH_DL_CMD_WRITE_PN716X == (pDlContext->tCmdId)) {
       if (PH_DL_STATUS_OK == (pInfo->pBuff[PHDNLDNFC_FRAMESTATUS_OFFSET])) {
         /* first write frame response received case */
         if ((pDlContext->tRWInfo.bFirstWrReq) == true) {

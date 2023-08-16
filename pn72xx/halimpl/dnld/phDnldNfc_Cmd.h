@@ -30,9 +30,13 @@
 typedef enum phDnldNfc_CmdId {
   PH_DL_CMD_NONE = 0x00,           /* Invalid Cmd */
   PH_DL_CMD_RESET = 0xE5,          /* Reset */
+  PH_DL_CMD_RESET_PN716X = 0xF0,          /* Reset */
   PH_DL_CMD_GETVERSION = 0xE1,     /* Get Version */
+  PH_DL_CMD_GETVERSION_PN716X = 0xF1,     /* Get Version */
   PH_DL_CMD_CHECKINTEGRITY = 0xE7, /* Check Integrity */
+  PH_DL_CMD_CHECKINTEGRITY_PN716X = 0xE0, /* Check Integrity */
   PH_DL_CMD_WRITE = 0x8C,          /* Write */
+  PH_DL_CMD_WRITE_PN716X = 0xC0,          /* Write */
   PH_DL_CMD_READ = 0xA2,
   /* Read */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid
                 the compilation issue */
@@ -43,7 +47,9 @@ typedef enum phDnldNfc_CmdId {
   /* Force */ /* TODO: Cuurently,this cmd is not support by FW, keep it to avoid
                  the compilation issue */
   PH_DL_CMD_GETSESSIONSTATE = 0xDB, /* Get Session State */
-  PH_DL_CMD_GETDIE_ID = 0xDF        /* Fetch Die ID */
+  PH_DL_CMD_GETSESSIONSTATE_PN716X = 0xF2, /* Get Session State */
+  PH_DL_CMD_GETDIE_ID = 0xDF,        /* Fetch Die ID */
+  PH_DL_CMD_GETDIE_ID_PN716X = 0xF4        /* Fetch Die ID check with FW*/
 } phDnldNfc_CmdId_t;
 
 #endif /* PHDNLDNFC_CMD_H */

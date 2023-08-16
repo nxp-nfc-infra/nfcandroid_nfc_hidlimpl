@@ -49,6 +49,7 @@ typedef void (*pphDnldNfc_RspCb_t)(void *pContext, NFCSTATUS wStatus,
 #define PHDNLDNFC_HWVER_MRA2_2 (0x05U) /* ChipVersion MRA2.2 */
 
 #define PHDNLDNFC_HWVER_PN7220_MRA1_0 (0x53U)
+#define PHDNLDNFC_HWVER_PN557_MRA1_0 (0x01U)
 /*
  * Enum definition contains Download Life Cycle States
  */
@@ -121,6 +122,8 @@ extern NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pSession,
 extern NFCSTATUS phDnldNfc_Force(pphDnldNfc_Buff_t pInputs,
                                  pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_Read(pphDnldNfc_Buff_t pData, uint32_t dwRdAddr,
+                                pphDnldNfc_RspCb_t pNotify, void* pContext);
+extern NFCSTATUS phDnldNfc_ReadLog(pphDnldNfc_Buff_t pData,
                                 pphDnldNfc_RspCb_t pNotify, void *pContext);
 extern NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
                                  pphDnldNfc_RspCb_t pNotify, void *pContext);

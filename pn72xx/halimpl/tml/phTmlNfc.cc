@@ -25,6 +25,7 @@
 #include <phNxpNciHal_utils.h>
 #include <phOsalNfc_Timer.h>
 #include <phTmlNfc.h>
+#include "NfccTransportFactory.h"
 
 /*
  * Duration of Timer to wait after sending an Nci packet
@@ -976,9 +977,24 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
       }
       break;
     }
+    case phTmlNfc_e_EnableDownloadModeWithVenRst: {
+      phTmlNfc_ConfigNciPktReTx(phTmlNfc_e_DisableRetrans, 0);
+      gpphTmlNfc_Context->tReadInfo.bEnable = 0;
+      NXPLOG_TML_D(
+          " phTmlNfc_e_EnableDownloadModewithVenRst complete with "
+          "VEN RESET ");
+      wStatus = gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
+                                          MODE_FW_DWNLD_WITH_VEN);
+      break;
+    }
     case phTmlNfc_e_setFragmentSize: {
-      gpphTmlNfc_Context->fragment_len = PH_TMLNFC_FRGMENT_SIZE_PN72XX;
-      NXPLOG_TML_D("phTmlNfc_e_setFragmentSize 0x22A");
+      if (nfcFL.chipType != pn7160) {
+        gpphTmlNfc_Context->fragment_len = PH_TMLNFC_FRGMENT_SIZE_PN72XX;
+        NXPLOG_TML_D("phTmlNfc_e_setFragmentSize 0x22A");
+      } else {
+        gpphTmlNfc_Context->fragment_len = PH_TMLNFC_FRGMENT_SIZE_PN7160;
+        NXPLOG_TML_D("phTmlNfc_e_setFragmentSize 0x100");
+      }
       break;
     }
     case phTmlNfc_e_RedLedOff: {

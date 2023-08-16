@@ -63,7 +63,10 @@ NFCSTATUS phDnldNfc_Reset(pphDnldNfc_RspCb_t pNotify, void *pContext) {
       wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_BUSY);
     } else {
       (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
-      (gpphDnldContext->tCmdId) = PH_DL_CMD_RESET;
+      if (nfcFL.chipType != pn7160)
+        (gpphDnldContext->tCmdId) = PH_DL_CMD_RESET;
+      else
+        (gpphDnldContext->tCmdId) = PH_DL_CMD_RESET_PN716X;
       (gpphDnldContext->tRspBuffInfo.pBuff) = NULL;
       (gpphDnldContext->tRspBuffInfo.wLen) = 0;
       (gpphDnldContext->tUserData.pBuff) = NULL;
@@ -121,7 +124,10 @@ NFCSTATUS phDnldNfc_GetVersion(pphDnldNfc_Buff_t pVersionInfo,
         (gpphDnldContext->tRspBuffInfo.pBuff) = pVersionInfo->pBuff;
         (gpphDnldContext->tRspBuffInfo.wLen) = pVersionInfo->wLen;
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_GETVERSION;
+        if (nfcFL.chipType != pn7160)
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_GETVERSION;
+        else
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_GETVERSION_PN716X;
         (gpphDnldContext->tUserData.pBuff) = NULL;
         (gpphDnldContext->tUserData.wLen) = 0;
         (gpphDnldContext->UserCb) = pNotify;
@@ -181,7 +187,10 @@ NFCSTATUS phDnldNfc_GetSessionState(pphDnldNfc_Buff_t pSession,
         (gpphDnldContext->tRspBuffInfo.pBuff) = pSession->pBuff;
         (gpphDnldContext->tRspBuffInfo.wLen) = pSession->wLen;
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_GETSESSIONSTATE;
+        if (nfcFL.chipType != pn7160)
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_GETSESSIONSTATE;
+        else
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_GETSESSIONSTATE_PN716X;
         (gpphDnldContext->tUserData.pBuff) = NULL;
         (gpphDnldContext->tUserData.wLen) = 0;
         (gpphDnldContext->UserCb) = pNotify;
@@ -246,7 +255,9 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
           (PHDNLDNFC_HWVER_MRA2_2 == bChipVer) ||
 #if (NXP_EXTNS == TRUE)
           ((nfcFL.chipType >= pn7220) &&
-           (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer))
+           (PHDNLDNFC_HWVER_PN7220_MRA1_0 == bChipVer)) ||
+       ((nfcFL.chipType == pn7160) && 
+       (PHDNLDNFC_HWVER_PN557_MRA1_0 == bChipVer))
 #endif
       ) {
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_ChkIntg;
@@ -257,7 +268,10 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
       if ((NULL != pCRCData->pBuff) && (0 != pCRCData->wLen)) {
         (gpphDnldContext->tRspBuffInfo.pBuff) = pCRCData->pBuff;
         (gpphDnldContext->tRspBuffInfo.wLen) = pCRCData->wLen;
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_CHECKINTEGRITY;
+        if (nfcFL.chipType != pn7160)
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_CHECKINTEGRITY;
+        else
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_CHECKINTEGRITY_PN716X;
         (gpphDnldContext->tUserData.pBuff) = NULL;
         (gpphDnldContext->tUserData.wLen) = 0;
         (gpphDnldContext->UserCb) = pNotify;
@@ -270,6 +284,48 @@ NFCSTATUS phDnldNfc_CheckIntegrity(uint8_t bChipVer, pphDnldNfc_Buff_t pCRCData,
           NXPLOG_FWDNLD_D("CheckIntegrity Request submitted successfully");
         } else {
           NXPLOG_FWDNLD_E("CheckIntegrity Request Failed!!");
+        }
+      } else {
+        NXPLOG_FWDNLD_E("Invalid Buff Parameters!!");
+        wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+      }
+    }
+  }
+
+  return wStatus;
+}
+NFCSTATUS phDnldNfc_ReadLog(pphDnldNfc_Buff_t pData, pphDnldNfc_RspCb_t pNotify,
+                            void* pContext) {
+  NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+
+  if ((NULL == pNotify) || (NULL == pData) || (NULL == pContext)) {
+    NXPLOG_FWDNLD_E("Invalid Input Parameters!!");
+    wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_INVALID_PARAMETER);
+  } else {
+    if (phDnldNfc_TransitionIdle != gpphDnldContext->tDnldInProgress) {
+      NXPLOG_FWDNLD_E("Dnld Cmd Request in Progress..Cannot Continue!!");
+      wStatus = PHNFCSTVAL(CID_NFC_DNLD, NFCSTATUS_BUSY);
+    } else {
+      if ((NULL != pData->pBuff) && (0 != pData->wLen)) {
+        (gpphDnldContext->tCmdId) = PH_DL_CMD_READ;
+        (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTRead;
+        (gpphDnldContext->FrameInp.dwAddr) = PHDNLDNFC_EEPROM_LOG_START_ADDR;
+        (gpphDnldContext->tRspBuffInfo.pBuff) = pData->pBuff;
+        (gpphDnldContext->tRspBuffInfo.wLen) = pData->wLen;
+        (gpphDnldContext->tUserData.pBuff) = NULL;
+        (gpphDnldContext->tUserData.wLen) = 0;
+        (gpphDnldContext->UserCb) = pNotify;
+        (gpphDnldContext->UserCtxt) = pContext;
+
+        memset(&(gpphDnldContext->tRWInfo), 0,
+               sizeof(gpphDnldContext->tRWInfo));
+
+        wStatus = phDnldNfc_CmdHandler(gpphDnldContext, phDnldNfc_EventRead);
+
+        if (NFCSTATUS_PENDING == wStatus) {
+          NXPLOG_FWDNLD_D("Read Request submitted successfully");
+        } else {
+          NXPLOG_FWDNLD_E("Read Request Failed!!");
         }
       } else {
         NXPLOG_FWDNLD_E("Invalid Buff Parameters!!");
@@ -336,7 +392,10 @@ NFCSTATUS phDnldNfc_Write(bool_t bRecoverSeq, pphDnldNfc_Buff_t pData,
         tImgBuff.pBuff = pImgPtr;
         tImgBuff.wLen = wLen;
 
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_WRITE;
+        if (nfcFL.chipType != pn7160)
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_WRITE;
+        else
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_WRITE_PN716X;
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTWrite;
         (gpphDnldContext->tRspBuffInfo.pBuff) = NULL;
         (gpphDnldContext->tRspBuffInfo.wLen) = 0;
@@ -750,7 +809,11 @@ NFCSTATUS phDnldNfc_InitImgInfo(bool bMinimalFw) {
   /* gpphDnldContext reset by phDnldNfc_SetHwDevHandle()
      so reassign the Fragment Length based on chip version */
   if (NFCSTATUS_SUCCESS == wStatus) {
+   if (nfcFL.chipType >= sn100u) {
     phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX);
+   } else {
+       phDnldNfc_SetI2CFragmentLength(PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN7160);
+   }
   }
 
   return wStatus;
@@ -846,7 +909,7 @@ NFCSTATUS phDnldNfc_LoadFW(const char *pathName, uint8_t **pImgInfo,
     NXPLOG_FWDNLD_D("FW image loded for chipType sn100u (%x)", nfcFL.chipType)
   } else {
     (*pImgInfoLen) = (uint16_t)(*((uint16_t *)pImageInfoLen));
-    NXPLOG_FWDNLD_D("FW image loded for chipType pn557 (%x)", nfcFL.chipType)
+    NXPLOG_FWDNLD_D("FW image loded for chipType pn7160 (%x)", nfcFL.chipType)
   }
 
   return NFCSTATUS_SUCCESS;
@@ -1218,7 +1281,10 @@ NFCSTATUS phDnldNfc_GetDieId(pphDnldNfc_Buff_t pGetDieId,
         (gpphDnldContext->tRspBuffInfo.pBuff) = pGetDieId->pBuff;
         (gpphDnldContext->tRspBuffInfo.wLen) = pGetDieId->wLen;
         (gpphDnldContext->FrameInp.Type) = phDnldNfc_FTNone;
-        (gpphDnldContext->tCmdId) = PH_DL_CMD_GETDIE_ID;
+        if (nfcFL.chipType != pn7160)
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_GETDIE_ID;
+        else
+          (gpphDnldContext->tCmdId) = PH_DL_CMD_GETDIE_ID_PN716X;
         (gpphDnldContext->tUserData.pBuff) = NULL;
         (gpphDnldContext->tUserData.wLen) = 0;
         (gpphDnldContext->UserCb) = pNotify;

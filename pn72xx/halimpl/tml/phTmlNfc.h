@@ -51,6 +51,7 @@
  * Fragment Length for PN72XX
  */
 #define PH_TMLNFC_FRGMENT_SIZE_PN72XX (0x22A)
+#define PH_TMLNFC_FRGMENT_SIZE_PN7160 (0x102)
 
 /*
 ***************************Globals,Structure and Enumeration ******************
@@ -113,6 +114,7 @@ typedef enum {
                                     download mode */
   phTmlNfc_e_EnableNormalMode, /* Hardware setting for normal mode of operation
                                 */
+  phTmlNfc_e_EnableDownloadModeWithVenRst,
   phTmlNfc_e_EnableVen,        /* Enable Ven for PN557 chip*/
   phTmlNfc_e_setFragmentSize = 5,
   phTmlNfc_e_RedLedOff,     /* Turns off red led */

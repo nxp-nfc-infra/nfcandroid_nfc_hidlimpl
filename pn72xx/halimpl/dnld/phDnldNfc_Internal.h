@@ -27,6 +27,8 @@
 /*The fragment length must be increased to send a complete FW package in
   one command since firmware doesn't support chunk packages.*/
 #define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN72XX (0x22AU)
+#define PHDNLDNFC_CMDRESP_MAX_BUFF_SIZE_PN7160 (0x100U) /* DL Host Frame Buffer Size for all CMD/RSP \
+               except pipelined WRITE */
 
 /* DL Host Short Frame Buffer Size for pipelined WRITE RSP */
 #define PHDNLDNFC_WRITERSP_BUFF_SIZE (0x08U)

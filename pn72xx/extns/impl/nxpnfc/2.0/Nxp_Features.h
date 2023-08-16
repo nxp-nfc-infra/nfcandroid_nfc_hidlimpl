@@ -29,7 +29,7 @@
 #define FW_MOBILE_MAJOR_NUMBER_SN100U 0x010
 #define FW_MOBILE_MAJOR_NUMBER_SN220U 0x02
 #define FW_MOBILE_MAJOR_NUMBER_PN7220 0x00
-#define FW_MOBILE_MAJOR_NUMBER_PN7160 0x12
+#define FW_MOBILE_MAJOR_NUMBER_PN7160 0x50
 
 /*Including T4T NFCEE by incrementing 1*/
 #define NFA_EE_MAX_EE_SUPPORTED 5
@@ -178,6 +178,7 @@ extern tNfc_featureList nfcFL;
         STRCPY_FW("libpn7160_fw")                                               \
         STRCPY_FW_BIN("pn7160")                                                 \
         nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7160;          \
+        nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                   \
         break;                                                                  \
       default:                                                                  \
         nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                            \
