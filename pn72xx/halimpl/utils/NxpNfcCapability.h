@@ -28,6 +28,7 @@ private:
   const uint16_t offsetFwRomCodeVersion = 4;
   const uint16_t offsetFwMinorVersion = 6;
   const uint16_t offsetFwMajorVersion = 7;
+  const uint16_t offsetHwVersionpn716x = 3;
   /*product[] will be used to print product version and
   should be kept in accordance with tNFC_chipType*/
 

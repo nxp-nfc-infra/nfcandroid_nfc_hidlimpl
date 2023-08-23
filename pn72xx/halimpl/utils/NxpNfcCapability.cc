@@ -55,10 +55,18 @@ tNFC_chipType capability::processChipType(uint8_t *msg, uint16_t msg_len) {
       } else if ((msg[offsetFwRomCodeVersion] == 0x03) &&
                  (msg[offsetModelID] == 0x21)) {
         chipType = pn7221;
+      } else if ((msg[offsetFwRomCodeVersion] == 0x12) &&
+                 ((msg[offsetHwVersionpn716x] == 0x71) ||
+                  (msg[offsetHwVersionpn716x] == 0x61) ||
+                  (msg[offsetHwVersionpn716x] == 0x41))) {
+        chipType = pn7160;
       } else {
         ALOGD("%s Setting Default ChiptType pn7220 in FW DNLD Mode", __func__);
         chipType = pn7220;
       }
+    } else if (((msg[msg_len - 4]) == 0x61) || ((msg[msg_len - 4]) == 0x71) ||
+               ((msg[msg_len - 4]) == 0x41)) {
+      chipType = pn7160;
     } else if (offsetHwVersion < msg_len) {
       ALOGD("%s HwVersion : 0x%02x  Product ID : 0x%02x", __func__,
             msg[msg_len - 4], msg[msg_len - 5]);
@@ -69,16 +77,6 @@ tNFC_chipType capability::processChipType(uint8_t *msg, uint16_t msg_len) {
         break;
       case 0x21:
         chipType = pn7221;
-        break;
-      default:
-        chipType = pn7220;
-        break;
-      }
-      switch (msg[msg_len - 4]) {
-      case 0x61:// PN7160 (no ECP support)
-      case 0x71:// PN7161 (ECP support)
-      case 0x41://dev sample
-        chipType = pn7160;
         break;
       default:
         chipType = pn7220;

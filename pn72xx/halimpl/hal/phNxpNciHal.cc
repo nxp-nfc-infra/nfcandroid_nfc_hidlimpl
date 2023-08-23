@@ -123,7 +123,6 @@ phNxpNciMwEepromArea_t phNxpNciMwEepromArea = {false, {0}};
 
 volatile bool_t gsIsFirstHalMinOpen = true;
 volatile bool_t gsIsFwRecoveryRequired = false;
-const char *spIsFirstHalMinOpen = "nfc.is_first_hal_min_open";
 void *RfFwRegionDnld_handle = NULL;
 fpVerInfoStoreInEeprom_t fpVerInfoStoreInEeprom = NULL;
 fpRegRfFwDndl_t fpRegRfFwDndl = NULL;
@@ -448,7 +447,11 @@ NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset,
   if (!bIsNfccDlState) {
     NXPLOG_NCIHAL_D("nfcFL.nfccFL._NFCC_DWNLD_MODE %x\n",
                     nfcFL.nfccFL._NFCC_DWNLD_MODE);
-    status = phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadMode);
+    if (nfcFL.chipType != pn7160) {
+      status = phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadMode);
+    } else {
+      status = phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadModeWithVenRst);
+    }
     if (NFCSTATUS_SUCCESS != status) {
       nxpncihal_ctrl.fwdnld_mode_reqd = FALSE;
       phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_FAILED);
@@ -667,6 +670,18 @@ int phNxpNciHal_MinOpen() {
         "/dev/nxpnfc");
     strlcpy(nfc_dev_node, "/dev/nxpnfc", (max_len * sizeof(char)));
   }
+  unsigned long retval = 0;
+  if (!GetNxpNumValue(NAME_NXP_CHIP_TYPE, &retval, sizeof(unsigned long))) {
+    NXPLOG_NCIHAL_E("Reading of NXP_CHIP_TYPE failed. Default retval = %lu",
+                    retval);
+  }
+  if (retval == 0x01) {
+    nfcFL.chipType = pn7160;
+  } else if (retval == 0x04) {
+    nfcFL.chipType = pn7220;
+  } else {
+    nfcFL.chipType = pn7220;
+  }
   /* Configure hardware link */
   nxpncihal_ctrl.gDrvCfg.nClientId = phDal4Nfc_msgget(0, 0600);
   nxpncihal_ctrl.gDrvCfg.nLinkType = ENUM_LINK_TYPE_I2C; /* For PN72xx */
@@ -721,19 +736,10 @@ int phNxpNciHal_MinOpen() {
     return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
   }
 
-if (nfcFL.chipType != pn7160) {
-  /* No need to check for download mode, if NFC Hal crashes and restarts */
-  char value[NFC_PROP_VALUE_MAX];
-  if (__system_property_get(spIsFirstHalMinOpen, value) <= 0) {
-    NXPLOG_NCIHAL_D("nfc.is_first_hal_min_open property not found. assigning "
-                    "default value");
-    std::strcpy(value, "0");
-  }
-
-  if (gsIsFirstHalMinOpen && (0 == std::strcmp("0", value))) {
+  if (gsIsFirstHalMinOpen) {
     phNxpNciHal_CheckAndHandleFwTearDown();
   }
-}
+
   uint8_t seq_handler_offset = 0x00;
   uint8_t fw_update_req = 1;
   uint8_t rf_update_req;
@@ -963,11 +969,6 @@ int phNxpNciHal_fw_mw_ver_check() {
  ******************************************************************************/
 static void phNxpNciHal_MinOpen_complete(NFCSTATUS status) {
   gsIsFirstHalMinOpen = false;
-
-  if (__system_property_set(spIsFirstHalMinOpen, "1") != 0) {
-    NXPLOG_NCIHAL_E("Failed to set property nfc.is_first_hal_min_open");
-  }
-
   if (status == NFCSTATUS_SUCCESS) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_MIN_OPEN;
   }
@@ -3190,7 +3191,7 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
   uint8_t session_state = -1;
   unsigned long minimal_fw_version = DEFAULT_MINIMAL_FW_VERSION;
 #if (NXP_EXTNS == TRUE)
-  status = phNxpNciHal_getChipInfoInFwDnldMode(true);
+  status = phNxpNciHal_getChipInfoInFwDnldMode(false);
 #else
   status = phNxpNciHal_getChipInfoInFwDnldMode();
 #endif
@@ -3211,7 +3212,10 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
       return;
     }
   }
-  phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadMode);
+  if (nfcFL.chipType != pn7160)
+    phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadMode);
+  else
+    phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadModeWithVenRst);
   if (wFwVerRsp == minimal_fw_version) {
     /* since minimal fw required dlreset
      * to boot in Download mode */
@@ -3256,7 +3260,7 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
   uint8_t get_chip_info_cmd[] = {0x00, 0x04, 0xE1, 0x00,
                                  0x00, 0x00, 0x75, 0x48};
   uint8_t get_chip_info_cmd_pn716x[] = {0x00, 0x04, 0xF1, 0x00,
-                                 0x00, 0x00, 0x75, 0x48};                                 
+                                        0x00, 0x00, 0x6E, 0xEF};
   NFCSTATUS status = NFCSTATUS_FAILED;
   int retry_cnt = 0;
   if (nfcFL.chipType != pn7160) {
@@ -3280,10 +3284,11 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
   nxpncihal_ctrl.fwdnld_mode_reqd = TRUE;
   do {
     if (nfcFL.chipType != pn7160) {
-    status =
-        phNxpNciHal_send_ext_cmd(sizeof(get_chip_info_cmd), get_chip_info_cmd);
+      status = phNxpNciHal_send_ext_cmd(sizeof(get_chip_info_cmd),
+                                        get_chip_info_cmd);
     } else {
-        phNxpNciHal_send_ext_cmd(sizeof(get_chip_info_cmd_pn716x), get_chip_info_cmd_pn716x);
+      status = phNxpNciHal_send_ext_cmd(sizeof(get_chip_info_cmd_pn716x),
+                                        get_chip_info_cmd_pn716x);
     }
     if (status != NFCSTATUS_SUCCESS) {
       /* break the loop if HAL write failed or response Timeout */
@@ -3334,17 +3339,25 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
  ******************************************************************************/
 uint8_t phNxpNciHal_getSessionInfoInFwDnldMode() {
   uint8_t session_status = -1;
+  NFCSTATUS status = NFCSTATUS_FAILED;
 #if (NXP_EXTNS == TRUE)
   uint8_t get_session_info_cmd[] = {0x00, 0x04, 0xDB, 0x00,
                                     0x00, 0x00, 0x31, 0x0A};
+  uint8_t get_session_info_cmd_pn716x[] = {0x00, 0x04, 0xF2, 0x00,
+                                           0x00, 0x00, 0xF5, 0x33};
 #else
   uint8_t get_session_info_cmd[] = {0x00, 0x04, 0xF2, 0x00,
                                     0x00, 0x00, 0xF5, 0x33};
 #endif
   phTmlNfc_EnableFwDnldMode(true);
   nxpncihal_ctrl.fwdnld_mode_reqd = TRUE;
-  NFCSTATUS status = phNxpNciHal_send_ext_cmd(sizeof(get_session_info_cmd),
-                                              get_session_info_cmd);
+  if (nfcFL.chipType != pn7160) {
+    status = phNxpNciHal_send_ext_cmd(sizeof(get_session_info_cmd),
+                                      get_session_info_cmd);
+  } else {
+    status = phNxpNciHal_send_ext_cmd(sizeof(get_session_info_cmd_pn716x),
+                                      get_session_info_cmd_pn716x);
+  }
   if (status == NFCSTATUS_SUCCESS) {
     /* Check FW getResponse command response status byte */
     if (nxpncihal_ctrl.p_rx_data[2] == 0x00 &&
