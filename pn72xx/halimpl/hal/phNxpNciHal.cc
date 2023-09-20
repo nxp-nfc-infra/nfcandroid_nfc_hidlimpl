@@ -2956,17 +2956,17 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
   uint8_t get_clk_size = 0;
   uint8_t set_clck_cmd[] = {0x20, 0x02, 0x0C, 0x01, 0xA2, 0x02, 0x08, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  uint8_t get_clck_cmd[] = {0x20, 0x03, 0x03, 0x01, 0xA2, 0x02};
+  uint8_t get_clck_cmd_pn7160[] = {0x20, 0x03, 0x07, 0x03, 0xA0,
+                                   0x02, 0xA0, 0x03, 0xA0, 0x04};
   uint8_t nfcc_cfg_clock_src, nfcc_cur_clock_src;
   uint8_t nfcc_clock_set_needed;
   if (nfcFL.chipType != pn7160) {
-    uint8_t get_clck_cmd[] = {0x20, 0x03, 0x03, 0x01, 0xA2, 0x02};
     get_clock_cmd = get_clck_cmd;
     get_clk_size = sizeof(get_clck_cmd);
     NXPLOG_NCIHAL_E("pn7220 unable to retrieve get_clk_src_sel %d", get_clk_size);
 
   } else {
-    uint8_t get_clck_cmd_pn7160[] = {0x20, 0x03, 0x07, 0x03, 0xA0,
-                                    0x02, 0xA0, 0x03, 0xA0, 0x04};
     get_clock_cmd = get_clck_cmd_pn7160;
     get_clk_size = sizeof(get_clck_cmd_pn7160);
     NXPLOG_NCIHAL_E("pn7160 unable to retrieve get_clk_src_sel %d",get_clk_size);
