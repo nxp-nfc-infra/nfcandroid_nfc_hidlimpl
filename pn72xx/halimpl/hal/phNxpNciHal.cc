@@ -1856,7 +1856,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     NXPLOG_NCIHAL_D("Performing RF Settings BLK 2");
     isfound = GetNxpByteArrayValue(NAME_NXP_RF_CONF_BLK_2, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status == NFCSTATUS_SUCCESS) {
         status = phNxpNciHal_CheckRFCmdRespStatus();
@@ -1877,7 +1877,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     NXPLOG_NCIHAL_D("Performing RF Settings BLK 3");
     isfound = GetNxpByteArrayValue(NAME_NXP_RF_CONF_BLK_3, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status == NFCSTATUS_SUCCESS) {
         status = phNxpNciHal_CheckRFCmdRespStatus();
@@ -1898,7 +1898,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     NXPLOG_NCIHAL_D("Performing RF Settings BLK 4");
     isfound = GetNxpByteArrayValue(NAME_NXP_RF_CONF_BLK_4, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status == NFCSTATUS_SUCCESS) {
         status = phNxpNciHal_CheckRFCmdRespStatus();
@@ -1919,7 +1919,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     NXPLOG_NCIHAL_D("Performing RF Settings BLK 5");
     isfound = GetNxpByteArrayValue(NAME_NXP_RF_CONF_BLK_5, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status == NFCSTATUS_SUCCESS) {
         status = phNxpNciHal_CheckRFCmdRespStatus();
@@ -1940,7 +1940,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     NXPLOG_NCIHAL_D("Performing RF Settings BLK 6");
     isfound = GetNxpByteArrayValue(NAME_NXP_RF_CONF_BLK_6, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status == NFCSTATUS_SUCCESS) {
         status = phNxpNciHal_CheckRFCmdRespStatus();
@@ -1961,7 +1961,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF_EXTN Settings");
     isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF_EXTN, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       /* NXP ACT Proprietary Ext */
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status != NFCSTATUS_SUCCESS) {
@@ -1975,7 +1975,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     config_access = false;
     isfound = GetNxpByteArrayValue(NAME_NXP_CORE_RF_FIELD, (char*)buffer,
                                    bufflen, &retlen);
-    if (retlen > 0) {
+    if ((isfound == 1) && (retlen > 0)) {
       /* NXP ACT Proprietary Ext */
       status = phNxpNciHal_send_ext_cmd(retlen, buffer);
       if (status == NFCSTATUS_SUCCESS) {
@@ -2045,7 +2045,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
   isfound =
       GetNxpByteArrayValue(NAME_NXP_CORE_CONF, (char*)buffer, bufflen, &retlen);
   NXPLOG_NCIHAL_D("NAME_NXP_CORE_CONF Settings Found - %d Len: %ld", isfound, retlen);
-  if (retlen > 0) {
+  if ((isfound == 1) && (retlen > 0)) {
     /* NXP ACT Proprietary Ext */
     status = phNxpNciHal_send_ext_cmd(retlen, buffer);
     if (status != NFCSTATUS_SUCCESS) {
@@ -2155,6 +2155,10 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
       }
 
       if (p_core_init_rsp_params[2] > (core_init_rsp_params_len - 3)) {
+        if (buffer) {
+          free(buffer);
+          buffer = NULL;
+        }
         return NFCSTATUS_FAILED;
       }
       NXPLOG_NCIHAL_W("Sending discovery as raw packet!!");
@@ -2219,6 +2223,10 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
 
         p_core_init_rsp_params[35] = (uint8_t)tmp_len;
         if (p_core_init_rsp_params[35] > (core_init_rsp_params_len - 36)) {
+          if (buffer) {
+            free(buffer);
+            buffer = NULL;
+          }
           return NFCSTATUS_FAILED;
         }
         status = phNxpNciHal_send_ext_cmd(

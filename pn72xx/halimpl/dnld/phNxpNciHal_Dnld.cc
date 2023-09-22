@@ -1184,29 +1184,9 @@ static NFCSTATUS phNxpNciHal_fw_dnld_recover(void* pContext, NFCSTATUS status,
      * of failure */
     (gphNxpNciHal_fw_IoctlCtx.bDnldRecovery) = false;
 
+    (gphNxpNciHal_fw_IoctlCtx.bSkipForce) = false;
+    (gphNxpNciHal_fw_IoctlCtx.bRetryDnld) = false;
 
-    wStatus = NFCSTATUS_SUCCESS;
-
-    if (NFCSTATUS_PENDING != wStatus) {
-      (gphNxpNciHal_fw_IoctlCtx.bSkipForce) = false;
-      (gphNxpNciHal_fw_IoctlCtx.bRetryDnld) = false;
-      goto clean_and_return;
-    }
-    /* Wait for callback response */
-    if (SEM_WAIT(cb_data)) {
-      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_recover semaphore error");
-      wStatus = NFCSTATUS_FAILED;
-      goto clean_and_return;
-    }
-
-    if (cb_data.status != NFCSTATUS_SUCCESS) {
-      NXPLOG_FWDNLD_E("phNxpNciHal_fw_dnld_recover cb failed");
-      wStatus = NFCSTATUS_FAILED;
-      goto clean_and_return;
-    }
-    wStatus = NFCSTATUS_SUCCESS;
-
-  clean_and_return:
     phNxpNciHal_cleanup_cb_data(&cb_data);
   }
 
