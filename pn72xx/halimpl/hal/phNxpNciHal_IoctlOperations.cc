@@ -676,6 +676,14 @@ bool phNxpNciHal_DualCPU_modeSwitch(uint8_t option) {
   bool ret = true;
 
   if ((option == EMVCo_Mode) || (option == EMVCo_FW_DNLD_Mode)) {
+
+    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOn)) {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - SUCCESS\n");
+    } else {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
+      return false;
+    }
+
     if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice)) {
       NXPLOG_NCIHAL_D("VEN Reset - SUCCESS\n");
     } else {
@@ -690,12 +698,6 @@ bool phNxpNciHal_DualCPU_modeSwitch(uint8_t option) {
       return false;
     }
 
-    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOn)) {
-      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - SUCCESS\n");
-    } else {
-      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
-      return false;
-    }
   } else if (option == NFC_Mode) {
     if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_SmcuModeSwitchOff)) {
       NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOff - SUCCESS\n");
