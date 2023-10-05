@@ -42,6 +42,7 @@
 #define FW_DNLD_LEN_OFFSET 1
 #define NORMAL_MODE_LEN_OFFSET 2
 #define FLUSH_BUFFER_SIZE 0xFF
+#define MILI_SEC_TO_MINS 60000
 extern phTmlNfc_i2cfragmentation_t fragmentation_enabled;
 extern phTmlNfc_Context_t *gpphTmlNfc_Context;
 /*******************************************************************************
@@ -506,46 +507,37 @@ int NfccI2cTransport::SetSmcuModeSwitch(void *p_dev_handle,
   return ret;
 }
 
-
 /*******************************************************************************
 ** Function         SmcuFwState
 **
-** Description      Read/Clear the driver SMCU FW DNLD Flag
+** Description      This is blocking call. it will wait for timerVal(miliSec).
 **
-** Parameters       p_dev_handle     - valid device handle
-**                  rw_opt           - 0 : Read Operation
-**                                     1 : Write Operation
-**                  flag             - IN during read
-**                                   - OUT during write
+** Parameters       p_dev_handle     - Valid device handle
+**                  timerVal         - Max wait time for SMCU FW DNLD to
+*complete
 **
 ** Returns           0   - reset operation success
 **                  -1   - reset operation failure
 **
 *******************************************************************************/
-int NfccI2cTransport::SmcuFwState (void *p_dev_handle,
-                                        bool rw_opt, bool * flag) {
+int NfccI2cTransport::SmcuFwState(void *p_dev_handle, uint32_t timerVal) {
 
-  NXPLOG_TML_D("%s, option : %d Flag %d", __func__, rw_opt, *flag);
+  NXPLOG_TML_D("%s, wait for SP Done Pin to be HIGH for %d min ", __func__,
+               timerVal / MILI_SEC_TO_MINS);
 
   int ret = -1;
-  smcu_dnld_done_arg_t smcu_dnld_done_arg;
 
   if (NULL == p_dev_handle) {
     return -1;
   }
 
-  smcu_dnld_done_arg.wr_rd_flag = rw_opt;
-  smcu_dnld_done_arg.smcu_dnld_done = *flag;
-
-  ret = ioctl((int)(intptr_t)p_dev_handle, SMCU_FW_DNLD_TRIGGERED, &smcu_dnld_done_arg);
-
-  if(rw_opt == 0x00) { /* read the flag */
-    *flag = smcu_dnld_done_arg.smcu_dnld_done;
-  }
+  ret = ioctl((int)(intptr_t)p_dev_handle, WAIT_FOR_SMCU_SP_DONE_PIN, timerVal);
 
   if (ret < 0) {
-    NXPLOG_TML_E("%s :failed errno = 0x%x", __func__, errno);
+    NXPLOG_TML_E("%s :failed Timer expried for SP DONE Pins", __func__);
   }
+
+  NXPLOG_TML_D("%s, ioctl ret value : %d ", __func__,ret);
   return ret;
 }
 

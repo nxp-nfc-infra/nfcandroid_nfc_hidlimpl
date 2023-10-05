@@ -277,19 +277,17 @@ public:
   /*******************************************************************************
   ** Function         SmcuFwState
   **
-  ** Description      Read/Clear the driver SMCU FW DNLD Flag
+  ** Description      This is blocking call. it will wait for timerVal(miliSec).
   **
-  ** Parameters       p_dev_handle     - valid device handle
-  **                  rw_opt           - 0 : Read Operation
-  **                                     1 : Write Operation
-  **                  flag             - IN during read
-  **                                   - OUT during write
+  ** Parameters       p_dev_handle     - Valid device handle
+  **                  timerVal         - Max wait time for SMCU FW DNLD to
+  *complete
   **
   ** Returns           0   - reset operation success
   **                  -1   - reset operation failure
   **
   *******************************************************************************/
-  virtual int SmcuFwState (void *p_dev_handle, bool rw_opt, bool * flag);
+  virtual int SmcuFwState(void *p_dev_handle, uint32_t timerVal);
 
 #endif
 };

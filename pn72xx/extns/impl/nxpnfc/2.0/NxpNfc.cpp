@@ -59,6 +59,7 @@ Return<bool> NxpNfc::setEseUpdateState(NxpNfcHalEseState eSEState) {
     ALOGD("ERROR : %s Invalid option ", __func__);
     return ret;
   }
+  ALOGD("NxpNfc::setEseUpdateState Exit ret %d", ret);
   return ret;
 }
 

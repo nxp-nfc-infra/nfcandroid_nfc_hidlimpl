@@ -42,10 +42,11 @@ static uint8_t bCurrentRetryCount = (2000 / PHTMLNFC_MAXTIME_RETRANSMIT) + 1;
 /* Indicates a Initial or offset value */
 #define PH_TMLNFC_VALUE_ONE (0x01)
 
+/* DUAL CPU FW DNLD must be completed with SMCU_FW_DNLD_MAX_WAIT_TIME miliSec */
+#define SMCU_FW_DNLD_MAX_WAIT_TIME_MS (300000) // 5mins
+
 spTransport gpTransportObj;
 extern bool_t gsIsFirstHalMinOpen;
-
-bool gFwState = false;
 
 /* Initialize Context structure pointer used to access context structure */
 phTmlNfc_Context_t *gpphTmlNfc_Context = NULL;
@@ -911,6 +912,7 @@ NFCSTATUS phTmlNfc_WriteAbort(void) {
 *******************************************************************************/
 NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
+  int ret = 0;
 
   if (NULL == gpphTmlNfc_Context) {
     wStatus = NFCSTATUS_FAILED;
@@ -1025,21 +1027,12 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
                                         NCI_MODE);
       break;
     }
-    case phTmlNfc_e_GetSmcuFwState: {
-      gFwState = false;
-      wStatus = gpTransportObj->SmcuFwState(gpphTmlNfc_Context->pDevHandle,
-                                                          false, &gFwState);
-      if(wStatus == NFCSTATUS_SUCCESS) {
-        NXPLOG_TML_D("phTmlNfc_e_GetSmcuFwState FW state %d", gFwState);
-      }
-      break;
-    }
-    case phTmlNfc_e_ClearSmcuFwState: {
-      gFwState = false;
-      wStatus = gpTransportObj->SmcuFwState(gpphTmlNfc_Context->pDevHandle,
-                                                           true, &gFwState);
-      if(wStatus == NFCSTATUS_SUCCESS) {
-        NXPLOG_TML_D("phTmlNfc_e_ClearSmcuFwState Successful");
+    case phTmlNfc_e_WaitForSmcuSP_Done: {
+      ret = gpTransportObj->SmcuFwState(gpphTmlNfc_Context->pDevHandle,
+                                            SMCU_FW_DNLD_MAX_WAIT_TIME_MS);
+      if(ret >= 0x00) {
+        wStatus = NFCSTATUS_SUCCESS;
+        NXPLOG_TML_D("phTmlNfc_e_WaitForSmcuSP_Done SUCCESS");
       }
       break;
     }

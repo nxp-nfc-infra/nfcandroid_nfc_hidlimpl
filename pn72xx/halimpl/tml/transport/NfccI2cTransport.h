@@ -44,11 +44,6 @@
 
 #if (NXP_EXTNS == TRUE)
 
-typedef struct {
-       bool wr_rd_flag;
-       bool smcu_dnld_done;
-}smcu_dnld_done_arg_t;
-
 /*
  * ioctl code to switch between the NFC polling and EMVCo polling
  * indicate to NFCC
@@ -71,7 +66,7 @@ typedef struct {
  * ioctl code to get the fw fnld status after handover the NFCC
  * Control to the SMCU
  */
-#define SMCU_FW_DNLD_TRIGGERED   _IOWR(NFC_MAGIC, 0x07, uint32_t*)
+#define WAIT_FOR_SMCU_SP_DONE_PIN _IOW(NFC_MAGIC, 0x07, uint32_t)
 #endif
 
 extern phTmlNfc_i2cfragmentation_t fragmentation_enabled;
@@ -277,19 +272,17 @@ public:
   /*******************************************************************************
   ** Function         SmcuFwState
   **
-  ** Description      Read/Clear the driver SMCU FW DNLD Flag
+  ** Description      This is blocking call. it will wait for timerVal(miliSec).
   **
-  ** Parameters       p_dev_handle     - valid device handle
-  **                  rw_opt           - 0 : Read Operation
-  **                                     1 : Write Operation
-  **                  flag             - IN during read
-  **                                   - OUT during write
+  ** Parameters       p_dev_handle     - Valid device handle
+  **                  timerVal         - Max wait time for SMCU FW DNLD to
+  *complete
   **
   ** Returns           0   - reset operation success
   **                  -1   - reset operation failure
   **
   *******************************************************************************/
 
-  int SmcuFwState(void *p_dev_handle, bool rw_opt, bool * flag);
+  int SmcuFwState(void *p_dev_handle, uint32_t timerVal);
 #endif
 };
