@@ -109,6 +109,8 @@ uint8_t fw_dwnld_flag = false;
 #endif
 bool nfc_debug_enabled = true;
 
+phNxpNci_LmNfcADiscCfg_t new_Cfg;
+
 /*  Used to send Callback Transceive data during Mifare Write.
  *  If this flag is enabled, no need to send response to Upper layer */
 bool sendRspToUpperLayer = true;
@@ -141,7 +143,9 @@ static void phNxpNciHal_power_cycle_complete(NFCSTATUS status);
 static void
 phNxpNciHal_kill_client_thread(phNxpNciHal_Control_t *p_nxpncihal_ctrl);
 static void phNxpNciHal_nfccClockCfgRead(void);
+static bool phNxpNciHal_LmNfcADiscCfgRead(void);
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
+static NFCSTATUS phNxpNciHal_hceLmNfcADiscCfgApply(void);
 static void phNxpNciHal_print_res_status(uint8_t *p_rx_data, uint16_t *p_len);
 static void phNxpNciHal_enable_i2c_fragmentation();
 static NFCSTATUS phNxpNciHal_get_mw_eeprom(void);
@@ -841,6 +845,10 @@ int phNxpNciHal_MinOpen() {
 
     if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
       NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
+    }
+
+    if (phNxpNciHal_hceLmNfcADiscCfgApply() != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("phNxpNciHal_hceLmNfcADiscCfgApply failed");
     }
 
     ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
@@ -2955,6 +2963,53 @@ static void phNxpNciHal_nfccClockCfgRead(void) {
 }
 
 /******************************************************************************
+ * Function         phNxpNciHal_LmNfcADiscCfgRead
+ *
+ * Description      This function is called for loading HCE Listen Mode - NFC-A
+ *                  Discovery Parameters from the config file
+ *
+ * Returns          bool.
+ *
+ ******************************************************************************/
+static bool phNxpNciHal_LmNfcADiscCfgRead(void) {
+  uint8_t isfound = 0;
+  long retlen = 0;
+
+  memset(&new_Cfg, 0x00, sizeof(phNxpNci_LmNfcADiscCfg_t));
+
+  isfound =
+      GetNxpByteArrayValue(NAME_NXP_HCE_SENS_RES, (char *)&new_Cfg.bSensRes[0],
+                           sizeof(new_Cfg.bSensRes), &retlen);
+  if (isfound == 0x00) {
+    NXPLOG_NCIHAL_E("New Config: NAME_NXP_HCE_SENS_RES Not found");
+    return false;
+  }
+
+  isfound =
+      GetNxpByteArrayValue(NAME_NXP_HCE_NFC_ID1, (char *)&new_Cfg.bNfcID1[0],
+                           sizeof(new_Cfg.bNfcID1), &retlen);
+  if (isfound == 0x00) {
+    NXPLOG_NCIHAL_E("New Config: NAME_NXP_HCE_NFC_ID1 Not found");
+    return false;
+  }
+
+  isfound = GetNxpNumValue(NAME_NXP_HCE_SEL_RES, &new_Cfg.bSelRes,
+                           sizeof(new_Cfg.bSelRes));
+  if (isfound == 0x00) {
+    NXPLOG_NCIHAL_E("New Config: NAME_NXP_HCE_SEL_RES Not found");
+    return false;
+  }
+
+  isfound = GetNxpNumValue(NAME_NXP_HCE_RNDM_UID_ENB, &new_Cfg.bRandomUIDEnable,
+                           sizeof(new_Cfg.bRandomUIDEnable));
+  if (isfound == 0x00) {
+    NXPLOG_NCIHAL_E("New Config: NAME_NXP_HCE_RNDM_UID_ENB Not found");
+    return false;
+  }
+  return true;
+}
+
+/******************************************************************************
  * Function         phNxpNciHal_nfccClockCfgApply
  *
  * Description      This function is called after successful download
@@ -3024,6 +3079,110 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
     }
 
 
+  return status;
+}
+
+/******************************************************************************
+ * Function         phNxpNciHal_hceLmNfcADiscCfgApply
+ *
+ * Description      This function is called to check if Listen Mode - NFC-A
+ *                  Discovery Parameters in config file and chip are same or
+ *not. if not then set the new Parameters from config file.
+ *
+ * Returns          status.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_hceLmNfcADiscCfgApply(void) {
+
+  NXPLOG_NCIHAL_D("%s", __func__);
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  uint8_t get_a2_cfg_cmd[] = {0x20, 0x03, 0x03, 0x01, 0xA2, 0x78};
+  uint8_t set_a2_cfg_cmd[] = {0x20, 0x02, 0x0C, 0x01, 0xA2, 0x78, 0x08, 0x00,
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+  if (phNxpNciHal_LmNfcADiscCfgRead() == false) {
+    NXPLOG_NCIHAL_E("Failed to read the config file");
+    return NFCSTATUS_FAILED;
+  }
+
+  status = phNxpNciHal_send_ext_cmd(sizeof(get_a2_cfg_cmd), get_a2_cfg_cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("unable to retrieve bSensRes & bNfcID1");
+    return status;
+  }
+
+  if ((NFCSTATUS_SUCCESS == nxpncihal_ctrl.p_rx_data[3]) &&
+      ((nxpncihal_ctrl.p_rx_data[13] != new_Cfg.bSensRes[0]) ||
+       (nxpncihal_ctrl.p_rx_data[14] != new_Cfg.bSensRes[1]) ||
+       (nxpncihal_ctrl.p_rx_data[15] != new_Cfg.bNfcID1[0]))) {
+
+    memcpy(&set_a2_cfg_cmd[7], &nxpncihal_ctrl.p_rx_data[8],
+           nxpncihal_ctrl.p_rx_data[7]);
+
+    set_a2_cfg_cmd[12] = new_Cfg.bSensRes[0];
+    set_a2_cfg_cmd[13] = new_Cfg.bSensRes[1];
+    set_a2_cfg_cmd[14] = new_Cfg.bNfcID1[0];
+
+    status = phNxpNciHal_send_ext_cmd(sizeof(set_a2_cfg_cmd), set_a2_cfg_cmd);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("Failed to set bSensRes & bNfcID1");
+      return status;
+    }
+  }
+
+  // EEPROM area config A2xx : xx - Offset Address
+  get_a2_cfg_cmd[5] = 0x79;
+  set_a2_cfg_cmd[5] = 0x79;
+
+  status = phNxpNciHal_send_ext_cmd(sizeof(get_a2_cfg_cmd), get_a2_cfg_cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("unable to retrieve bNfcID1 & bSelRes");
+    return status;
+  }
+
+  if ((NFCSTATUS_SUCCESS == nxpncihal_ctrl.p_rx_data[3]) &&
+      ((nxpncihal_ctrl.p_rx_data[8] != new_Cfg.bNfcID1[1]) ||
+       (nxpncihal_ctrl.p_rx_data[9] != new_Cfg.bNfcID1[2]) ||
+       (nxpncihal_ctrl.p_rx_data[10] != new_Cfg.bSelRes))) {
+
+    memcpy(&set_a2_cfg_cmd[7], &nxpncihal_ctrl.p_rx_data[8],
+           nxpncihal_ctrl.p_rx_data[7]);
+
+    set_a2_cfg_cmd[7] = new_Cfg.bNfcID1[1];
+    set_a2_cfg_cmd[8] = new_Cfg.bNfcID1[2];
+    set_a2_cfg_cmd[9] = new_Cfg.bSelRes;
+
+    status = phNxpNciHal_send_ext_cmd(sizeof(set_a2_cfg_cmd), set_a2_cfg_cmd);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("Failed to set bNfcID1 & bSelRes");
+      return status;
+    }
+  }
+
+  // EEPROM area config A2xx : xx - Offset Address
+  get_a2_cfg_cmd[5] = 0x7B;
+  set_a2_cfg_cmd[5] = 0x7B;
+
+  status = phNxpNciHal_send_ext_cmd(sizeof(get_a2_cfg_cmd), get_a2_cfg_cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("unable to retrieve bRandomUIDEnable");
+    return status;
+  }
+
+  if ((NFCSTATUS_SUCCESS == nxpncihal_ctrl.p_rx_data[3]) &&
+      (nxpncihal_ctrl.p_rx_data[13] != new_Cfg.bRandomUIDEnable)) {
+
+    memcpy(&set_a2_cfg_cmd[7], &nxpncihal_ctrl.p_rx_data[8],
+           nxpncihal_ctrl.p_rx_data[7]);
+
+    set_a2_cfg_cmd[12] = new_Cfg.bRandomUIDEnable;
+
+    status = phNxpNciHal_send_ext_cmd(sizeof(set_a2_cfg_cmd), set_a2_cfg_cmd);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("Failed to set bRandomUIDEnable");
+      return status;
+    }
+  }
   return status;
 }
 

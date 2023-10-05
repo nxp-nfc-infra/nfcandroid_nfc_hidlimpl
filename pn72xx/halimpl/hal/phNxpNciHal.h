@@ -205,6 +205,13 @@ typedef struct phNxpNciMwEepromArea {
   uint8_t p_rx_data[32];
 } phNxpNciMwEepromArea_t;
 
+typedef struct phNxpNci_LmNfcADiscCfg {
+  uint8_t bSelRes;
+  uint8_t bRandomUIDEnable;
+  uint8_t bSensRes[2];
+  uint8_t bNfcID1[4];
+} phNxpNci_LmNfcADiscCfg_t;
+
 enum { SE_TYPE_ESE, SE_TYPE_UICC, SE_TYPE_UICC2, NUM_SE_TYPES };
 
 typedef void (*fpVerInfoStoreInEeprom_t)();
