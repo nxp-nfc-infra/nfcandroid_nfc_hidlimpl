@@ -145,3 +145,4 @@ bool phNxpNciHal_DualCPU_modeSwitch(uint8_t option);
 #define property_set(a, b) property_set_intf(a, b)
 #define EMVCo_Mode 0x01
 #define NFC_Mode 0x02
+#define EMVCo_FW_DNLD_Mode 0x03

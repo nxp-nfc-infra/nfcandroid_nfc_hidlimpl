@@ -274,5 +274,22 @@ public:
   *******************************************************************************/
   virtual int SetSmcuModeSwitch(void *p_dev_handle, enum ProfileMode eType);
 
+  /*******************************************************************************
+  ** Function         SmcuFwState
+  **
+  ** Description      Read/Clear the driver SMCU FW DNLD Flag
+  **
+  ** Parameters       p_dev_handle     - valid device handle
+  **                  rw_opt           - 0 : Read Operation
+  **                                     1 : Write Operation
+  **                  flag             - IN during read
+  **                                   - OUT during write
+  **
+  ** Returns           0   - reset operation success
+  **                  -1   - reset operation failure
+  **
+  *******************************************************************************/
+  virtual int SmcuFwState (void *p_dev_handle, bool rw_opt, bool * flag);
+
 #endif
 };

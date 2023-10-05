@@ -675,7 +675,7 @@ int phNxpNciHal_CheckFwRegFlashRequired(uint8_t *fw_update_req,
 bool phNxpNciHal_DualCPU_modeSwitch(uint8_t option) {
   bool ret = true;
 
-  if (option == EMVCo_Mode) {
+  if ((option == EMVCo_Mode) || (option == EMVCo_FW_DNLD_Mode)) {
     if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice)) {
       NXPLOG_NCIHAL_D("VEN Reset - SUCCESS\n");
     } else {

@@ -43,6 +43,12 @@
 #define ESE_GET_PWR _IOR(NFC_MAGIC, 0x03, uint32_t)
 
 #if (NXP_EXTNS == TRUE)
+
+typedef struct {
+       bool wr_rd_flag;
+       bool smcu_dnld_done;
+}smcu_dnld_done_arg_t;
+
 /*
  * ioctl code to switch between the NFC polling and EMVCo polling
  * indicate to NFCC
@@ -61,6 +67,11 @@
  * GREEN_LED_ON(3): GREEN LED ON
  */
 #define LEDS_CONTROL _IOW(NFC_MAGIC, 0x06, uint32_t)
+/*
+ * ioctl code to get the fw fnld status after handover the NFCC
+ * Control to the SMCU
+ */
+#define SMCU_FW_DNLD_TRIGGERED   _IOWR(NFC_MAGIC, 0x07, uint32_t*)
 #endif
 
 extern phTmlNfc_i2cfragmentation_t fragmentation_enabled;
@@ -263,5 +274,22 @@ public:
   *******************************************************************************/
   int SetSmcuModeSwitch(void *p_dev_handle, enum ProfileMode eType);
 
+  /*******************************************************************************
+  ** Function         SmcuFwState
+  **
+  ** Description      Read/Clear the driver SMCU FW DNLD Flag
+  **
+  ** Parameters       p_dev_handle     - valid device handle
+  **                  rw_opt           - 0 : Read Operation
+  **                                     1 : Write Operation
+  **                  flag             - IN during read
+  **                                   - OUT during write
+  **
+  ** Returns           0   - reset operation success
+  **                  -1   - reset operation failure
+  **
+  *******************************************************************************/
+
+  int SmcuFwState(void *p_dev_handle, bool rw_opt, bool * flag);
 #endif
 };

@@ -505,4 +505,48 @@ int NfccI2cTransport::SetSmcuModeSwitch(void *p_dev_handle,
   }
   return ret;
 }
+
+
+/*******************************************************************************
+** Function         SmcuFwState
+**
+** Description      Read/Clear the driver SMCU FW DNLD Flag
+**
+** Parameters       p_dev_handle     - valid device handle
+**                  rw_opt           - 0 : Read Operation
+**                                     1 : Write Operation
+**                  flag             - IN during read
+**                                   - OUT during write
+**
+** Returns           0   - reset operation success
+**                  -1   - reset operation failure
+**
+*******************************************************************************/
+int NfccI2cTransport::SmcuFwState (void *p_dev_handle,
+                                        bool rw_opt, bool * flag) {
+
+  NXPLOG_TML_D("%s, option : %d Flag %d", __func__, rw_opt, *flag);
+
+  int ret = -1;
+  smcu_dnld_done_arg_t smcu_dnld_done_arg;
+
+  if (NULL == p_dev_handle) {
+    return -1;
+  }
+
+  smcu_dnld_done_arg.wr_rd_flag = rw_opt;
+  smcu_dnld_done_arg.smcu_dnld_done = *flag;
+
+  ret = ioctl((int)(intptr_t)p_dev_handle, SMCU_FW_DNLD_TRIGGERED, &smcu_dnld_done_arg);
+
+  if(rw_opt == 0x00) { /* read the flag */
+    *flag = smcu_dnld_done_arg.smcu_dnld_done;
+  }
+
+  if (ret < 0) {
+    NXPLOG_TML_E("%s :failed errno = 0x%x", __func__, errno);
+  }
+  return ret;
+}
+
 #endif

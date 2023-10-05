@@ -40,6 +40,7 @@ extern phNxpNciProfile_Control_t nxpprofile_ctrl;
 extern phNxpNci_getCfg_info_t *mGetCfg_info;
 
 extern bool_t gsIsFwRecoveryRequired;
+extern bool gFwState;
 
 extern bool nfc_debug_enabled;
 uint8_t icode_detected = 0x00;
@@ -460,6 +461,15 @@ static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t *p_ntf,
   if (p_ntf == NULL || *p_len < 2) {
     return NFCSTATUS_FAILED;
   }
+
+  if((p_ntf[0] == NCI_MT_NTF) && (p_ntf[1] == NCI_MSG_CORE_RESET)) {
+    phTmlNfc_IoCtl(phTmlNfc_e_GetSmcuFwState);
+    if(gFwState == true) {
+      phTmlNfc_IoCtl(phTmlNfc_e_ClearSmcuFwState);
+      (*nxpncihal_ctrl.p_nfc_stack_cback)(HAL_NFC_RELEASE_CONTROL_EVT, HAL_NFC_STATUS_OK);
+    }
+  }
+
   if (p_ntf[0] == NCI_MT_RSP &&
       ((p_ntf[1] & NCI_OID_MASK) == NCI_MSG_CORE_RESET)) {
     if (*p_len < 4) {

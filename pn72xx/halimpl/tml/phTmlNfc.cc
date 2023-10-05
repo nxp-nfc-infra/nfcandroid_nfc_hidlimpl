@@ -45,6 +45,8 @@ static uint8_t bCurrentRetryCount = (2000 / PHTMLNFC_MAXTIME_RETRANSMIT) + 1;
 spTransport gpTransportObj;
 extern bool_t gsIsFirstHalMinOpen;
 
+bool gFwState = false;
+
 /* Initialize Context structure pointer used to access context structure */
 phTmlNfc_Context_t *gpphTmlNfc_Context = NULL;
 /* Local Function prototypes */
@@ -1021,6 +1023,24 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
     case phTmlNfc_e_SmcuModeSwitchOff: {
       gpTransportObj->SetSmcuModeSwitch(gpphTmlNfc_Context->pDevHandle,
                                         NCI_MODE);
+      break;
+    }
+    case phTmlNfc_e_GetSmcuFwState: {
+      gFwState = false;
+      wStatus = gpTransportObj->SmcuFwState(gpphTmlNfc_Context->pDevHandle,
+                                                          false, &gFwState);
+      if(wStatus == NFCSTATUS_SUCCESS) {
+        NXPLOG_TML_D("phTmlNfc_e_GetSmcuFwState FW state %d", gFwState);
+      }
+      break;
+    }
+    case phTmlNfc_e_ClearSmcuFwState: {
+      gFwState = false;
+      wStatus = gpTransportObj->SmcuFwState(gpphTmlNfc_Context->pDevHandle,
+                                                           true, &gFwState);
+      if(wStatus == NFCSTATUS_SUCCESS) {
+        NXPLOG_TML_D("phTmlNfc_e_ClearSmcuFwState Successful");
+      }
       break;
     }
     default: {

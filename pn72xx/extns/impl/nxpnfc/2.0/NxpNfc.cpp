@@ -51,8 +51,9 @@ Return<bool> NxpNfc::resetEse(uint64_t resetType) {
 Return<bool> NxpNfc::setEseUpdateState(NxpNfcHalEseState eSEState) {
   ALOGD("NxpNfc::setEseUpdateState Entry %lu ", eSEState);
   bool ret = false;
-  if ((eSEState == (NxpNfcHalEseState)0x01) ||
-      (eSEState == (NxpNfcHalEseState)0x02)) {
+  if ((eSEState == (NxpNfcHalEseState)EMVCO_MODE_SWITCH) ||
+      (eSEState == (NxpNfcHalEseState)NFC_MODE_SWITCH) ||
+      (eSEState == (NxpNfcHalEseState)SMCU_FW_DNLD_MODE_SWITCH)) {
     ret = phNxpNciHal_DualCPU_modeSwitch((uint8_t)eSEState);
   } else {
     ALOGD("ERROR : %s Invalid option ", __func__);

@@ -59,4 +59,11 @@ int NfccTransport::SetSmcuModeSwitch(
   return NFCSTATUS_SUCCESS;
 }
 
+int NfccTransport::SmcuFwState (
+    __attribute__((unused)) void *p_dev_handle,
+    __attribute__((unused)) bool rw_opt,
+    __attribute__((unused)) bool *flag) {
+  return NFCSTATUS_SUCCESS;
+}
+
 #endif
