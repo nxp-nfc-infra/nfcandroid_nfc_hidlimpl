@@ -753,11 +753,17 @@ int phNxpNciHal_MinOpen() {
    * notification propagating to upper layer since it is initiated from HAL*/
   nxpncihal_ctrl.nci_info.wait_for_ntf = TRUE;
   HAL_ENABLE_EXT();
-  status = phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOn);
-  if (NFCSTATUS_SUCCESS == status) {
-    NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - SUCCESS\n");
+
+  if (NFCSTATUS_SUCCESS == phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOff)) {
+    NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOff - SUCCESS\n");
   } else {
-    NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
+    NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOff - FAILED\n");
+  }
+
+  if (NFCSTATUS_SUCCESS == phTmlNfc_IoCtl(phTmlNfc_e_SmcuModeSwitchOff)) {
+    NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOff - SUCCESS\n");
+  } else {
+    NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOff - FAILED\n");
   }
 }
 #endif

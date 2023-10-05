@@ -117,11 +117,13 @@ typedef enum {
   phTmlNfc_e_EnableDownloadModeWithVenRst,
   phTmlNfc_e_EnableVen,        /* Enable Ven for PN557 chip*/
   phTmlNfc_e_setFragmentSize = 5,
-  phTmlNfc_e_RedLedOff,     /* Turns off red led */
-  phTmlNfc_e_RedLedOn,      /* Turns on red led */
-  phTmlNfc_e_ModeSwitchOn,  /* sets mode switch gpio high */
-  phTmlNfc_e_ModeSwitchOff, /* sets mode switch gpio low */
-} phTmlNfc_ControlCode_t;   /* Control code for IOCTL call */
+  phTmlNfc_e_RedLedOff,         /* Turns off red led */
+  phTmlNfc_e_RedLedOn,          /* Turns on red led */
+  phTmlNfc_e_ModeSwitchOn,      /* sets mode switch NFCC gpio high */
+  phTmlNfc_e_ModeSwitchOff,     /* sets mode switch NFCC gpio low */
+  phTmlNfc_e_SmcuModeSwitchOn,  /* sets mode switch SMCU gpio high */
+  phTmlNfc_e_SmcuModeSwitchOff, /* sets mode switch SMCU gpio low */
+} phTmlNfc_ControlCode_t;       /* Control code for IOCTL call */
 
 /*
  * Enable / Disable Re-Transmission of Packets

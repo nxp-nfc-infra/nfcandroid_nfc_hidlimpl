@@ -259,5 +259,20 @@ public:
   **
   *******************************************************************************/
   virtual int SetModeSwitch(void *p_dev_handle, enum ProfileMode eType);
+
+  /*******************************************************************************
+  ** Function         SetSmcuModeSwitch
+  **
+  ** Description      sets the mode switch to SMCU
+  **
+  ** Parameters       p_dev_handle     - valid device handle
+  **                  eType          - mode switch control
+  **
+  ** Returns           0   - reset operation success
+  **                  -1   - reset operation failure
+  **
+  *******************************************************************************/
+  virtual int SetSmcuModeSwitch(void *p_dev_handle, enum ProfileMode eType);
+
 #endif
 };

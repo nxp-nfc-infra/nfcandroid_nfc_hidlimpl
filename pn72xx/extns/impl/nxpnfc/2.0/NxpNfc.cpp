@@ -49,8 +49,16 @@ Return<bool> NxpNfc::resetEse(uint64_t resetType) {
 }
 
 Return<bool> NxpNfc::setEseUpdateState(NxpNfcHalEseState eSEState) {
-  eSEState = NxpNfcHalEseState::HAL_NFC_ESE_JCOP_UPDATE_COMPLETED;
-  return false;
+  ALOGD("NxpNfc::setEseUpdateState Entry %lu ", eSEState);
+  bool ret = false;
+  if ((eSEState == (NxpNfcHalEseState)0x01) ||
+      (eSEState == (NxpNfcHalEseState)0x02)) {
+    ret = phNxpNciHal_DualCPU_modeSwitch((uint8_t)eSEState);
+  } else {
+    ALOGD("ERROR : %s Invalid option ", __func__);
+    return ret;
+  }
+  return ret;
 }
 
 Return<bool> NxpNfc::setNxpTransitConfig(

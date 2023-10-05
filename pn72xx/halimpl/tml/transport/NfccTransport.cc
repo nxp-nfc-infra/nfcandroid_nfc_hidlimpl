@@ -53,4 +53,10 @@ int NfccTransport::SetModeSwitch(
     __attribute__((unused)) enum ProfileMode eType) {
   return NFCSTATUS_SUCCESS;
 }
+int NfccTransport::SetSmcuModeSwitch(
+    __attribute__((unused)) void *p_dev_handle,
+    __attribute__((unused)) enum ProfileMode eType) {
+  return NFCSTATUS_SUCCESS;
+}
+
 #endif

@@ -45,9 +45,14 @@
 #if (NXP_EXTNS == TRUE)
 /*
  * ioctl code to switch between the NFC polling and EMVCo polling
- *
+ * indicate to NFCC
  */
 #define NFCC_PROFILE_SWITCH _IOW(NFC_MAGIC, 0x04, uint32_t)
+/*
+ * ioctl code to switch between the NFC polling and EMVCo polling
+ * indicate to SMCU
+ */
+#define SMCU_PROFILE_SWITCH _IOW(NFC_MAGIC, 0x05, uint32_t)
 /*
  * LED control via ioctl
  * RED_LED_OFF(0): RED LED OFF
@@ -243,6 +248,20 @@ public:
   **
   *******************************************************************************/
   int SetModeSwitch(void *p_dev_handle, enum ProfileMode eType);
+
+  /*******************************************************************************
+  ** Function         SetSmcuModeSwitch
+  **
+  ** Description      sets the mode switch to SMCU
+  **
+  ** Parameters       p_dev_handle     - valid device handle
+  **                  eType          - mode switch control
+  **
+  ** Returns           0   - reset operation success
+  **                  -1   - reset operation failure
+  **
+  *******************************************************************************/
+  int SetSmcuModeSwitch(void *p_dev_handle, enum ProfileMode eType);
 
 #endif
 };

@@ -126,7 +126,22 @@ int property_set_intf(const char *propName, const char *valueStr);
  ********************************************************************************/
 bool phNxpNciHal_Abort();
 
+/******************************************************************************
+** Function         phNxpNciHal_DualCPU_modeSwitch
+**
+** Description      This function will be used to trigger DUAL CPU Mode Switch
+**
+** Parameters       option 1. EMVCo Mode
+**                         2. NFC Mode
+**
+** Returns          bool.
+**
+*******************************************************************************/
+bool phNxpNciHal_DualCPU_modeSwitch(uint8_t option);
+
 #undef PROPERTY_VALUE_MAX
 #define PROPERTY_VALUE_MAX 92
 #define property_get(a, b, c) property_get_intf(a, b, c)
 #define property_set(a, b) property_set_intf(a, b)
+#define EMVCo_Mode 0x01
+#define NFC_Mode 0x02

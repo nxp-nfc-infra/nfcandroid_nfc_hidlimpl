@@ -660,3 +660,59 @@ int phNxpNciHal_CheckFwRegFlashRequired(uint8_t *fw_update_req,
                   status, *fw_update_req, *rf_update_req);
   return status;
 }
+
+/******************************************************************************
+** Function         phNxpNciHal_DualCPU_modeSwitch
+**
+** Description      This function will be used to trigger DUAL CPU Mode Switch
+**
+** Parameters       option 1. EMVCo Mode
+**                         2. NFC Mode
+**
+** Returns          bool.
+**
+*******************************************************************************/
+bool phNxpNciHal_DualCPU_modeSwitch(uint8_t option) {
+  bool ret = true;
+
+  if (option == EMVCo_Mode) {
+    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice)) {
+      NXPLOG_NCIHAL_D("VEN Reset - SUCCESS\n");
+    } else {
+      NXPLOG_NCIHAL_D("VEN Reset - FAILED\n");
+      return false;
+    }
+
+    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_SmcuModeSwitchOn)) {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOn - SUCCESS\n");
+    } else {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOn - FAILED\n");
+      return false;
+    }
+
+    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOn)) {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - SUCCESS\n");
+    } else {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOn - FAILED\n");
+      return false;
+    }
+  } else if (option == NFC_Mode) {
+    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_SmcuModeSwitchOff)) {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOff - SUCCESS\n");
+    } else {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_SmcuModeSwitchOff - FAILED\n");
+      return false;
+    }
+
+    if (NFCSTATUS_OK == phTmlNfc_IoCtl(phTmlNfc_e_ModeSwitchOff)) {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOff - SUCCESS\n");
+    } else {
+      NXPLOG_NCIHAL_D("phTmlNfc_e_ModeSwitchOff - FAILED\n");
+      return false;
+    }
+  } else {
+    NXPLOG_NCIHAL_D("ERROR: Invalid operation\n");
+    return false;
+  }
+  return ret;
+}
