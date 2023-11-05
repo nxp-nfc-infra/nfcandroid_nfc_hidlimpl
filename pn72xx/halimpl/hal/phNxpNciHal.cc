@@ -876,6 +876,36 @@ int phNxpNciHal_MinOpen() {
     }
   }
 
+  /* Update if libnfc-nxp-rf-ext.conf modified*/
+  if (isNxpRfExtConfigModified()) {
+
+    unsigned long numOfRfExtConfig = 0;
+    int ret = 0;
+    uint8_t buff[260] = {0};
+    long rlen = 0;
+    long bufflen = 260;
+    int isfound;
+    char baseName[] = "NXP_RFEXT_CONFIG_";
+    char rfConfigName[25];
+
+    ret = GetNxpNumValue(NAME_NXP_NUM_OF_RFEXT_CONFIG, &numOfRfExtConfig,
+                         sizeof(numOfRfExtConfig));
+    if (ret) {
+      for (int i = 1; i <= (int)numOfRfExtConfig; i++) {
+
+        snprintf(rfConfigName, sizeof(rfConfigName), "%s%d", baseName, i);
+        isfound =
+            GetNxpByteArrayValue(rfConfigName, (char *)buff, bufflen, &rlen);
+        if ((isfound == 1) && (rlen > 0)) {
+          status = phNxpNciHal_send_ext_cmd(rlen, buff);
+          if (status != NFCSTATUS_SUCCESS) {
+            NXPLOG_NCIHAL_E("NXP RF Ext failed");
+          }
+        }
+      }
+    }
+  }
+
   /* Call open complete */
   phNxpNciHal_MinOpen_complete(wConfigStatus);
   NXPLOG_NCIHAL_D("phNxpNciHal_MinOpen(): exit");
@@ -1624,6 +1654,10 @@ if (nfcFL.chipType != pn7160) {
   }
   if (isNxpEepromConfigModified()) {
     updateNxpEepromConfigTimestamp();
+  }
+
+  if (isNxpRfExtConfigModified()) {
+    updateNxpRfExtConfigTimestamp();
   }
 } else {
       status = phNxpNciHal_core_initialized_pn7160(core_init_rsp_params_len,

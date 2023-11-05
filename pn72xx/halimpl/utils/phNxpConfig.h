@@ -51,8 +51,10 @@ void resetNxpConfig(void);
 int isNxpRFConfigModified();
 int isNxpConfigModified();
 int isNxpEepromConfigModified();
+int isNxpRfExtConfigModified();
 int updateNxpConfigTimestamp();
 int updateNxpEepromConfigTimestamp();
+int updateNxpRfExtConfigTimestamp();
 int updateNxpRfConfigTimestamp();
 void setNxpRfConfigPath(const char *name);
 void setNxpFwConfigPath();
@@ -192,6 +194,7 @@ extern char Fw_Lib_Path[256];
 #define NAME_NXP_ENABLE_DISABLE_LOGS "NXP_ENABLE_DISABLE_LOGS"
 #define NAME_NXP_ENABLE_DISABLE_STANBY "NXP_ENABLE_DISABLE_STANBY"
 #define NAME_NXP_ENABLE_DISABLE_LPCD "NXP_ENABLE_DISABLE_LPCD"
+#define NAME_NXP_NUM_OF_RFEXT_CONFIG "NXP_NUM_OF_RFEXT_CONFIG"
 #define NAME_NXP_TRANSPORT "NXP_TRANSPORT"
 #define NAME_NXP_GET_HW_INFO_LOG "NXP_GET_HW_INFO_LOG"
 #define NAME_NXP_ISO_DEP_MERGE_SAK "NXP_ISO_DEP_MERGE_SAK"
