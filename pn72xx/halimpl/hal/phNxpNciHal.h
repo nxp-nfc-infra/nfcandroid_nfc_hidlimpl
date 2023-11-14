@@ -325,7 +325,6 @@ void phNxpNciHal_request_control(void);
 void phNxpNciHal_release_control(void);
 int phNxpNciHal_write_unlocked(uint16_t data_len, const uint8_t *p_data,
                                int origin);
-NFCSTATUS request_EEPROM(phNxpNci_EEPROM_info_t *mEEPROM_info);
 int phNxpNciHal_check_config_parameter();
 NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset = 0,
                                   bool bIsNfccDlState = false);
@@ -351,17 +350,6 @@ NFCSTATUS phNxpNciHal_send_nfcee_pwr_cntl_cmd(uint8_t type);
 void phNxpNciHal_configFeatureList(uint8_t *init_rsp, uint16_t rsp_len);
 
 /******************************************************************************
- * Function         phNxpNciHal_read_and_update_se_state
- *
- * Description      This will read NFCEE status from system properties
- *                  and update to NFCC to enable/disable.
- *
- * Returns          none
- *
- ******************************************************************************/
-void phNxpNciHal_read_and_update_se_state();
-
-/******************************************************************************
  * Function         phNxpNciHal_Abort
  *
  * Description      This will post the message to the upper layer
@@ -371,54 +359,6 @@ void phNxpNciHal_read_and_update_se_state();
  *
  ******************************************************************************/
 extern bool phNxpNciHal_Abort();
-/******************************************************************************
- * Function         phNxpNciHal_read_fw_dw_status
- *
- * Description      This will read the value of fw download status flag
- *                  from eeprom
- *
- * Parameters       value - this parameter will be updated with the flag
- *                  value from eeprom.
- *
- * Returns          status of the read
- *
- ******************************************************************************/
-NFCSTATUS phNxpNciHal_read_fw_dw_status(uint8_t &value);
-
-/******************************************************************************
- * Function         phNxpNciHal_write_fw_dw_status
- *
- * Description      This will update value of fw download status flag
- *                  to eeprom
- *
- * Parameters       value - this value will be updated to eeprom flag.
- *
- * Returns          status of the write
- *
- ******************************************************************************/
-NFCSTATUS phNxpNciHal_write_fw_dw_status(uint8_t value);
-
-/******************************************************************************
- * Function         phNxpNciHal_save_uicc_params
- *
- * Description      This will read the UICC HCI param values
- *                  from eeprom and store in global variable
- *
- * Returns          status of the read
- *
- ******************************************************************************/
-NFCSTATUS phNxpNciHal_save_uicc_params();
-
-/******************************************************************************
- * Function         phNxpNciHal_restore_uicc_params
- *
- * Description      This will set the UICC HCI param values
- *                  back to eeprom from global variable
- *
- * Returns          status of the read
- *
- ******************************************************************************/
-NFCSTATUS phNxpNciHal_restore_uicc_params();
 
 /******************************************************************************
  * Function         phNxpNciHal_txNfccClockSetCmd

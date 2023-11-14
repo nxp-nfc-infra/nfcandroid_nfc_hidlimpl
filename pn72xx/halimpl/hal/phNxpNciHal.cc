@@ -82,9 +82,7 @@ extern void
 phTmlNfc_set_fragmentation_enabled(phTmlNfc_i2cfragmentation_t result);
 
 extern NFCSTATUS phNxpNciHal_ext_send_sram_config_to_flash();
-extern NFCSTATUS phNxpNciHal_enableDefaultUICC2SWPline(uint8_t uicc2_sel);
 extern void phNxpNciHal_prop_conf_lpcd(bool enableLPCD);
-extern void phNxpNciHal_prop_conf_rssi();
 
 nfc_stack_callback_t *p_nfc_stack_cback_backup;
 phNxpNci_getCfg_info_t *mGetCfg_info = NULL;
