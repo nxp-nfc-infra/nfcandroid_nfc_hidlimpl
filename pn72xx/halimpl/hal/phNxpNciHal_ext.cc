@@ -139,6 +139,16 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len) {
   }
 #endif
 
+  if ((p_ntf[0] == 0x42) && (p_ntf[1] == 0x00) && (p_ntf[4] == 0x03)) {
+    p_ntf[4] = 0x02; /* SAM1 & SAM2, CT NFCEE not suppoeted */
+    return status;
+  }
+
+  if ((p_ntf[0] == 0x62) && (p_ntf[1] == 0x00) && (p_ntf[3] == 0x20)) {
+    NXPLOG_NCIHAL_D("Skip notifing NFCEE_DISCOVER_NTF of CT to upper layer");
+    return NFCSTATUS_FAILED;
+  }
+
   if (p_ntf[0] == 0x61 && p_ntf[1] == 0x05 && *p_len < 14) {
     if (*p_len <= 6) {
       android_errorWriteLog(0x534e4554, "118152591");
