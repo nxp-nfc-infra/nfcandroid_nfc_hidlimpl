@@ -738,7 +738,7 @@ int phNxpNciHal_MinOpen() {
     return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
   }
 
-  if (gsIsFirstHalMinOpen) {
+  if ((gsIsFirstHalMinOpen) && (isDualCpuConfigure() == false)) {
     phNxpNciHal_CheckAndHandleFwTearDown();
   }
 

@@ -28,10 +28,16 @@
 #include <android-base/strings.h>
 #include <map>
 #include <set>
+#undef property_get
+#undef property_set
+#undef PROPERTY_VALUE_MAX
+#include <cutils/properties.h>
 
 using android::base::WriteStringToFile;
 using namespace ::std;
 using namespace ::android::base;
+
+#define I2CM_INTF_ENBLED 0x01
 
 #define TERMINAL_LEN 5
 /* HAL_NFC_STATUS_REFUSED sent to restart NFC service */
@@ -603,6 +609,29 @@ bool phNxpNciHal_Abort() {
   return ret;
 }
 
+/******************************************************************************
+** Function         isDualCpuConfigure
+**
+** Description      This function checks whether system is configured in dual
+**                  CPU or single CPU
+**
+** Parameters       None
+**
+** Returns          true: on dual cpu configuration.
+**                  false: on single cpu configuration
+**
+*******************************************************************************/
+bool isDualCpuConfigure(void) {
+  char valueStr[PROPERTY_VALUE_MAX] = {0};
+  int getVal = 0;
+  int len = property_get("persist.vendor.nxp.i2cms.enabled", valueStr, "");
+
+  if (len > 0) {
+    sscanf(valueStr, "%d", &getVal);
+  }
+  return ((getVal == I2CM_INTF_ENBLED) ? true : false);
+}
+
 /*******************************************************************************
  **
  ** Function:        phNxpNciHal_CheckFwRegFlashRequired()
@@ -618,6 +647,13 @@ int phNxpNciHal_CheckFwRegFlashRequired(uint8_t *fw_update_req,
   NXPLOG_NCIHAL_D("phNxpNciHal_CheckFwRegFlashRequired() : enter");
   int status = NFCSTATUS_OK;
   long option;
+
+  if ((nfcFL.chipType != pn7160) && (isDualCpuConfigure())) {
+    *fw_update_req = false;
+    NXPLOG_NCIHAL_D("Info : FW DNLD not allowed over I2CM interface");
+    return status;
+  }
+
   if (fpRegRfFwDndl != NULL) {
     status = fpRegRfFwDndl(fw_update_req, rf_update_req, skipEEPROMRead);
   } else {

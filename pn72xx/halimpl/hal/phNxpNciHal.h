@@ -361,6 +361,20 @@ void phNxpNciHal_configFeatureList(uint8_t *init_rsp, uint16_t rsp_len);
 extern bool phNxpNciHal_Abort();
 
 /******************************************************************************
+** Function         isDualCpuConfigure
+**
+** Description      This function checks whether system is configured in dual
+**                  CPU or single CPU
+**
+** Parameters       None
+**
+** Returns          true: on dual cpu configuration.
+**                  false: on single cpu configuration
+**
+*******************************************************************************/
+extern bool isDualCpuConfigure(void);
+
+/******************************************************************************
  * Function         phNxpNciHal_txNfccClockSetCmd
  *
  * Description      This function is called after successfull download

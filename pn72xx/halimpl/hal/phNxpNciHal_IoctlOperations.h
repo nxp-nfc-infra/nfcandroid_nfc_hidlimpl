@@ -127,6 +127,20 @@ int property_set_intf(const char *propName, const char *valueStr);
 bool phNxpNciHal_Abort();
 
 /******************************************************************************
+** Function         isDualCpuConfigure
+**
+** Description      This function checks whether system is configured in dual
+**                  CPU or single CPU
+**
+** Parameters       None
+**
+** Returns          true: on dual cpu configuration.
+**                  false: on single cpu configuration
+**
+*******************************************************************************/
+bool isDualCpuConfigure(void);
+
+/******************************************************************************
 ** Function         phNxpNciHal_DualCPU_modeSwitch
 **
 ** Description      This function will be used to trigger DUAL CPU Mode Switch
