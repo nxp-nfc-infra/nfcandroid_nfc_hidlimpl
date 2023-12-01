@@ -661,7 +661,7 @@ NFCSTATUS phTmlNfc_Shutdown(void) {
     sem_post(&gpphTmlNfc_Context->postMsgSemaphore);
     usleep(1000);
 
-    if (nfcFL.chipType < sn100u) {
+    if (nfcFL.chipType <= pn7221) {
       (void)gpTransportObj->NfccReset(gpphTmlNfc_Context->pDevHandle,
                                       MODE_POWER_OFF);
     }
