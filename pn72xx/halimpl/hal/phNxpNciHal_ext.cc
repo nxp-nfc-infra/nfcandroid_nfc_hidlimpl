@@ -181,13 +181,11 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len) {
   }
 
   NXPLOG_NCIHAL_D("Is EnableP2P_PrioLogic: 0x0%X", EnableP2P_PrioLogic);
-  if (phNxpDta_IsEnable() == false) {
-    if ((icode_detected != 1) && (EnableP2P_PrioLogic == true)) {
-      if (phNxpNciHal_NfcDep_comapre_ntf(p_ntf, *p_len) == NFCSTATUS_FAILED) {
-        status = phNxpNciHal_NfcDep_rsp_ext(p_ntf, p_len);
-        if (status != NFCSTATUS_INVALID_PARAMETER) {
-          return status;
-        }
+  if ((icode_detected != 1) && (EnableP2P_PrioLogic == true)) {
+    if (phNxpNciHal_NfcDep_comapre_ntf(p_ntf, *p_len) == NFCSTATUS_FAILED) {
+      status = phNxpNciHal_NfcDep_rsp_ext(p_ntf, p_len);
+      if (status != NFCSTATUS_INVALID_PARAMETER) {
+        return status;
       }
     }
   }
@@ -237,7 +235,6 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len) {
     switch (p_ntf[5]) {
     case 0x01:
       NXPLOG_NCIHAL_D("NxpNci: Protocol = T1T");
-      phNxpDta_T1TEnable();
       break;
     case 0x02:
       NXPLOG_NCIHAL_D("NxpNci: Protocol = T2T");
@@ -727,10 +724,6 @@ clean_and_return:
 NFCSTATUS phNxpNciHal_write_ext(uint16_t *cmd_len, uint8_t *p_cmd_data,
                                 uint16_t *rsp_len, uint8_t *p_rsp_data) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
-
-  if (phNxpDta_IsEnable() == true) {
-    status = phNxpNHal_DtaUpdate(cmd_len, p_cmd_data, rsp_len, p_rsp_data);
-  }
 
   if (p_cmd_data[0] == PROPRIETARY_CMD_FELICA_READER_MODE &&
       p_cmd_data[1] == PROPRIETARY_CMD_FELICA_READER_MODE &&

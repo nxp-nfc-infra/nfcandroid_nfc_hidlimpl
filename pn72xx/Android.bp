@@ -43,7 +43,6 @@ cc_library_shared {
         "halimpl/dnld/phDnldNfc_Utils.cc",
         "halimpl/dnld/phNxpNciHal_Dnld.cc",
         "halimpl/hal/phNxpNciHal.cc",
-        "halimpl/hal/phNxpNciHal_dta.cc",
         "halimpl/hal/phNxpNciHal_ext.cc",
         "halimpl/log/phNxpLog.cc",
         "halimpl/tml/phDal4Nfc_messageQueueLib.cc",
