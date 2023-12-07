@@ -51,6 +51,12 @@ Return<bool> NxpNfc::resetEse(uint64_t resetType) {
 Return<bool> NxpNfc::setEseUpdateState(NxpNfcHalEseState eSEState) {
   ALOGD("NxpNfc::setEseUpdateState Entry %lu ", eSEState);
   bool ret = false;
+
+  if ((isDualCpuConfigure() == false)) {
+    NXPLOG_NCIHAL_E("Modeswitch operation is not allowed on Single CPU");
+    return ret;
+  }
+
   if ((eSEState == (NxpNfcHalEseState)EMVCO_MODE_SWITCH) ||
       (eSEState == (NxpNfcHalEseState)NFC_MODE_SWITCH) ||
       (eSEState == (NxpNfcHalEseState)SMCU_FW_DNLD_MODE_SWITCH)) {
