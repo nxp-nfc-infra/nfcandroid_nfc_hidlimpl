@@ -31,7 +31,7 @@
 #define NXP_EN_PN7220 1
 #define NFC_NXP_MW_ANDROID_VER (13U)   /* Android version used by NFC MW */
 #define NFC_NXP_MW_VERSION_MAJ (0x20)  /* MW Major Version */
-#define NFC_NXP_MW_VERSION_MIN (0x02)  /* MW Minor Version */
+#define NFC_NXP_MW_VERSION_MIN (0x03)  /* MW Minor Version */
 
 extern bool nfc_debug_enabled;
 
