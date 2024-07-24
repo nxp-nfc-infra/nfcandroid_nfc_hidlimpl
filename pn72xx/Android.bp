@@ -74,15 +74,11 @@ cc_library_shared {
         "extns/impl/nxpnfc/2.0",
     ],
 
-    include_dirs: [
-        "hardware/nxp/secure_element/snxxx/extns/impl",
-    ],
 
     shared_libs: [
         "android.hardware.nfc@1.0",
         "android.hardware.nfc@1.1",
         "android.hardware.nfc@1.2",
-        "android.hardware.secure_element@1.0",
         "libbase",
         "libcutils",
         "libdl",
@@ -91,49 +87,47 @@ cc_library_shared {
         "libhidlbase",
         "liblog",
         "libutils",
-        "vendor.nxp.nxpese@1.0",
         "vendor.nxp.nxpnfc@2.0",
     ],
 }
 
 cc_binary {
-    name: "android.hardware.nfc_pn72xx@1.2-service",
-    defaults: ["hidl_defaults"],
-    proprietary: true,
-    init_rc: ["1.2/android.hardware.nfc_pn72xx@1.2-service.rc"],
+    name: "android.hardware.nfc-service.nxp",
     relative_install_path: "hw",
+    init_rc: ["aidl/nfc-service-nxp.rc"],
+    vintf_fragments: ["aidl/nfc-service-nxp.xml"],
+    vendor: true,
     cflags: [
-         "-Wall",
-         "-Werror",
-         "-Wextra",
-         "-fexceptions",
-         "-DNXP_EXTNS=TRUE",
-         "-DNXP_NFC_RECOVERY=TRUE"
-     ],
-
-    srcs: [
-        "1.2/NxpNfcService.cpp",
-        "1.2/Nfc.cpp",
-        "extns/impl/nxpnfc/2.0/NxpNfc.cpp",
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-DNXP_EXTNS=TRUE",
+        "-fexceptions",
+        "-DNXP_NFC_RECOVERY=TRUE",
     ],
-
     shared_libs: [
-        "nfc_nci_nxp_pn72xx",
         "libbase",
         "libcutils",
         "libdl",
-        "libhardware",
         "liblog",
         "libutils",
+        "libbinder_ndk",
+        "android.hardware.nfc-V1-ndk",
+        "nfc_nci_nxp_pn72xx",
+        "libhardware",
+        "libhidlbase",
         "android.hardware.nfc@1.0",
         "android.hardware.nfc@1.1",
         "android.hardware.nfc@1.2",
-        "libhidlbase",
-        "vendor.nxp.nxpese@1.0",
         "vendor.nxp.nxpnfc@2.0",
         "libmemunreachable",
     ],
-
+    srcs: [
+        "aidl/main.cpp",
+        "aidl/Nfc.cpp",
+        "aidl/NfcExtns.cpp",
+        "extns/impl/nxpnfc/2.0/NxpNfc.cpp",
+    ],
     local_include_dirs: [
         "halimpl/common",
         "halimpl/dnld",
@@ -144,9 +138,5 @@ cc_binary {
         "halimpl/utils",
         "halimpl/mifare",
         "extns/impl/nxpnfc/2.0",
-    ],
-
-    include_dirs: [
-        "hardware/nxp/secure_element/snxxx/extns/impl",
     ],
 }

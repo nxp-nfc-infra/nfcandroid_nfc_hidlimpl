@@ -548,6 +548,40 @@ static string phNxpNciHal_parseBytesString(string in) {
   return in;
 }
 
+/*******************************************************************************
+**
+** Function         phNxpNciHal_resetEse
+**
+** Description      It shall be used to reset eSE by proprietary command.
+**
+** Parameters
+**
+** Returns          status of eSE reset response
+*******************************************************************************/
+NFCSTATUS phNxpNciHal_resetEse(uint64_t resetType) {
+  NFCSTATUS status = NFCSTATUS_FAILED;
+
+  if (nxpncihal_ctrl.halStatus == HAL_STATUS_CLOSE) {
+    if (NFCSTATUS_SUCCESS != phNxpNciHal_MinOpen()) {
+      return NFCSTATUS_FAILED;
+    }
+  }
+
+  CONCURRENCY_LOCK();
+  status = gpTransportObj->EseReset(gpphTmlNfc_Context->pDevHandle,
+                                    (EseResetType)resetType);
+  CONCURRENCY_UNLOCK();
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("EsePowerCycle failed");
+  }
+
+  if (nxpncihal_ctrl.halStatus == HAL_STATUS_MIN_OPEN) {
+    phNxpNciHal_close(false);
+  }
+
+  return status;
+}
+
 /******************************************************************************
  * Function         phNxpNciHal_setNxpTransitConfig
  *

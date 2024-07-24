@@ -126,6 +126,18 @@ int property_set_intf(const char *propName, const char *valueStr);
  ********************************************************************************/
 bool phNxpNciHal_Abort();
 
+/*******************************************************************************
+**
+** Function         phNxpNciHal_resetEse
+**
+** Description      It shall be used to to reset eSE by proprietary command.
+**
+** Parameters       None
+**
+** Returns          status of eSE reset response
+*******************************************************************************/
+NFCSTATUS phNxpNciHal_resetEse(uint64_t resetType);
+
 /******************************************************************************
 ** Function         isDualCpuConfigure
 **
