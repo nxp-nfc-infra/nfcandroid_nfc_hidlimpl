@@ -26,6 +26,18 @@
 #include "phNxpNciHal.h"
 #include "phNxpNciHal_IoctlOperations.h"
 #endif
+#define NXP_EN_PN7150 0
+#define NXP_EN_PN7160 1
+#define NXP_EN_PN7161 1
+#define NXP_EN_PN7220 1
+#define NXP_EN_PN7221 1
+#define NXP_EN_PN7222 0
+#define NXP_EN_PN7223 0
+#define NFC_NXP_MW_ANDROID_VER (14U)  /* Android version used by NFC MW */
+#define NFC_NXP_MW_VERSION_MAJ (0x01) /* MW Major Version */
+#define NFC_NXP_MW_VERSION_MIN (0x00) /* MW Minor Version */
+#define NFC_NXP_MW_RC_VERSION (0x00)  /* MW RC Version */
+
 /* Timeout value to wait for response from PN548AD */
 #define HAL_EXTNS_WRITE_RSP_TIMEOUT (1000)
 #define NCI_NFC_DEP_RF_INTF 0x03
@@ -79,6 +91,19 @@ static NFCSTATUS phNxpNciHal_ext_process_nfc_init_rsp(uint8_t *p_ntf,
                                                       uint16_t *p_len);
 static void RemoveNfcDepIntfFromInitResp(uint8_t *coreInitResp,
                                          uint16_t *coreInitRespLen);
+void printNfcMwVersion() {
+  uint32_t  validation = (NXP_EN_PN7150 << 0);
+  validation |= (NXP_EN_PN7160 << 1);
+  validation |= (NXP_EN_PN7161 << 2);
+  validation |= (NXP_EN_PN7220 << 3);
+  validation |= (NXP_EN_PN7221 << 4);
+  validation |= (NXP_EN_PN7222 << 5);
+  validation |= (NXP_EN_PN7223 << 6);
+
+  ALOGE("MW-HAL Version: NFC_AR_INFRA_%04X_%02d.%02x.%02x",
+        validation, NFC_NXP_MW_ANDROID_VER,
+        NFC_NXP_MW_VERSION_MAJ, NFC_NXP_MW_VERSION_MIN);
+}
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_ext_init

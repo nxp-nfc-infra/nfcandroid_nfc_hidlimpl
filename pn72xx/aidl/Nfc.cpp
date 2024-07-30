@@ -60,7 +60,7 @@ void OnDeath(void* cookie) {
     LOG(ERROR) << __func__ << ": linkToDeath failed: " << linkRet;
     // Just ignore the error.
   }
-
+  printNfcMwVersion();
   int ret = phNxpNciHal_open(eventCallback, dataCallback);
   LOG(INFO) << "Nfc::open Exit";
   return ret == NFCSTATUS_SUCCESS
