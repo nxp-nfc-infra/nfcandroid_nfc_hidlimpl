@@ -1715,6 +1715,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
   if (nxpncihal_ctrl.halStatus != HAL_STATUS_OPEN) {
     return NFCSTATUS_FAILED;
   }
+
   if (core_init_rsp_params_len >= 1 && (*p_core_init_rsp_params > 0) &&
       (*p_core_init_rsp_params < 4))  // initializing for recovery.
   {
@@ -1747,9 +1748,9 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
       goto retry_core_init;
     }
 
-    if (*p_core_init_rsp_params == 2) {
+    if (core_init_rsp_params_len >= 1 && *p_core_init_rsp_params == 2) {
       NXPLOG_NCIHAL_E(" Last command is CORE_RESET!!");
-      goto invoke_callback;
+ //     goto invoke_callback;
     }
     if (nxpncihal_ctrl.nci_info.nci_version == NCI_VERSION_2_0) {
       status =
@@ -1763,9 +1764,9 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
       goto retry_core_init;
     }
 
-    if (*p_core_init_rsp_params == 3) {
+    if (core_init_rsp_params_len >= 1 && *p_core_init_rsp_params == 3) {
       NXPLOG_NCIHAL_E(" Last command is CORE_INIT!!");
-      goto invoke_callback;
+//      goto invoke_callback;
     }
   }
   // recovery --end
@@ -2110,7 +2111,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
   config_access = false;
   // if recovery mode and length of last command is 0 then only reset the P2P
   // listen mode routing.
-  if (core_init_rsp_params_len >= 36 && (*p_core_init_rsp_params > 0) &&
+  if (core_init_rsp_params_len >= 1 && core_init_rsp_params_len >= 36 && (*p_core_init_rsp_params > 0) &&
       (*p_core_init_rsp_params < 4) && p_core_init_rsp_params[35] == 0) {
     /* P2P listen mode routing */
     status = phNxpNciHal_send_ext_cmd(sizeof(p2p_listen_mode_routing_cmd),
@@ -2295,7 +2296,8 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
   // initialize dummy FW recovery variables
   gRecFWDwnld = 0;
   gRecFwRetryCount = 0;
-  if (core_init_rsp_params_len >= 1 &&
+  /*TO DO fix as part of this artf1170009
+ /* if (core_init_rsp_params_len >= 1 &&
       !((*p_core_init_rsp_params > 0) && (*p_core_init_rsp_params < 4)))
     phNxpNciHal_core_initialized_complete(status);
   else {
@@ -2307,7 +2309,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
       (*nxpncihal_ctrl.p_nfc_stack_data_cback)(nxpncihal_ctrl.rx_data_len,
                                                nxpncihal_ctrl.p_rx_data);
     }
-  }
+  }*/
 
   if (config_success == false) return NFCSTATUS_FAILED;
 #ifdef PN547C2_CLOCK_SETTING
@@ -2315,6 +2317,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     updateNxpConfigTimestamp();
   }
 #endif
+  phNxpNciHal_core_initialized_complete(status);
   return NFCSTATUS_SUCCESS;
 }
 #endif
