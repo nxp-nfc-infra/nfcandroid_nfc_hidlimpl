@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2023 NXP
+ * Copyright 2012-2024 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2296,7 +2296,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
   // initialize dummy FW recovery variables
   gRecFWDwnld = 0;
   gRecFwRetryCount = 0;
-  /*TO DO fix as part of this artf1170009
+  /*TO DO fix as part of this artf1170009 */
  /* if (core_init_rsp_params_len >= 1 &&
       !((*p_core_init_rsp_params > 0) && (*p_core_init_rsp_params < 4)))
     phNxpNciHal_core_initialized_complete(status);
