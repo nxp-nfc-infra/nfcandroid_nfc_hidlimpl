@@ -26,6 +26,7 @@
 #include "Nfc.h"
 #include "NxpNfc.h"
 #include "phNxpNciHal_Adaptation.h"
+#include <hidl/LegacySupport.h>
 
 using android::sp;
 using ::aidl::android::hardware::nfc::Nfc;
@@ -34,9 +35,12 @@ using vendor::nxp::nxpnfc::V2_0::implementation::NxpNfc;
 using android::status_t;
 using android::OK;
 using namespace std;
+using android::hardware::joinRpcThreadpool;
+using android::hardware::configureRpcThreadpool;
 
 void startNxpNfcAidlService() {
   ALOGI("NXP NFC Extn Service is starting.");
+  configureRpcThreadpool(1, true /*callerWillJoin*/);
 
   sp<INxpNfc> nxp_nfc_service = new NxpNfc();
     if (nxp_nfc_service == nullptr) {
@@ -49,7 +53,7 @@ void startNxpNfcAidlService() {
     }
     ALOGI("NFC service is ready");
 
-  ABinderProcess_joinThreadPool();
+    joinRpcThreadpool();
 }
 
 int main() {
