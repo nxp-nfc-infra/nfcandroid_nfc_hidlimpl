@@ -143,6 +143,7 @@ phNxpNciHal_kill_client_thread(phNxpNciHal_Control_t *p_nxpncihal_ctrl);
 static void phNxpNciHal_nfccClockCfgRead(void);
 static bool phNxpNciHal_LmNfcADiscCfgRead(void);
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
+static NFCSTATUS phNxpNciHal_nfccTdaPpsCfgApply(void);
 static NFCSTATUS phNxpNciHal_hceLmNfcADiscCfgApply(void);
 static void phNxpNciHal_print_res_status(uint8_t *p_rx_data, uint16_t *p_len);
 static void phNxpNciHal_enable_i2c_fragmentation();
@@ -847,6 +848,11 @@ int phNxpNciHal_MinOpen() {
 
     if (phNxpNciHal_hceLmNfcADiscCfgApply() != NFCSTATUS_SUCCESS) {
       NXPLOG_NCIHAL_E("phNxpNciHal_hceLmNfcADiscCfgApply failed");
+    }
+
+    if ((nfcFL.chipType >= pn7220) &&
+        (phNxpNciHal_nfccTdaPpsCfgApply() != NFCSTATUS_SUCCESS)) {
+      NXPLOG_NCIHAL_E("phNxpNciHal_nfccTdaPpsCfgApply failed");
     }
 
     ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
@@ -3054,7 +3060,7 @@ static bool phNxpNciHal_LmNfcADiscCfgRead(void) {
  *                  to check if clock settings in config file and chip
  *                  is same
  *
- * Returns          void.
+ * Returns          status.
  *
  ******************************************************************************/
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
@@ -3116,7 +3122,90 @@ static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void) {
         }
     }
 
+    return status;
+}
 
+/******************************************************************************
+ * Function         phNxpNciHal_nfccTdaPpsCfgApply
+ *
+ * Description      This function is called to check the CT Single slot without
+ *                  TDA configuration is required. if required and configure it.
+ *
+ * Returns          status.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_nfccTdaPpsCfgApply(void) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  unsigned long isTdaPrsnt = 0x00;
+  unsigned long isPPSEnabled = 0x00;
+  int isTdaCongfound = 0x00;
+  int isPpsCongfound = 0x00;
+  uint8_t dutTdaPPSCfgVal = 0x00;
+  bool isCfgUpdateNeeded = false;
+
+  NXPLOG_NCIHAL_D("%s Enter", __func__);
+
+  uint8_t getTdaPpsCnfgCmd[] = {0x20, 0x03, 0x03, 0x01, 0xA2, 0xE0};
+
+  uint8_t setTdaPpsCnfgCmd[] = {0x20, 0x02, 0x07, 0x01, 0xA2,
+                                0xE0, 0x03, 0x00, 0x00, 0x00};
+
+  isTdaCongfound = GetNxpNumValue(NAME_NXP_IS_TDA_CHIP_PRESENT, &isTdaPrsnt,
+                           sizeof(isTdaPrsnt));
+
+  isPpsCongfound = GetNxpNumValue(NAME_NXP_ENABLE_DISBLE_PPS_EXCHANGE, &isPPSEnabled,
+                           sizeof(isPPSEnabled));
+
+  if((isTdaCongfound == 0x00) && (isPpsCongfound == 0x00)){
+    NXPLOG_NCIHAL_E("CT_TDA_PPS_PROT_CONFIG not found\n");
+    return NFCSTATUS_FAILED;
+  }
+
+  status = phNxpNciHal_send_ext_cmd(sizeof(getTdaPpsCnfgCmd), getTdaPpsCnfgCmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("unable to retrieve getTdaPpsCnfgCmd");
+    return status;
+  }
+
+  // DUT CT_TDA_PPS_PROT_CONFIG value
+  dutTdaPPSCfgVal = nxpncihal_ctrl.p_rx_data[NXP_TDA_PPS_RSP_CONFIG_INDEX];
+  memcpy(&setTdaPpsCnfgCmd[7], &nxpncihal_ctrl.p_rx_data[8], setTdaPpsCnfgCmd[6]);
+
+  if (isTdaCongfound) {
+    // Check if 1st bit (TDA) is set
+    uint8_t currentTda = (dutTdaPPSCfgVal & 0x01);
+    NXPLOG_NCIHAL_D("Current val: TDA[%d]\n", currentTda);
+
+    // Check if changes are needed
+    if (currentTda != isTdaPrsnt) {
+      isCfgUpdateNeeded = true;    // Update is needed for the 1st bit (TDA)
+      dutTdaPPSCfgVal ^= 0x01; // toggle the 1st bit
+    }
+  }
+
+  if (isPpsCongfound) {
+    // Check if 2nd bit (PPA) is set
+    uint8_t currentPpa = ((dutTdaPPSCfgVal >> NXP_PPS_CONFIG_BIT_POS) & 0x01);
+    NXPLOG_NCIHAL_D("Current val: PPS[%d]\n", currentPpa);
+
+    if (currentPpa != isPPSEnabled) {
+      isCfgUpdateNeeded = true; // Update is needed for the 2nd bit (PPA)
+      dutTdaPPSCfgVal ^=
+          (0x01 << NXP_PPS_CONFIG_BIT_POS); // toggle the 2nd bit
+    }
+  }
+
+  if (isCfgUpdateNeeded) {
+    setTdaPpsCnfgCmd[NXP_TDA_PPS_CMD_CONFIG_INDEX] = dutTdaPPSCfgVal;
+    status =
+        phNxpNciHal_send_ext_cmd(sizeof(setTdaPpsCnfgCmd), setTdaPpsCnfgCmd);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("unable to retrieve setTdaPpsCnfgCmd");
+      return status;
+    }
+  } else {
+    NXPLOG_NCIHAL_D("%s : No update needed", __func__);
+  }
   return status;
 }
 
