@@ -93,6 +93,11 @@ typedef void(phNxpNciHal_control_granted_callback_t)();
 #define NXP_CORE_SET_CONFIG_CMD 0x02
 #define NXP_MAX_CONFIG_STRING_LEN 260
 #define NCI_HEADER_SIZE 3
+#define NXP_PPS_CONFIG_BIT_POS 0x01
+#define NXP_TDA_PPS_CMD_CONFIG_INDEX 0x09
+#define NXP_TDA_PPS_RSP_CONFIG_INDEX 0x0A
+#define NXP_TDA_ENABLE_DEFAULT_VAL 0x00
+#define NXP_PPS_EXCHNG_DEFAULT_VAL 0x00
 
 typedef struct nci_data {
   uint16_t len;
