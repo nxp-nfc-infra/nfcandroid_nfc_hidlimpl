@@ -144,6 +144,8 @@ static void phNxpNciHal_nfccClockCfgRead(void);
 static bool phNxpNciHal_LmNfcADiscCfgRead(void);
 static NFCSTATUS phNxpNciHal_nfccClockCfgApply(void);
 static NFCSTATUS phNxpNciHal_nfccTdaPpsCfgApply(void);
+static NFCSTATUS phNxpNciHal_nfccPcdSettingApply(void);
+static NFCSTATUS phNxpNciHal_flushSramToFlash(void);
 static NFCSTATUS phNxpNciHal_hceLmNfcADiscCfgApply(void);
 static void phNxpNciHal_print_res_status(uint8_t *p_rx_data, uint16_t *p_len);
 static void phNxpNciHal_enable_i2c_fragmentation();
@@ -840,7 +842,6 @@ int phNxpNciHal_MinOpen() {
   if (isNxpEepromConfigModified() || (isFwDnldTriggered == true)) {
     unsigned long num = 0;
     int ret = 0;
-    isFwDnldTriggered = false;
 
     if (phNxpNciHal_nfccClockCfgApply() != NFCSTATUS_SUCCESS) {
       NXPLOG_NCIHAL_E("phNxpNciHal_nfccClockCfgApply failed");
@@ -853,6 +854,11 @@ int phNxpNciHal_MinOpen() {
     if ((nfcFL.chipType >= pn7220) &&
         (phNxpNciHal_nfccTdaPpsCfgApply() != NFCSTATUS_SUCCESS)) {
       NXPLOG_NCIHAL_E("phNxpNciHal_nfccTdaPpsCfgApply failed");
+    }
+
+    if ((nfcFL.chipType >= pn7220) &&
+        (phNxpNciHal_nfccPcdSettingApply() != NFCSTATUS_SUCCESS)) {
+      NXPLOG_NCIHAL_E("phNxpNciHal_nfccPcdSettingApply failed");
     }
 
     ret = GetNxpNumValue(NAME_NXP_ENABLE_DISABLE_LPCD, &num, sizeof(num));
@@ -881,8 +887,7 @@ int phNxpNciHal_MinOpen() {
   }
 
   /* Update if libnfc-nxp-rf-ext.conf modified*/
-  if (isNxpRfExtConfigModified()) {
-
+  if (isNxpRfExtConfigModified() || (isFwDnldTriggered == true)) {
     unsigned long numOfRfExtConfig = 0;
     int ret = 0;
     uint8_t buff[260] = {0};
@@ -891,6 +896,7 @@ int phNxpNciHal_MinOpen() {
     int isfound;
     char baseName[] = "NXP_RFEXT_CONFIG_";
     char rfConfigName[25];
+    isFwDnldTriggered = false;
 
     ret = GetNxpNumValue(NAME_NXP_NUM_OF_RFEXT_CONFIG, &numOfRfExtConfig,
                          sizeof(numOfRfExtConfig));
@@ -1608,8 +1614,7 @@ if (nfcFL.chipType != pn7160) {
     }
   }
 
-  if ((true == fw_dwnld_flag) || (true == setConfigAlways) ||
-      isNxpConfigModified() || (wRfUpdateReq == true)) {
+  if (isNxpEepromConfigModified() || (isFwDnldTriggered == true)) {
     retlen = 0;
     NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF_EXTN Settings");
     isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF_EXTN, (char *)buffer,
@@ -1621,7 +1626,10 @@ if (nfcFL.chipType != pn7160) {
         NXPLOG_NCIHAL_E("NXP Core configuration failed");
       }
     }
+  }
 
+  if ((true == fw_dwnld_flag) || (true == setConfigAlways) ||
+      isNxpConfigModified() || (wRfUpdateReq == true)) {
     retlen = 0;
     NXPLOG_NCIHAL_D("Performing NAME_NXP_CORE_CONF Settings");
     isfound = GetNxpByteArrayValue(NAME_NXP_CORE_CONF, (char *)buffer, bufflen,
@@ -1633,6 +1641,11 @@ if (nfcFL.chipType != pn7160) {
         NXPLOG_NCIHAL_E("Core Set Config failed");
       }
     }
+  }
+
+  if ((isNxpEepromConfigModified() || (isFwDnldTriggered == true)) &&
+      (phNxpNciHal_flushSramToFlash() != NFCSTATUS_SUCCESS)) {
+    NXPLOG_NCIHAL_E("phNxpNciHal_flushSramToFlash failed");
   }
 
   if (buffer) {
@@ -3205,6 +3218,63 @@ static NFCSTATUS phNxpNciHal_nfccTdaPpsCfgApply(void) {
     }
   } else {
     NXPLOG_NCIHAL_D("%s : No update needed", __func__);
+  }
+  return status;
+}
+
+/******************************************************************************
+ * Function         phNxpNciHal_nfccPcdSettingApply
+ *
+ * Description      This function is called to apply the PCD Setting.
+ *
+ * Returns          status.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_nfccPcdSettingApply(void) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  uint8_t isfound = 0;
+  uint8_t buff[260] = {0};
+  long rlen = 0;
+  long bufflen = 260;
+
+  NXPLOG_NCIHAL_D("Performing NAME_NXP_PCD_SETTINGS");
+  isfound = GetNxpByteArrayValue(NAME_NXP_PCD_SETTINGS,
+                            (char *)buff, bufflen, &rlen);
+  if ((isfound == 1) && (rlen > 0)) {
+    status = phNxpNciHal_send_ext_cmd(rlen, buff);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("PCD Setting apply failed");
+    }
+  } else {
+    NXPLOG_NCIHAL_E("NAME_NXP_PCD_SETTINGS Not found");
+  }
+  return status;
+}
+
+/******************************************************************************
+ * Function         phNxpNciHal_flushSramToFlash
+ *
+ * Description      This function is called to check and send the NCI cmd to
+ *                  Flush the SRAM data to FLASH memory
+ *
+ * Returns          status.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_flushSramToFlash(void){
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  int isfound = 0x00;
+  unsigned long isSramFlushReq = 0x00;
+  NXPLOG_NCIHAL_D("Performing NAME_NXP_FLUSH_SRAM_TO_FLASH_ENABLE");
+  isfound = GetNxpNumValue(NAME_NXP_FLUSH_SRAM_TO_FLASH_ENABLE, &isSramFlushReq,
+                       sizeof(isSramFlushReq));
+  if((isfound == 0x00) || (isSramFlushReq == 0x00)){
+    NXPLOG_NCIHAL_E("Flush SRAM A0 to Flash is not required\n");
+    return NFCSTATUS_FAILED;
+  }
+
+  status = phNxpNciHal_ext_send_sram_config_to_flash();
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_E("Updation of the SRAM contents failed");
   }
   return status;
 }
