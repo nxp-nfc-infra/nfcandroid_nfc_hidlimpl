@@ -896,7 +896,6 @@ int phNxpNciHal_MinOpen() {
     int isfound;
     char baseName[] = "NXP_RFEXT_CONFIG_";
     char rfConfigName[25];
-    isFwDnldTriggered = false;
 
     ret = GetNxpNumValue(NAME_NXP_NUM_OF_RFEXT_CONFIG, &numOfRfExtConfig,
                          sizeof(numOfRfExtConfig));
@@ -1681,6 +1680,9 @@ if (nfcFL.chipType != pn7160) {
       status = phNxpNciHal_core_initialized_pn7160(core_init_rsp_params_len,
       p_core_init_rsp_params);
     }
+  /* Reset fw dnld trigger flag */
+  isFwDnldTriggered = false;
+
   return NFCSTATUS_SUCCESS;
 }
 #if (NXP_EXTNS == TRUE)
