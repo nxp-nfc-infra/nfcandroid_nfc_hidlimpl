@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 NXP
+ * Copyright 2012-2025 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,7 @@ phNxpNciMwEepromArea_t phNxpNciMwEepromArea = {false, {0}};
 
 volatile bool_t gsIsFirstHalMinOpen = true;
 volatile bool_t gsIsFwRecoveryRequired = false;
+uint8_t gsCurrentFWSessionState = 0xff;
 void *RfFwRegionDnld_handle = NULL;
 fpVerInfoStoreInEeprom_t fpVerInfoStoreInEeprom = NULL;
 fpRegRfFwDndl_t fpRegRfFwDndl = NULL;
@@ -3560,7 +3561,6 @@ retry_send_ext:
  ******************************************************************************/
 void phNxpNciHal_CheckAndHandleFwTearDown() {
   NFCSTATUS status = NFCSTATUS_FAILED;
-  uint8_t session_state = -1;
   unsigned long minimal_fw_version = DEFAULT_MINIMAL_FW_VERSION;
 #if (NXP_EXTNS == TRUE)
   status = phNxpNciHal_getChipInfoInFwDnldMode(false);
@@ -3578,8 +3578,8 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
     minimal_fw_version = DEFAULT_MINIMAL_FW_VERSION;
   }
   if (wFwVerRsp != minimal_fw_version) {
-    session_state = phNxpNciHal_getSessionInfoInFwDnldMode();
-    if (session_state == 0) {
+    if (gsCurrentFWSessionState == 0) {
+      phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadModeWithVenRst);
       NXPLOG_NCIHAL_E("NFC not in the teared state, boot NFCC in NCI mode");
       return;
     }
@@ -3628,9 +3628,6 @@ void phNxpNciHal_CheckAndHandleFwTearDown() {
  ******************************************************************************/
 NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
 
-
-  uint8_t get_chip_info_cmd[] = {0x00, 0x04, 0xE1, 0x00,
-                                 0x00, 0x00, 0x75, 0x48};
   uint8_t get_chip_info_cmd_pn716x[] = {0x00, 0x04, 0xF1, 0x00,
                                         0x00, 0x00, 0x6E, 0xEF};
   NFCSTATUS status = NFCSTATUS_FAILED;
@@ -3643,6 +3640,7 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
         return status;
       }
     }
+
   } else {
     if (bIsVenResetReqd) {
       status = phTmlNfc_IoCtl(phTmlNfc_e_EnableDownloadModeWithVenRst);
@@ -3656,14 +3654,25 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
   nxpncihal_ctrl.fwdnld_mode_reqd = TRUE;
   do {
     if (nfcFL.chipType != pn7160) {
-      status = phNxpNciHal_send_ext_cmd(sizeof(get_chip_info_cmd),
-                                        get_chip_info_cmd);
+      /*Perform VEN toggle to execute the HDLL command with in 5 sec.
+      Otherwise, FW will throw the error notification to abort/reset MW*/
+      status = phTmlNfc_IoCtl(phTmlNfc_e_ResetDevice);
+      if (status != NFCSTATUS_SUCCESS) {
+        NXPLOG_NCIHAL_E("Failed to toggle the VEN RST");
+        return status;
+      }
+      gsCurrentFWSessionState = phNxpNciHal_getSessionInfoInFwDnldMode();
     } else {
       status = phNxpNciHal_send_ext_cmd(sizeof(get_chip_info_cmd_pn716x),
                                         get_chip_info_cmd_pn716x);
+      if (status != NFCSTATUS_SUCCESS) {
+        /* break the loop if HAL write failed or response Timeout */
+        break;
+      }
     }
-    if (status != NFCSTATUS_SUCCESS) {
-      /* break the loop if HAL write failed or response Timeout */
+
+    if (gsCurrentFWSessionState == 0 && nfcFL.chipType == pn7220) {
+      NXPLOG_NCIHAL_E("NFC not in the teared state, boot NFCC in NCI mode");
       break;
     } else {
       /* Check FW getResponse command response status byte */
