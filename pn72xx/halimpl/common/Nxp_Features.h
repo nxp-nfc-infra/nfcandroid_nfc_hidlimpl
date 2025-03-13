@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2018-2024 NXP
+ *  Copyright 2018-2025 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,9 +31,6 @@
 #define FW_MOBILE_MAJOR_NUMBER_PN7220 0x00
 #define FW_MOBILE_MAJOR_NUMBER_PN7160 0x50
 
-#define EMVCO_MODE_SWITCH 0x01
-#define NFC_MODE_SWITCH 0x02
-#define SMCU_FW_DNLD_MODE_SWITCH 0x03
 
 /*Including T4T NFCEE by incrementing 1*/
 #define NFA_EE_MAX_EE_SUPPORTED 5

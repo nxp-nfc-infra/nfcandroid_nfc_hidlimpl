@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2022,2024 NXP
+ *  Copyright 2022,2024-2025 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,40 +20,29 @@
 #include <android-base/logging.h>
 #include <android/binder_manager.h>
 #include <android/binder_process.h>
-#include <vendor/nxp/nxpnfc/2.0/INxpNfc.h>
 #include <thread>
 
 #include "Nfc.h"
 #include "NxpNfc.h"
 #include "phNxpNciHal_Adaptation.h"
-#include <hidl/LegacySupport.h>
 
-using android::sp;
 using ::aidl::android::hardware::nfc::Nfc;
-using vendor::nxp::nxpnfc::V2_0::INxpNfc;
-using vendor::nxp::nxpnfc::V2_0::implementation::NxpNfc;
-using android::status_t;
-using android::OK;
+using ::aidl::vendor::nxp::nxpnfc_aidl::INxpNfc;
+using ::aidl::vendor::nxp::nxpnfc_aidl::NxpNfc;
 using namespace std;
-using android::hardware::joinRpcThreadpool;
-using android::hardware::configureRpcThreadpool;
+
 
 void startNxpNfcAidlService() {
   ALOGI("NXP NFC Extn Service is starting.");
-  configureRpcThreadpool(1, true /*callerWillJoin*/);
-
-  sp<INxpNfc> nxp_nfc_service = new NxpNfc();
-    if (nxp_nfc_service == nullptr) {
-      ALOGE("Can not create an instance of NXP NFC Extn Iface, exiting.");
-      return ;
-    }
-    status_t status = nxp_nfc_service->registerAsService();
-    if (status != OK) {
-      ALOGE("Could not register service for NXP NFC Extn Iface (%d).", status);
-    }
-    ALOGI("NFC service is ready");
-
-    joinRpcThreadpool();
+  std::shared_ptr<NxpNfc> nxp_nfc_service = ndk::SharedRefBase::make<NxpNfc>();
+  const std::string nxpNfcInstName =
+      std::string() + NxpNfc::descriptor + "/default";
+  ALOGI("NxpNfc Registering service: %s", nxpNfcInstName.c_str());
+  binder_status_t status = AServiceManager_addService(
+      nxp_nfc_service->asBinder().get(), nxpNfcInstName.c_str());
+  ALOGI("NxpNfc Registered INxpNfc service status: %d", status);
+  CHECK(status == STATUS_OK);
+  ABinderProcess_joinThreadPool();
 }
 
 int main() {

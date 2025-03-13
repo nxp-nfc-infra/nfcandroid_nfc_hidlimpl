@@ -13,6 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//
+//  The original Work has been changed by NXP.
+//  Copyright (C) 2021-2025 NXP
+
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -115,18 +119,13 @@ cc_binary {
         "android.hardware.nfc-V1-ndk",
         "nfc_nci_nxp_pn72xx",
         "libhardware",
-        "libhidlbase",
-        "android.hardware.nfc@1.0",
-        "android.hardware.nfc@1.1",
-        "android.hardware.nfc@1.2",
-        "vendor.nxp.nxpnfc@2.0",
-        "libmemunreachable",
+        "vendor.nxp.nxpnfc_aidl-V2-ndk",
     ],
     srcs: [
         "aidl/main.cpp",
         "aidl/Nfc.cpp",
         "aidl/NfcExtns.cpp",
-        "extns/impl/nxpnfc/2.0/NxpNfc.cpp",
+        "extns/impl/nxpnfc/aidl/NxpNfc.cpp",
     ],
     local_include_dirs: [
         "halimpl/common",
@@ -137,6 +136,6 @@ cc_binary {
         "halimpl/tml",
         "halimpl/utils",
         "halimpl/mifare",
-        "extns/impl/nxpnfc/2.0",
+        "extns/impl/nxpnfc/aidl",
     ],
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2021,2023-2024 NXP
+ * Copyright 2010-2021,2023-2025 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 #include <hardware/nfc.h>
 #include <phNxpNciHal_utils.h>
 
-#include <vendor/nxp/nxpnfc/2.0/types.h>
 
 /********************* Definitions and structures *****************************/
 #define MAX_RETRY_COUNT 5
@@ -317,7 +316,6 @@ typedef struct phNxpNciProfile_Control {
 #define NCI_HAL_POST_INIT_CPLT_MSG 0x413
 #define NCI_HAL_PRE_DISCOVER_CPLT_MSG 0x414
 #define NCI_HAL_ERROR_MSG 0x415
-#define NCI_HAL_HCI_NETWORK_RESET_MSG 0x416
 #define NCI_HAL_RX_MSG 0xF01
 #define HAL_NFC_FW_UPDATE_STATUS_EVT 0x0A
 
