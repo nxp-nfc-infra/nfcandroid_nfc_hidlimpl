@@ -1597,7 +1597,16 @@ if (nfcFL.chipType != pn7160) {
       }
     }
   }
-
+  retlen = 0;
+  isfound = GetNxpByteArrayValue(NAME_NXP_ACT_PROP_EXTN, (char *)buffer,
+                                 bufflen, &retlen);
+  if ((isfound == 1) && (retlen > 0)) {
+    /* NXP ACT Proprietary Ext */
+    status = phNxpNciHal_send_ext_cmd(retlen, buffer);
+    if (status != NFCSTATUS_SUCCESS) {
+      NXPLOG_NCIHAL_E("NXP ACT Proprietary Ext failed");
+    }
+  }
   // Update eeprom value
   status = phNxpNciHal_get_mw_eeprom();
   if (status != NFCSTATUS_SUCCESS) {
