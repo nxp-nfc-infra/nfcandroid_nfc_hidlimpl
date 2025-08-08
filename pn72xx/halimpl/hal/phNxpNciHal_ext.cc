@@ -35,7 +35,7 @@
 #define NXP_EN_PN7223 0
 #define NFC_NXP_MW_ANDROID_VER (15U)  /* Android version used by NFC MW */
 #define NFC_NXP_MW_VERSION_MAJ (0x03) /* MW Major Version */
-#define NFC_NXP_MW_VERSION_MIN (0x00) /* MW Minor Version */
+#define NFC_NXP_MW_VERSION_MIN (0x01) /* MW Minor Version */
 #define NFC_NXP_MW_RC_VERSION (0x00)  /* MW RC Version */
 
 /* Timeout value to wait for response from PN548AD */
