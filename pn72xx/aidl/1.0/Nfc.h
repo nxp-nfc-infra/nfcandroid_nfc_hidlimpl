@@ -63,6 +63,9 @@ struct Nfc : public BnNfc {
 
   static void eventCallback(uint8_t event, uint8_t status) {
     if (mCallback != nullptr) {
+      if (event == HAL_HCI_NETWORK_RESET_EVT) {
+        event = (uint8_t)NfcEvent::HCI_NETWORK_RESET;
+      }
       auto ret = mCallback->sendEvent((NfcEvent)event, (NfcStatus)status);
       if (!ret.isOk()) {
         LOG(ERROR) << "Failed to send event!";
