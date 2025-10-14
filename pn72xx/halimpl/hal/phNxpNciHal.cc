@@ -1836,7 +1836,7 @@ int phNxpNciHal_core_initialized_pn7160(uint16_t core_init_rsp_params_len,
     }
   }
 
-  if (!GetNxpNumValue(NAME_NXP_T4T_NFCEE_ENABLE, (void*)&retlen,
+  if (!GetNxpNumValue(NAME_T4T_NFCEE_ENABLE, (void*)&retlen,
                       sizeof(retlen))) {
     retlen = 0x00;
     NXPLOG_NCIHAL_D(

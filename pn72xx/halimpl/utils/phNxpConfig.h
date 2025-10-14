@@ -20,7 +20,7 @@
  *
  *  The original Work has been changed by NXP.
  *
- *  Copyright 2013-2021,2023-2024 NXP
+ *  Copyright 2013-2021,2023-2025 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -180,7 +180,6 @@ extern char Fw_Lib_Path[256];
 #define NAME_DEFAULT_FELICA_CLT_PWR_STATE "DEFAULT_FELICA_CLT_PWR_STATE"
 #define NAME_CHECK_DEFAULT_PROTO_SE_ID "NXP_CHECK_DEFAULT_PROTO_SE_ID"
 #define NAME_NXP_DEFAULT_UICC2_SELECT "NXP_DEFAULT_UICC2_SELECT"
-#define NAME_NXP_T4T_NFCEE_ENABLE "NXP_T4T_NFCEE_ENABLE"
 #define NAME_NXP_CHIP_TYPE "NXP_CHIP_TYPE"
 #define NAME_NXP_SMB_TRANSCEIVE_TIMEOUT "NXP_SMB_TRANSCEIVE_TIMEOUT"
 #define NAME_NXP_SMB_ERROR_RETRY "NXP_SMB_ERROR_RETRY"
