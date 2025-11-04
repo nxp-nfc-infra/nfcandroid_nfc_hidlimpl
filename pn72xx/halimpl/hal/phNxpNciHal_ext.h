@@ -29,6 +29,11 @@
 #define NXP_NFC_PARAM_ID_SWP2 0xD4
 #define NXP_NFC_PARAM_ID_SWPUICC3 0xDC
 
+#define NXP_STD_SAK_VALUE 0x53
+
+#define T2T_RF_PROTOCOL 0x02
+#define ISO_DEP_RF_PROTOCOL 0x04
+
 void printNfcMwVersion();
 void phNxpNciHal_ext_init(void);
 NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len);

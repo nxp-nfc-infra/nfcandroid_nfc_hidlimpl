@@ -199,6 +199,14 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len) {
     NXPLOG_NCIHAL_D("FelicaReaderMode:Activity 1.1");
   }
 
+  if (*p_len > 18 && p_ntf[0] == 0x61 && p_ntf[1] == 0x05 &&
+      p_ntf[18] == NXP_STD_SAK_VALUE && p_ntf[5] == T2T_RF_PROTOCOL) {
+    /*When RF DISCOVERY NTF contains T2T protocol & 0x53 as SAK value
+      then updating to ISO_DEP protocol respectively*/
+    p_ntf[5] = ISO_DEP_RF_PROTOCOL;
+    NXPLOG_NCIHAL_D("Updated protocol to ISO_DEP");
+  }
+
 #ifdef P2P_PRIO_LOGIC_HAL_IMP
   if (p_ntf[0] == 0x61 && p_ntf[1] == 0x05 && p_ntf[4] == 0x02 &&
       p_ntf[5] == 0x04 && nxpprofile_ctrl.profile_type == NFC_FORUM_PROFILE) {
