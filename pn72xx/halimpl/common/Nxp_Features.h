@@ -104,6 +104,20 @@ typedef struct {
 } tNfc_nfcMwFeatureList;
 
 typedef struct {
+  uint8_t id;
+  uint8_t len;
+  uint8_t val;
+} tNfc_capability;
+
+typedef struct {
+  tNfc_capability OBSERVE_MODE;
+  tNfc_capability POLLING_FRAME_NOTIFICATION;
+  tNfc_capability POWER_SAVING;
+  tNfc_capability AUTOTRANSACT_PLF;
+  tNfc_capability NO_OF_EXIT_FRAMES_PLF;
+} tNfc_nfccCapability;
+
+typedef struct {
   tNFC_chipType chipType;
   std::string _FW_LIB_PATH;
   std::string _PLATFORM_LIB_PATH;
@@ -115,10 +129,12 @@ typedef struct {
   tNfc_nfccFeatureList nfccFL;
   tNfc_platformFeatureList platformFL;
   tNfc_nfcMwFeatureList nfcMwFL;
+  tNfc_nfccCapability nfccCap;
 } tNfc_featureList;
 
 extern tNfc_featureList nfcFL;
 
+#define IS_CHIP_TYPE_GE(cType) (nfcFL.chipType >= (cType))
 
 #define CONFIGURE_FEATURELIST(chipType)                                         \
   {                                                                             \
@@ -135,56 +151,57 @@ extern tNfc_featureList nfcFL;
       CONFIGURE_FEATURELIST_NFCC(chipType)                                      \
   }
 
-#define CONFIGURE_FEATURELIST_NFCC(chipType)                                    \
-  {                                                                             \
-    nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                                  \
-    nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = false;                            \
-                                                                                \
-    nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0;                                   \
-                                                                                \
-    nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x00;                            \
-    nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x00;                             \
-    nfcFL.nfcMwFL._NCI_PWR_LINK_PARAM_CMD_SIZE = 0x02;                          \
-    nfcFL.nfcMwFL._NCI_EE_PWR_LINK_ALWAYS_ON = 0x01;                            \
-    nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET = 0x023CU;                          \
-    nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                             \
-    nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7220;              \
-    nfcFL.nfccFL._NFCC_DWNLD_MODE = NFCC_DWNLD_WITH_VEN_RESET;                  \
-    switch (chipType) {                                                         \
-      case pn7220:                                                              \
-      case pn7221:                                                              \
-        nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                   \
-        nfcFL.nfccFL._NFCC_MIFARE_TIANJIN = false;                              \
-        nfcFL.nfccFL._NFCC_MW_RCVRY_BLK_FW_DNLD = true;                         \
-        nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_EXT_SWITCH = false;                \
-        nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_WO_EXT_SWITCH = true;              \
-        nfcFL.nfccFL._NFCC_FW_WA = true;                                        \
-        nfcFL.nfccFL._NFCC_FORCE_NCI1_0_INIT = false;                           \
-        nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = true;                         \
-        nfcFL.nfccFL._HW_ANTENNA_LOOP4_SELF_TEST = false;                       \
-        nfcFL.nfccFL._NFCEE_REMOVED_NTF_RECOVERY = true;                        \
-        nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                            \
-        nfcFL.nfccFL._UICC_CREATE_CONNECTIVITY_PIPE = true;                     \
-        nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                              \
-        nfcFL.nfccFL._NFA_EE_MAX_EE_SUPPORTED = 3;                              \
-        nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0x10U;                           \
-        nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x82;                        \
-        nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x83;                         \
-        SRTCPY_FW("libpn72xx_fw", "libpn72xx_fw_platform", "libpn72xx_fw_pku")  \
-        STRCPY_FW_BIN("pn72xx")                                                 \
-        break;                                                                  \
-      case pn7160:                                                              \
-        nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET = 0x023CU;                      \
-        nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                         \
-        STRCPY_FW("libpn7160_fw")                                               \
-        STRCPY_FW_BIN("pn7160")                                                 \
-        nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7160;          \
-        nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                   \
-        break;                                                                  \
-      default:                                                                  \
-        nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                            \
-        break;                                                                  \
-      }                                                                         \
+#define CONFIGURE_FEATURELIST_NFCC(chipType)                                   \
+  {                                                                            \
+    nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                                 \
+    nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = false;                           \
+                                                                               \
+    nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0;                                  \
+                                                                               \
+    nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x00;                           \
+    nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x00;                            \
+    nfcFL.nfcMwFL._NCI_PWR_LINK_PARAM_CMD_SIZE = 0x02;                         \
+    nfcFL.nfcMwFL._NCI_EE_PWR_LINK_ALWAYS_ON = 0x01;                           \
+    nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET = 0x023CU;                         \
+    nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                            \
+    nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7220;             \
+    nfcFL.nfccFL._NFCC_DWNLD_MODE = NFCC_DWNLD_WITH_VEN_RESET;                 \
+    UPDATE_NFCC_CAPABILITY()                                                   \
+    switch (chipType) {                                                        \
+    case pn7220:                                                               \
+    case pn7221:                                                               \
+      nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                    \
+      nfcFL.nfccFL._NFCC_MIFARE_TIANJIN = false;                               \
+      nfcFL.nfccFL._NFCC_MW_RCVRY_BLK_FW_DNLD = true;                          \
+      nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_EXT_SWITCH = false;                 \
+      nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_WO_EXT_SWITCH = true;               \
+      nfcFL.nfccFL._NFCC_FW_WA = true;                                         \
+      nfcFL.nfccFL._NFCC_FORCE_NCI1_0_INIT = false;                            \
+      nfcFL.nfccFL._NFCC_SPI_FW_DOWNLOAD_SYNC = true;                          \
+      nfcFL.nfccFL._HW_ANTENNA_LOOP4_SELF_TEST = false;                        \
+      nfcFL.nfccFL._NFCEE_REMOVED_NTF_RECOVERY = true;                         \
+      nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                             \
+      nfcFL.nfccFL._UICC_CREATE_CONNECTIVITY_PIPE = true;                      \
+      nfcFL.nfccFL._NXP_NFC_UICC_ETSI12 = false;                               \
+      nfcFL.nfccFL._NFA_EE_MAX_EE_SUPPORTED = 3;                               \
+      nfcFL.platformFL._NFCC_RESET_RSP_LEN = 0x10U;                            \
+      nfcFL.nfcMwFL._NCI_INTERFACE_UICC_DIRECT = 0x82;                         \
+      nfcFL.nfcMwFL._NCI_INTERFACE_ESE_DIRECT = 0x83;                          \
+      SRTCPY_FW("libpn72xx_fw", "libpn72xx_fw_platform", "libpn72xx_fw_pku")   \
+      STRCPY_FW_BIN("pn72xx")                                                  \
+      break;                                                                   \
+    case pn7160:                                                               \
+      nfcFL._PHDNLDNFC_USERDATA_EEPROM_OFFSET = 0x023CU;                       \
+      nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                          \
+      STRCPY_FW("libpn7160_fw")                                                \
+      STRCPY_FW_BIN("pn7160")                                                  \
+      nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7160;           \
+      nfcFL.nfccFL._NFCC_I2C_READ_WRITE_IMPROVEMENT = true;                    \
+      break;                                                                   \
+    default:                                                                   \
+      nfcFL.nfccFL._NFCC_FORCE_FW_DOWNLOAD = true;                             \
+      break;                                                                   \
+    }                                                                          \
   }
 #define STRCPY_FW_BIN(str)                                                      \
   {                                                                             \
@@ -214,4 +231,38 @@ extern tNfc_featureList nfcFL;
   nfcFL._FW_LIB_PATH.append(str1);                                              \
   nfcFL._FW_LIB_PATH.append(FW_LIB_EXTENSION);                                  \
 }
+
+#define CAP_OBSERVE_MODE_ID 0x00
+#define CAP_POLL_FRAME_NTF_ID 0x01
+#define CAP_POWER_SAVING_MODE_ID 0x02
+#define CAP_AUTOTRANSACT_PLF_ID 0x03
+#define CAP_NUMBER_OF_EXIT_FRAMES_PLF_ID 0x04
+#define OBSERVE_MODE_WITHOUT_RF_DEACTIVATE 0x02
+
+#define UPDATE_NFCC_CAPABILITY()                                               \
+  {                                                                            \
+    nfcFL.nfccCap.OBSERVE_MODE.id = CAP_OBSERVE_MODE_ID;                       \
+    nfcFL.nfccCap.OBSERVE_MODE.len = 0x01;                                     \
+    nfcFL.nfccCap.OBSERVE_MODE.val = 0x00;                                     \
+    nfcFL.nfccCap.POLLING_FRAME_NOTIFICATION.id = CAP_POLL_FRAME_NTF_ID;       \
+    nfcFL.nfccCap.POLLING_FRAME_NOTIFICATION.len = 0x01;                       \
+    nfcFL.nfccCap.POLLING_FRAME_NOTIFICATION.val = 0x00;                       \
+    nfcFL.nfccCap.POWER_SAVING.id = CAP_POWER_SAVING_MODE_ID;                  \
+    nfcFL.nfccCap.POWER_SAVING.len = 0x01;                                     \
+    nfcFL.nfccCap.POWER_SAVING.val = 0x00;                                     \
+    nfcFL.nfccCap.AUTOTRANSACT_PLF.id = CAP_AUTOTRANSACT_PLF_ID;               \
+    nfcFL.nfccCap.AUTOTRANSACT_PLF.len = 0x01;                                 \
+    nfcFL.nfccCap.AUTOTRANSACT_PLF.val = 0x00;                                 \
+    nfcFL.nfccCap.NO_OF_EXIT_FRAMES_PLF.id = CAP_NUMBER_OF_EXIT_FRAMES_PLF_ID; \
+    nfcFL.nfccCap.NO_OF_EXIT_FRAMES_PLF.len = 0x01;                            \
+    nfcFL.nfccCap.NO_OF_EXIT_FRAMES_PLF.val = 0x00;                            \
+    uint8_t extended_field_mode = 0x00;                                        \
+    if (IS_CHIP_TYPE_GE(sn100u) &&                                             \
+        GetNxpNumValue(NAME_NXP_EXTENDED_FIELD_DETECT_MODE,                    \
+                       &extended_field_mode, sizeof(extended_field_mode))) {   \
+      if (extended_field_mode == 0x03) {                                       \
+        nfcFL.nfccCap.OBSERVE_MODE.val = OBSERVE_MODE_WITHOUT_RF_DEACTIVATE;   \
+      }                                                                        \
+    }                                                                          \
+  }
 #endif
