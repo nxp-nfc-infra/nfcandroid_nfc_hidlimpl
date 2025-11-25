@@ -2487,7 +2487,6 @@ int phNxpNciHal_close(bool bShutdown) {
   NFCSTATUS status = NFCSTATUS_FAILED;
 
   uint8_t cmd_reset_nci[] = {0x20, 0x00, 0x01, 0x00};
-  uint8_t dummyGetConfig[] = {0x20, 0x03, 0x03, 0x01, 0xA0, 0x0F};
   uint8_t retry = 0;
 
   NfcHalAutoThreadMutex a(sHalFnLock);
@@ -2509,12 +2508,6 @@ int phNxpNciHal_close(bool bShutdown) {
   }
 
 close_and_return:
-  /* Send a dummy get config cmd to prevent the abrupt HAL close before reading
-     all pending data from i2c line  */
-  status = phNxpNciHal_send_ext_cmd(sizeof(dummyGetConfig), dummyGetConfig);
-  if (status != NFCSTATUS_SUCCESS) {
-    NXPLOG_NCIHAL_E("Get config failed ");
-  }
 
   if ((nfcFL.chipType < sn220u) || (nfcFL.chipType >= pn7220) || bShutdown) {
     nxpncihal_ctrl.halStatus = HAL_STATUS_CLOSE;

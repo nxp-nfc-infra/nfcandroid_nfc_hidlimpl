@@ -80,20 +80,22 @@ namespace nxpnfc_aidl {
                                      static_cast<bool>(*_aidl_return));
 }
 
-::ndk::ScopedAStatus NxpNfc::switchMode(::aidl::vendor::nxp::nxpnfc_aidl::ModeType in_mode,
-                                                     bool* _aidl_return) {
-NFCSTATUS status = NFCSTATUS_FAILED;
-ALOGD("NxpNfc::modeSwitch Entry");
+::ndk::ScopedAStatus
+NxpNfc::switchMode(::aidl::vendor::nxp::nxpnfc_aidl::ModeType in_mode,
+                   bool *_aidl_return) {
+  ALOGD("NxpNfc::modeSwitch Entry");
 
-status = phNxpNciHal_DualCPU_modeSwitch((uint8_t)in_mode);
+  *_aidl_return = phNxpNciHal_DualCPU_modeSwitch((uint8_t)in_mode);
+  if (*_aidl_return == true) {
+    ALOGD("Mode switch successful");
+  } else {
+    ALOGD("Mode switch failed");
+  }
 
-if (NFCSTATUS_SUCCESS == status) {
-  *_aidl_return = true;
-  status = NFCSTATUS_SUCCESS;
-}
-
-ALOGD("NxpNfc::modeSwitch Exit");
-return ndk::ScopedAStatus::ok();
+  ALOGD("NxpNfc::modeSwitch Exit");
+  return *_aidl_return == true ? ndk::ScopedAStatus::ok()
+                               : ndk::ScopedAStatus::fromServiceSpecificError(
+                                     static_cast<bool>(*_aidl_return));
 }
 
 }  // namespace nxpnfc_aidl
