@@ -40,24 +40,3 @@ extern nxp_nfc_config_ext_t config_ext;
  *
  ******************************************************************************/
 uint8_t phNxpNciHal_updateAutonomousPwrState(uint8_t num);
-/*******************************************************************************
- *
- * Function         handleGetCapability()
- *
- * Description      Get Capability command is not supported, hence returning
- *                  failure
- *
- * Returns          It returns number of bytes received.
- *
- ******************************************************************************/
-int handleGetCapability(uint16_t data_len, const uint8_t *p_data);
-/*******************************************************************************
-**
-** Function         phNxpNciHal_hndlVndSpecificAndroidCmd()
-**
-** Description      This handles the vendor specific command
-**
-** Returns          It returns number of bytes received.
-*******************************************************************************/
-int phNxpNciHal_hndlVndSpecificAndroidCmd(uint16_t data_len,
-                                          const uint8_t *p_data);
