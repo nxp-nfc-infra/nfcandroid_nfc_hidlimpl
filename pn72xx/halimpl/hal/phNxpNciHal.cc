@@ -1497,6 +1497,8 @@ static void phNxpNciHal_read_complete(void *pContext,
       (nxpncihal_ctrl.p_cmd_data[0x01] & NCI_OID_MASK) ==
           (nxpncihal_ctrl.p_rx_data[0x01] & NCI_OID_MASK) &&
 #endif
+      (nxpncihal_ctrl.p_rx_data[0x03] !=
+       CORE_RESET_TRIGGER_TYPE_MODE_SWITCH_TO_NFC_FORUM) &&
       nxpncihal_ctrl.nci_info.wait_for_ntf == FALSE) {
     NXPLOG_NCIHAL_D(" Ignoring read , HAL close triggered");
     return;
