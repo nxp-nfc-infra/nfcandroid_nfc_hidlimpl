@@ -12,7 +12,7 @@ Nxp’s and AOSP Hardware Abstraction layer
 | Android Version        | NXP Release          | NXP Tag  |
 | :-------------: |:---------------------:| :-----:|
 | android-16.0.0_r2              |  16.01.00 (PN7xxx) |  NFC_AR_INFRA_001E_16.01.00_OpnSrc |
-
+| android-16.0.0_r2              |  16.02.00 (PN7xxx) |  NFC_AR_INFRA_001E_16.02.00_OpnSrc |
 
 
 
