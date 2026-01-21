@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright 2013-2021,2023-2024 NXP
+ *  Copyright 2013-2021,2023-2024,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -495,4 +495,26 @@ void phNxpNciHal_emergency_recovery(uint8_t status) {
                     status);
     break;
   }
+}
+
+/*******************************************************************************
+**
+** Function         phNxpNciHal_Memcpy
+**
+** Description      Copies the values stored in the source memory to the
+**                  values stored in the destination memory only with source
+**                  size.
+**
+** Returns          None
+**
+*******************************************************************************/
+void phNxpNciHal_Memcpy(void* pDest, size_t destSize, const void* pSrc,
+                        size_t srcSize) {
+  NXPLOG_NCIHAL_D("%s Enter srcSize:%zu, destSize:%zu", __func__, srcSize,
+                  destSize);
+  if (srcSize > destSize) {
+    srcSize = destSize;  // Truncate to avoid over flow
+    NXPLOG_NCIHAL_E("%s Truncated length to avoid over flow ", __func__);
+  }
+  memcpy(pDest, pSrc, srcSize);
 }

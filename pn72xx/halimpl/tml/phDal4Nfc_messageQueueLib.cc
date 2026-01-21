@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019,2023-2024 NXP
+ * Copyright 2010-2019,2023-2024,2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,6 +142,53 @@ int phDal4Nfc_msgctl(intptr_t msqid, int cmd, void *buf) {
   free(pQueue);
 
   return 0;
+}
+
+/*******************************************************************************
+**
+** Function         phDal4Nfc_msgsempost
+**
+** Description      Unblocks thread waiting on this msg Q.
+**
+** Parameters       msqid - message queue handle
+**
+** Returns          None
+**
+*******************************************************************************/
+void phDal4Nfc_msgsempost(intptr_t msqid) {
+  phDal4Nfc_message_queue_t* pQueue =
+      reinterpret_cast<phDal4Nfc_message_queue_t*>(msqid);
+  if (pQueue != NULL) {
+    sem_post(&pQueue->nProcessSemaphore);
+  }
+  return;
+}
+
+/*******************************************************************************
+**
+** Function         phDal4Nfc_msgdestroy
+**
+** Description      Destroy message queue
+**
+** Parameters       msqid - message queue handle
+**
+** Returns          None
+**
+*******************************************************************************/
+void phDal4Nfc_msgdestroy(intptr_t msqid) {
+  phDal4Nfc_message_queue_t* pQueue =
+      reinterpret_cast<phDal4Nfc_message_queue_t*>(msqid);
+
+  if (pQueue != NULL) {
+    if (sem_destroy(&pQueue->nProcessSemaphore)) {
+      NXPLOG_TML_E("Failed to destroy semaphore (errno=0x%08x)", errno);
+    }
+    pthread_mutex_destroy(&pQueue->nCriticalSectionMutex);
+
+    free(pQueue);
+  }
+
+  return;
 }
 
 /*******************************************************************************

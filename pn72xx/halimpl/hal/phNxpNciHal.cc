@@ -30,9 +30,12 @@
 #include <android-base/stringprintf.h>
 #include <sys/stat.h>
 
+#include "NfcExtension.h"
 #include "NfccTransportFactory.h"
 #include "NxpNfcThreadMutex.h"
 #include "phNxpNciHal_IoctlOperations.h"
+#include "phNxpNciHal_ReaderThread.h"
+#include "phNxpNciHal_WriterThread.h"
 #include "phNxpNciHal_extOperations.h"
 
 #include <sys/system_properties.h>
@@ -61,6 +64,10 @@ static uint8_t fw_download_success = 0;
 uint8_t anti_tearing_recovery_success = 0;
 static uint8_t config_access = false;
 static uint8_t config_success = true;
+phNxpNciHal_ReaderThread& g_readerThread =
+    phNxpNciHal_ReaderThread::getInstance();
+phNxpNciHal_WriterThread& g_writerThread =
+    phNxpNciHal_WriterThread::getInstance();
 static NfcHalThreadMutex sHalFnLock;
 
 extern phNxpNciClock_t phNxpNciClock;
@@ -92,6 +99,7 @@ ese_update_state_t ese_update = ESE_UPDATE_COMPLETED;
 /* External global variable to get FW version */
 extern uint16_t wFwVer;
 extern uint8_t gRecFWDwnld;
+extern std::string mLibPathName;
 static uint8_t gRecFwRetryCount; // variable to hold recovery FW retry count
 static uint8_t write_unlocked_status = NFCSTATUS_SUCCESS;
 uint8_t wFwUpdateReq = false;
@@ -125,7 +133,6 @@ void *RfFwRegionDnld_handle = NULL;
 fpVerInfoStoreInEeprom_t fpVerInfoStoreInEeprom = NULL;
 fpRegRfFwDndl_t fpRegRfFwDndl = NULL;
 fpPropConfCover_t fpPropConfCover = NULL;
-void *phNxpNciHal_client_thread(void *arg);
 /**************** local methods used in this file only ************************/
 static void phNxpNciHal_open_complete(NFCSTATUS status);
 static void phNxpNciHal_MinOpen_complete(NFCSTATUS status);
@@ -190,130 +197,6 @@ static void phNxpNciHal_initialize_debug_enabled_flag() {
   NXPLOG_NCIHAL_D("nfc_debug_enabled : %d", nfc_debug_enabled);
 }
 
-/******************************************************************************
- * Function         phNxpNciHal_client_thread
- *
- * Description      This function is a thread handler which handles all TML and
- *                  NCI messages.
- *
- * Returns          void
- *
- ******************************************************************************/
-void *phNxpNciHal_client_thread(void *arg) {
-  phNxpNciHal_Control_t *p_nxpncihal_ctrl = (phNxpNciHal_Control_t *)arg;
-  phLibNfc_Message_t msg;
-
-  NXPLOG_NCIHAL_D("thread started");
-
-  p_nxpncihal_ctrl->thread_running = 1;
-
-  while (p_nxpncihal_ctrl->thread_running == 1) {
-    /* Fetch next message from the NFC stack message queue */
-    if (phDal4Nfc_msgrcv(p_nxpncihal_ctrl->gDrvCfg.nClientId, &msg, 0, 0) ==
-        -1) {
-      NXPLOG_NCIHAL_E("NFC client received bad message");
-      continue;
-    }
-
-    if (p_nxpncihal_ctrl->thread_running == 0) {
-      break;
-    }
-
-    switch (msg.eMsgType) {
-    case PH_LIBNFC_DEFERREDCALL_MSG: {
-      phLibNfc_DeferredCall_t *deferCall =
-          (phLibNfc_DeferredCall_t *)(msg.pMsgData);
-
-      REENTRANCE_LOCK();
-      deferCall->pCallback(deferCall->pParameter);
-      REENTRANCE_UNLOCK();
-
-      break;
-    }
-
-    case NCI_HAL_OPEN_CPLT_MSG: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_cback != NULL) {
-        /* Send the event */
-        (*nxpncihal_ctrl.p_nfc_stack_cback)(HAL_NFC_OPEN_CPLT_EVT,
-                                            HAL_NFC_STATUS_OK);
-      }
-      REENTRANCE_UNLOCK();
-      break;
-    }
-
-    case NCI_HAL_CLOSE_CPLT_MSG: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_cback != NULL) {
-        /* Send the event */
-        (*nxpncihal_ctrl.p_nfc_stack_cback)(HAL_NFC_CLOSE_CPLT_EVT,
-                                            HAL_NFC_STATUS_OK);
-      }
-      phNxpNciHal_kill_client_thread(&nxpncihal_ctrl);
-      REENTRANCE_UNLOCK();
-      break;
-    }
-
-    case NCI_HAL_POST_INIT_CPLT_MSG: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_cback != NULL) {
-        /* Send the event */
-        (*nxpncihal_ctrl.p_nfc_stack_cback)(HAL_NFC_POST_INIT_CPLT_EVT,
-                                            HAL_NFC_STATUS_OK);
-      }
-      REENTRANCE_UNLOCK();
-      break;
-    }
-
-    case NCI_HAL_PRE_DISCOVER_CPLT_MSG: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_cback != NULL) {
-        /* Send the event */
-        (*nxpncihal_ctrl.p_nfc_stack_cback)(HAL_NFC_PRE_DISCOVER_CPLT_EVT,
-                                            HAL_NFC_STATUS_OK);
-      }
-      REENTRANCE_UNLOCK();
-      break;
-    }
-
-
-    case NCI_HAL_ERROR_MSG: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_cback != NULL) {
-        /* Send the event */
-        (*nxpncihal_ctrl.p_nfc_stack_cback)(HAL_NFC_ERROR_EVT,
-                                            HAL_NFC_STATUS_FAILED);
-      }
-      REENTRANCE_UNLOCK();
-      break;
-    }
-
-    case NCI_HAL_RX_MSG: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_data_cback != NULL) {
-        (*nxpncihal_ctrl.p_nfc_stack_data_cback)(nxpncihal_ctrl.rsp_len,
-                                                 nxpncihal_ctrl.p_rsp_data);
-      }
-      REENTRANCE_UNLOCK();
-      break;
-    }
-    case HAL_NFC_FW_UPDATE_STATUS_EVT: {
-      REENTRANCE_LOCK();
-      if (nxpncihal_ctrl.p_nfc_stack_cback != NULL) {
-        /* Send the event */
-        (*nxpncihal_ctrl.p_nfc_stack_cback)(msg.eMsgType,
-                                            *((uint8_t *)msg.pMsgData));
-      }
-      REENTRANCE_UNLOCK();
-      break;
-    }
-    }
-  }
-
-  NXPLOG_NCIHAL_D("NxpNciHal thread stopped");
-
-  return NULL;
-}
 
 /******************************************************************************
  * Function         phNxpNciHal_kill_client_thread
@@ -612,6 +495,7 @@ int phNxpNciHal_MinOpen() {
     return NFCSTATUS_SUCCESS;
   }
 
+
   int8_t ret_val = 0x00;
 
   phNxpNciHal_initialize_debug_enabled_flag();
@@ -620,6 +504,8 @@ int phNxpNciHal_MinOpen() {
 
   /* initialize Mifare flags*/
   phNxpNciHal_initialize_mifare_flag();
+
+  phNxpExtn_LibSetup();
 
   /*Create the timer for extns write response*/
   timeoutTimerId = phOsalNfc_Timer_Create();
@@ -671,12 +557,9 @@ int phNxpNciHal_MinOpen() {
     nfcFL.chipType = pn7220;
   }
   /* Configure hardware link */
-  nxpncihal_ctrl.gDrvCfg.nClientId = phDal4Nfc_msgget(0, 0600);
   nxpncihal_ctrl.gDrvCfg.nLinkType = ENUM_LINK_TYPE_I2C; /* For PN72xx */
   tTmlConfig.pDevName = (int8_t *)nfc_dev_node;
-  tOsalConfig.dwCallbackThreadId = (uintptr_t)nxpncihal_ctrl.gDrvCfg.nClientId;
   tOsalConfig.pLogFile = NULL;
-  tTmlConfig.dwGetMsgThreadId = (uintptr_t)nxpncihal_ctrl.gDrvCfg.nClientId;
   mGetCfg_info = NULL;
   mGetCfg_info =
       (phNxpNci_getCfg_info_t *)nxp_malloc(sizeof(phNxpNci_getCfg_info_t));
@@ -686,6 +569,22 @@ int phNxpNciHal_MinOpen() {
   }
   memset(mGetCfg_info, 0x00, sizeof(phNxpNci_getCfg_info_t));
 
+  /* Create the writer thread */
+  if (g_writerThread.Start() != true) {
+    NXPLOG_NCIHAL_E("writer thread create failed");
+    CONCURRENCY_UNLOCK();
+    return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
+  }
+
+    /* Create the client thread */
+  if (g_readerThread.Start() != true) {
+    NXPLOG_NCIHAL_E("reader thread create failed");
+    CONCURRENCY_UNLOCK();
+    return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
+  }
+  nxpncihal_ctrl.gDrvCfg.nClientId = g_readerThread.GetMsgQueue();
+  tOsalConfig.dwCallbackThreadId = (uintptr_t)nxpncihal_ctrl.gDrvCfg.nClientId;
+  tTmlConfig.dwGetMsgThreadId = nxpncihal_ctrl.gDrvCfg.nClientId;
   /* Set Default Fragment Length */
   tTmlConfig.fragment_len = NCI_CMDRESP_MAX_BUFF_SIZE_PN557;
 
@@ -702,15 +601,6 @@ int phNxpNciHal_MinOpen() {
     }
   }
 
-  /* Create the client thread */
-  ret_val = pthread_create(&nxpncihal_ctrl.client_thread, NULL,
-                           phNxpNciHal_client_thread, &nxpncihal_ctrl);
-  if (ret_val != 0) {
-    NXPLOG_NCIHAL_E("pthread_create failed");
-    wConfigStatus = phTmlNfc_Shutdown_CleanUp();
-    CONCURRENCY_UNLOCK();
-    return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
-  }
 
   CONCURRENCY_UNLOCK();
   /* call read pending */
@@ -1055,8 +945,14 @@ static void phNxpNciHal_open_complete(NFCSTATUS status) {
  *
  ******************************************************************************/
 int phNxpNciHal_write(uint16_t data_len, const uint8_t *p_data) {
+  struct stat stpath;
   if (bDisableLegacyMfcExtns && bEnableMfcExtns && p_data[0] == 0x00) {
     return NxpMfcReaderInstance.Write(data_len, p_data);
+  }
+  if (stat(mLibPathName.c_str(), &stpath) == 0) {
+    NFCSTATUS status = phNxpExtn_HandleNciMsg(&data_len, p_data);
+    NXPLOG_NCIHAL_D("Vendor specific status: %d", status);
+    if (status == NFCSTATUS_EXTN_FEATURE_SUCCESS) return data_len;
   }
   return phNxpNciHal_write_internal(data_len, p_data);
 }
@@ -2517,6 +2413,11 @@ close_and_return:
     } else {
       NXPLOG_NCIHAL_E("NCI_CORE_RESET: Failed, perform retry after delay");
       usleep(1000 * 1000);
+      if (nxpncihal_ctrl.halStatus == HAL_STATUS_CLOSE) {
+        // make sure read is pending
+        const NFCSTATUS readStatus = phNxpNciHal_enableTmlRead();
+        NXPLOG_NCIHAL_D("read status = %x", readStatus);
+      }
       retry++;
       if (retry > 3) {
         NXPLOG_NCIHAL_E(
@@ -2524,7 +2425,8 @@ close_and_return:
         abort();
       }
     }
-  } while (retry < 3);
+//  } while (retry < 3);
+  } while (1);
 
 #if (NXP_EXTNS == TRUE)
   if (nfcFL.chipType >= pn7220) {
@@ -2549,19 +2451,23 @@ close_and_return:
 
     status = phTmlNfc_Shutdown();
 
-    if (0 != pthread_join(nxpncihal_ctrl.client_thread, (void **)NULL)) {
-      NXPLOG_TML_E("Fail to kill client thread!");
+    if (true != g_readerThread.Stop()) {
+      NXPLOG_TML_E("Fail to kill Reader thread!");
+    }
+    if (true != g_writerThread.Stop()) {
+      NXPLOG_TML_E("Fail to kill Writer thread!");
     }
 
     phTmlNfc_CleanUp();
-
-    phDal4Nfc_msgrelease(nxpncihal_ctrl.gDrvCfg.nClientId);
 
     memset(&nxpncihal_ctrl, 0x00, sizeof(nxpncihal_ctrl));
 
     NXPLOG_NCIHAL_D("phNxpNciHal_close - phOsalNfc_DeInit completed");
   }
-
+  NXPLOG_NCIHAL_D("phNxpNciHal_close Closing extension library");
+  phNxpExtn_LibClose();
+  nxpncihal_ctrl.p_nfc_stack_cback = NULL;
+  nxpncihal_ctrl.p_nfc_stack_data_cback = NULL;
   CONCURRENCY_UNLOCK();
 
   phNxpNciHal_cleanup_monitor();
@@ -2682,12 +2588,20 @@ int phNxpNciHal_control_granted(void) {
    */
   CONCURRENCY_LOCK();
 
-  if (NULL != nxpncihal_ctrl.p_control_granted_cback) {
-    (*nxpncihal_ctrl.p_control_granted_cback)();
-  }
   /* At the end concurrency unlock so calls from upper layer will
    * be allowed
    */
+  static phLibNfc_Message_t msg;
+  msg.eMsgType = HAL_CTRL_GRANTED_MSG;
+  msg.pMsgData = NULL;
+  msg.Size = 0;
+  if (g_writerThread.Post(msg)) {
+    /* At the end concurrency unlock so calls from upper layer will
+     * be allowed
+     */
+  } else {
+    NXPLOG_NCIHAL_E("Failed to send control granted!!");
+  }
   CONCURRENCY_UNLOCK();
   return NFCSTATUS_SUCCESS;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 NXP
+ * Copyright 2010-2024,2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -343,9 +343,10 @@ static NFCSTATUS phTmlNfc_InitiateTimer(void) {
 **
 *******************************************************************************/
 static void *phTmlNfc_TmlThread(void *pParam) {
+  /* Variable to fetch the actual number of bytes read */
   NFCSTATUS wStatus = NFCSTATUS_SUCCESS;
   int32_t dwNoBytesWrRd = PH_TMLNFC_RESET_VALUE;
-  uint8_t temp[260];
+
   uint8_t readRetryDelay = 0;
   /* Transaction info buffer to be passed to Callback Thread */
   static phTmlNfc_TransactInfo_t tTransactionInfo;
@@ -379,7 +380,8 @@ static void *phTmlNfc_TmlThread(void *pParam) {
       if (NULL != gpphTmlNfc_Context->pDevHandle) {
         NXPLOG_TML_D("PN72xx - Invoking I2C Read.....\n");
         dwNoBytesWrRd =
-            gpTransportObj->Read(gpphTmlNfc_Context->pDevHandle, temp, 260);
+            gpTransportObj->Read(gpphTmlNfc_Context->pDevHandle,
+                tMsg.data, PHNCI_MAX_DATA_LEN);
 
         if (-1 == dwNoBytesWrRd) {
           NXPLOG_TML_E("PN72xx - Error in I2C Read.....\n");
@@ -395,7 +397,7 @@ static void *phTmlNfc_TmlThread(void *pParam) {
           readRetryDelay = 0;
           sem_post(&gpphTmlNfc_Context->rxSemaphore);
         } else {
-          memcpy(gpphTmlNfc_Context->tReadInfo.pBuffer, temp, dwNoBytesWrRd);
+          memcpy(gpphTmlNfc_Context->tReadInfo.pBuffer,  tMsg.data, dwNoBytesWrRd);
           readRetryDelay = 0;
 
           NXPLOG_TML_D("PN72xx - I2C Read successful.....\n");
@@ -415,11 +417,8 @@ static void *phTmlNfc_TmlThread(void *pParam) {
           }
           /* Update the actual number of bytes read including header */
           gpphTmlNfc_Context->tReadInfo.wLength = (uint16_t)(dwNoBytesWrRd);
-          phNxpNciHal_print_packet("RECV",
-                                   gpphTmlNfc_Context->tReadInfo.pBuffer,
-                                   gpphTmlNfc_Context->tReadInfo.wLength);
+          phNxpNciHal_print_packet("RECV", tMsg.data, dwNoBytesWrRd);
 
-          dwNoBytesWrRd = PH_TMLNFC_RESET_VALUE;
 
           /* Fill the Transaction info structure to be passed to Callback
            * Function */
@@ -435,7 +434,8 @@ static void *phTmlNfc_TmlThread(void *pParam) {
           tDeferredInfo.pParameter = &tTransactionInfo;
           tMsg.eMsgType = PH_LIBNFC_DEFERREDCALL_MSG;
           tMsg.pMsgData = &tDeferredInfo;
-          tMsg.Size = sizeof(tDeferredInfo);
+          tMsg.Size = dwNoBytesWrRd;
+          tMsg.w_status = tTransactionInfo.wStatus;
           NXPLOG_TML_D("PN72xx - Posting read message.....\n");
           phTmlNfc_DeferredCall(gpphTmlNfc_Context->dwCallbackThreadId, &tMsg);
         }
@@ -543,6 +543,7 @@ static void *phTmlNfc_TmlWriterThread(void *pParam) {
         tMsg.eMsgType = PH_LIBNFC_DEFERREDCALL_MSG;
         tMsg.pMsgData = &tDeferredInfo;
         tMsg.Size = sizeof(tDeferredInfo);
+        tMsg.w_status = tTransactionInfo.wStatus;
 
         /* Check whether Retransmission needs to be started,
          * If yes, Post message only if

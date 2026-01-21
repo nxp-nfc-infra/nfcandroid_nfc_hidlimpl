@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2021,2023-2025 NXP
+ * Copyright 2010-2021,2023-2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,6 +97,7 @@ typedef void(phNxpNciHal_control_granted_callback_t)();
 #define NXP_TDA_PPS_RSP_CONFIG_INDEX 0x0A
 #define NXP_TDA_ENABLE_DEFAULT_VAL 0x00
 #define NXP_PPS_EXCHNG_DEFAULT_VAL 0x00
+#define ORIG_EXTNS 0x03
 
 typedef struct nci_data {
   uint16_t len;
@@ -176,6 +177,9 @@ typedef struct phNxpNciHal_Control {
   uint8_t p_cmd_data[NCI_MAX_DATA_LEN];
   uint16_t rsp_len;
   uint8_t p_rsp_data[NCI_MAX_DATA_LEN];
+
+  uint16_t vendor_msg_len;
+  uint8_t vendor_msg[NCI_MAX_DATA_LEN];
 
   /* retry count used to force download */
   uint16_t retry_cnt;
@@ -316,8 +320,12 @@ typedef struct phNxpNciProfile_Control {
 #define NCI_HAL_POST_INIT_CPLT_MSG 0x413
 #define NCI_HAL_PRE_DISCOVER_CPLT_MSG 0x414
 #define NCI_HAL_ERROR_MSG 0x415
+#define NCI_HAL_HCI_NETWORK_RESET_MSG 0x416
+#define NCI_HAL_TML_WRITE_MSG 0x417
+#define HAL_CTRL_GRANTED_MSG 0x418
+#define NCI_HAL_OEM_RSP_NTF_MSG 0x419
 #define NCI_HAL_RX_MSG 0xF01
-#define HAL_NFC_FW_UPDATE_STATUS_EVT 0x0A
+#define NCI_HAL_VENDOR_MSG 0xF02
 
 #define NCIHAL_CMD_CODE_LEN_BYTE_OFFSET (2U)
 #define NCIHAL_CMD_CODE_BYTE_LEN (3U)

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright 2013-2018, 2021,2023-2024 NXP
+ *  Copyright 2013-2018, 2021,2023-2024, 2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -92,6 +92,8 @@ void phNxpNciHal_releaseall_cb_data(void);
 void phNxpNciHal_print_packet(const char *pString, const uint8_t *p_data,
                               uint16_t len);
 void phNxpNciHal_emergency_recovery(uint8_t status);
+void phNxpNciHal_Memcpy(void* pDest, size_t destSize, const void* pSrc,
+                        size_t srcSize);
 
 /* Lock unlock helper macros */
 /* Lock unlock helper macros */
