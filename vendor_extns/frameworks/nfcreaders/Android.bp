@@ -1,0 +1,21 @@
+
+
+//#######################################
+// com.nxp.nfc - library
+//#######################################
+prebuilt_etc {
+    name: "com.nxp.nfcreaders.xml",
+    sub_dir: "permissions",
+    src: "com.nxp.nfcreaders.xml",
+}
+
+java_library {
+    name: "com.nxp.nfcreaders",
+    installable: true,
+    required: ["com.nxp.nfcreaders.xml"],
+
+    srcs: [
+        "com/**/I*.aidl",
+        "com/**/*.java",
+    ],
+}
