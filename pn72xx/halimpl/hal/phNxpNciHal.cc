@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2025 NXP
+ * Copyright 2012-2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,6 @@ static NFCSTATUS phNxpNciHal_set_mw_eeprom(void);
 static NFCSTATUS phNxpNciHal_config_t4t_ndef(uint8_t t4tFlag);
 static void phNxpNciHal_initialize_debug_enabled_flag();
 static void phNxpNciHal_initialize_mifare_flag();
-static void phNxpNciHal_UpdateFwStatus(HalNfcFwUpdateStatus fwStatus);
 static NFCSTATUS phNxpNciHal_resetDefaultSettings(uint8_t fw_update_req,
                                                   bool keep_config);
 static NFCSTATUS phNxpNciHal_force_fw_download(uint8_t seq_handler_offset = 0);
@@ -434,7 +433,6 @@ static NFCSTATUS phNxpNciHal_force_fw_download(uint8_t seq_handler_offset) {
 NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset,
                                   bool bIsNfccDlState) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
-  phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_START);
   phNxpNciHal_nfccClockCfgRead();
 
   if (!bIsNfccDlState) {
@@ -447,7 +445,6 @@ NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset,
     }
     if (NFCSTATUS_SUCCESS != status) {
       nxpncihal_ctrl.fwdnld_mode_reqd = FALSE;
-      phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_FAILED);
       return NFCSTATUS_FAILED;
     }
   }
@@ -500,10 +497,8 @@ NFCSTATUS phNxpNciHal_fw_download(uint8_t seq_handler_offset,
   }
   if (NFCSTATUS_SUCCESS == status) {
     isFwDnldTriggered = true;
-    phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_SCUCCESS);
-  } else {
-    phNxpNciHal_UpdateFwStatus(HAL_NFC_FW_UPDATE_FAILED);
   }
+
   return status;
 }
 
@@ -3959,31 +3954,6 @@ void phNxpNciHal_configFeatureList(uint8_t *init_rsp, uint16_t rsp_len) {
   CONFIGURE_FEATURELIST(chipType);
   /* update fragment len based on the chip type.*/
   phTmlNfc_IoCtl(phTmlNfc_e_setFragmentSize);
-}
-
-/*******************************************************************************
-**
-** Function         phNxpNciHal_UpdateFwStatus
-**
-** Description      It shall be called to update the FW download status to the
-**                  libnfc-nci.
-**
-** Parameters       fwStatus: FW update status
-**
-** Returns          void
-*******************************************************************************/
-static void phNxpNciHal_UpdateFwStatus(HalNfcFwUpdateStatus fwStatus) {
-  static phLibNfc_Message_t msg;
-  static uint8_t status;
-  NXPLOG_NCIHAL_D("phNxpNciHal_UpdateFwStatus Enter");
-
-  status = (uint8_t)fwStatus;
-  msg.eMsgType = HAL_NFC_FW_UPDATE_STATUS_EVT;
-  msg.pMsgData = &status;
-  msg.Size = sizeof(status);
-  phTmlNfc_DeferredCall(gpphTmlNfc_Context->dwCallbackThreadId,
-                        (phLibNfc_Message_t *)&msg);
-  return;
 }
 
 /******************************************************************************
