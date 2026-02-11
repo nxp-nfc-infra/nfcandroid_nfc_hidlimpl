@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021,2023-2024 NXP
+ * Copyright 2019-2021,2023-2024,2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "NxpNfc.h"
+#include <string>
+#include <vector>
 #include "phNfcStatus.h"
 #include "phNxpConfig.h"
 #include "phNxpLog.h"
-#include <hardware/nfc.h>
 
 /*******************************************************************************
 **
@@ -30,7 +29,7 @@
 **
 ** Returns          It returns the property value of the key
 *******************************************************************************/
-string phNxpNciHal_getSystemProperty(string key);
+std::string phNxpNciHal_getSystemProperty(std::string key);
 
 /*******************************************************************************
  **
@@ -43,7 +42,7 @@ string phNxpNciHal_getSystemProperty(string key);
  **
  ** Returns          true if success, false if fail
  *******************************************************************************/
-bool phNxpNciHal_setSystemProperty(string key, string value);
+bool phNxpNciHal_setSystemProperty(std::string key, std::string value);
 
 /*******************************************************************************
 **
@@ -56,7 +55,7 @@ bool phNxpNciHal_setSystemProperty(string key, string value);
 **
 ** Returns          void
 *******************************************************************************/
-string phNxpNciHal_getNxpConfigIf();
+std::string phNxpNciHal_getNxpConfigIf();
 
 /******************************************************************************
 ** Function         phNxpNciHal_setNxpTransitConfig
