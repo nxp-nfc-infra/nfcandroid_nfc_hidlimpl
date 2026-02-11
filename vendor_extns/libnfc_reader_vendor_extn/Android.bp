@@ -1,0 +1,87 @@
+//
+//
+//  Copyright 2026 NXP
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+cc_defaults {
+    name: "extn_defaults",
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-Wno-implicit-fallthrough",
+        "-Wno-unused-parameter",
+    ],
+    srcs: [
+        "src/api/NfcExtensionApi.cpp",
+        "src/common/log/phNxpLog.cc",
+        "src/common/utils/phNxpConfig.cc",
+        "src/common/utils/config.cc",
+        "src/core/controller/NfcExtensionController.cpp",
+        "src/core/nfc_comm/NfcExtensionWriter.cpp",
+        "src/core/handler/DefaultEventHandler.cpp",
+        "src/pal/common/PalIntervalTimer.cpp",
+        "src/pal/common/PalThreadMutex.cc",
+        "src/pal/common/PlatformBase.cpp",
+        "src/features/nci_state_monitor/NciStateMonitor.cpp",
+        "src/features/nci_state_monitor/RfStateMonitor.cpp",
+    ],
+    export_include_dirs: [
+        "inc/common",
+        "src/common",
+        "src/common/inc",
+        "src/common/log",
+        "src/common/utils",
+        "src/core/controller",
+        "src/core/nfc_comm",
+        "src/core/handler",
+        "src/pal/common",
+        "src/features/nci_state_monitor",
+        "src/features/tda",
+        "src/features/smcu",
+    ],
+    shared_libs: [
+        "libbase",
+        "libcutils",
+        "liblog",
+        "libdl",
+    ],
+}
+
+
+cc_library_shared {
+    name: "libnfc_reader_vendor_extn_vnd",
+    stem: "libnfc_reader_vendor_extn",
+    proprietary: true,
+    enabled: true,
+    defaults: [
+        "extn_defaults",
+    ],
+    export_include_dirs: [
+        "src/pal/vendor_ext",
+        "src/features/nci_state_monitor",
+    ],
+    srcs: [
+        "src/pal/vendor_ext/PlatformAbstractionLayer.cpp",
+    ],
+    include_dirs: [
+        "hardware/nxp/nfc/pn72xx/halimpl/common",
+        "hardware/nxp/nfc/pn72xx/halimpl/hal",
+        "hardware/nxp/nfc/pn72xx/halimpl/nfc_extn",
+        "hardware/nxp/nfc/pn72xx/halimpl/tml",
+    ],
+    shared_libs: [
+        "nfc_nci_nxp_pn72xx",
+    ],
+}
