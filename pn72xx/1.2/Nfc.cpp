@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2019-2025 NXP
+ *  Copyright 2019-2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@
 #define NXP_EN_PN7150 0
 #define NXP_EN_PN7160 1
 #define NXP_EN_PN7220 1
-#define NFC_NXP_MW_ANDROID_VER (16U)   /* Android version used by NFC MW */
-#define NFC_NXP_MW_VERSION_MAJ (0x02)  /* MW Major Version */
-#define NFC_NXP_MW_VERSION_MIN (0x00)  /* MW Minor Version */
+#define NFC_NXP_MW_ANDROID_VER (17U)   /* Android version used by NFC MW */
+#define NFC_NXP_MW_VERSION_MAJ (0x00)  /* MW Major Version */
+#define NFC_NXP_MW_VERSION_MIN (0x01)  /* MW Minor Version */
 
 extern bool nfc_debug_enabled;
 
