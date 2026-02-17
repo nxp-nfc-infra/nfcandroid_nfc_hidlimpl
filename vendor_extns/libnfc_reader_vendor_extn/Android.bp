@@ -36,6 +36,8 @@ cc_defaults {
         "src/pal/common/PlatformBase.cpp",
         "src/features/nci_state_monitor/NciStateMonitor.cpp",
         "src/features/nci_state_monitor/RfStateMonitor.cpp",
+        "src/features/tda/src/TdaHandler.cpp",
+        "src/features/tda/src/Tda.cpp",
     ],
     export_include_dirs: [
         "inc/common",
@@ -48,6 +50,7 @@ cc_defaults {
         "src/core/handler",
         "src/pal/common",
         "src/features/nci_state_monitor",
+        "src/features/tda/inc",
     ],
     shared_libs: [
         "libbase",
