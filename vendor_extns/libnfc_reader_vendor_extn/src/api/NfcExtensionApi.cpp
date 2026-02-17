@@ -25,6 +25,7 @@
 #include "NfcExtensionController.h"
 #include "PlatformAbstractionLayer.h"
 #include "RfStateMonitor.h"
+#include <TdaHandler.h>
 #include <phNxpLog.h>
 #include <stdint.h>
 
@@ -148,6 +149,8 @@ static void addHandlers() {
       std::make_shared<DefaultEventHandler>();
   NfcExtensionController::getInstance()->addEventHandler(HandlerType::DEFAULT,
                                                          defaultEventHandler);
+  NfcExtensionController::getInstance()->addEventHandler(
+      HandlerType::TDA, std::make_shared<TdaHandler>());
 }
 
 static void printGenExtnLibVersion() {

@@ -39,6 +39,7 @@ enum class HandlerType : uint8_t {
    * @brief indicates default handler
    */
   DEFAULT = 0X00,
+  TDA = 0x01,
 };
 
 class NfcExtensionController {
