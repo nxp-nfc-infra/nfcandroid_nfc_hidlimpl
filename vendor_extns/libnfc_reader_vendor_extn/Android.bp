@@ -48,8 +48,6 @@ cc_defaults {
         "src/core/handler",
         "src/pal/common",
         "src/features/nci_state_monitor",
-        "src/features/tda",
-        "src/features/smcu",
     ],
     shared_libs: [
         "libbase",
