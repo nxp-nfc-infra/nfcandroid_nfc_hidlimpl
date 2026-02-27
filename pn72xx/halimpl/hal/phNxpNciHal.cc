@@ -1368,9 +1368,16 @@ static void phNxpNciHal_read_complete(void *pContext,
     /* Read successful send the event to higher layer */
     else if ((nxpncihal_ctrl.p_nfc_stack_data_cback != NULL) &&
              (status == NFCSTATUS_SUCCESS)) {
+      const NFCSTATUS extStatus =
+          phNxpExtn_HandleNciRspNtf(&pInfo->wLength, pInfo->pBuff);
+      NXPLOG_NCIHAL_D("extStatus = 0x%d", extStatus);
+      // Send the response to upper layer, if it is not handled by Nfc
+      // extension library
+      if (NFCSTATUS_EXTN_FEATURE_SUCCESS != extStatus) {
       NxpMfcReaderInstance.MfcNotifyOnAckReceived(nxpncihal_ctrl.p_rx_data);
       (*nxpncihal_ctrl.p_nfc_stack_data_cback)(nxpncihal_ctrl.rx_data_len,
                                                nxpncihal_ctrl.p_rx_data);
+      }
     }
     /* Unblock next Write Command Window */
     sem_getvalue(&(nxpncihal_ctrl.syncSpiNfc), &sem_val);
