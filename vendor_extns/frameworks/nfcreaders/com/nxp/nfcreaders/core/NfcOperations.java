@@ -200,7 +200,6 @@ public class NfcOperations {
           } else {
               NxpNfcLogger.d(TAG, "Listen Enabled");
               mListenTechDisabled = false;
-
           }
       }
     }
@@ -241,13 +240,18 @@ public class NfcOperations {
      * @param listenTechnology Flags indicating listen technologies.
      * @return None
      */
-    private void startDiscovery(boolean isStart) {
-        NxpNfcLogger.d(TAG, "startDiscovery isStart=" + isStart);
+    public void startDiscovery(boolean isStart) {
+        NxpNfcLogger.d(TAG, "startDiscovery isStart =" + isStart);
         try {
             synchronized (NfcOperations.this) {
                 conditionallyRegisterOemCallback(true);
                 if (isStart && mIsDiscoveryStarted) {
-                    NxpNfcLogger.d(TAG, " discovery already started");
+                    NxpNfcLogger.d(TAG, "discovery already started");
+                    conditionallyRegisterOemCallback(false);
+                    return;
+                }
+                if (!isStart && !mIsDiscoveryStarted) {
+                    NxpNfcLogger.d(TAG, "discovery already stopped");
                     conditionallyRegisterOemCallback(false);
                     return;
                 }

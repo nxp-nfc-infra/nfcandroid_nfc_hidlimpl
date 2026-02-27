@@ -43,13 +43,14 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
     public static final byte NFC_TDA_OPEN_SUB_GID_OID = (byte) 0x12;
     public static final byte NFC_TDA_TRANSACT_SUB_GID_OID = (byte) 0x13;
     public static final byte NFC_TDA_CLOSE_SUB_GID_OID = (byte) 0x14;
-    public static final byte NFC_TDA_WTX_SUB_GID_OID = (byte) 0x15;
+    public static final byte NFC_TDA_GET_STATE_SUB_GID_OID = (byte) 0x15;
 
     private final NfcOperations mNfcOperations;
     private final NxpNciPacketHandler mNxpNciPacketHandler;
 
     private static final int STATUS_SUCCESS = 0x00;
     private static final int STATUS_FAILED = 0x01;
+    private static final byte TDA_STATE_INIT = 0x00;
 
     public TDAHandler(NfcAdapter nfcAdapter) {
         this.mNxpNciPacketHandler = NxpNciPacketHandler.getInstance(nfcAdapter);
@@ -79,14 +80,27 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
 
     public NfcTDAInfo[] discoverTDA(TdaResult tdaResult) {
         NxpNfcLogger.d(TAG, "discoverTDA: ");
-        if (mNxpNciPacketHandler == null) {
+        if (mNxpNciPacketHandler == null || mNfcOperations == null) {
+            NxpNfcLogger.e(TAG, "discoverTDA: Invalid state");
+            return null;
+        }
+        if (tdaResult == null) {
+            NxpNfcLogger.e(TAG, "discoverTDA: tdaResult is null");
             return null;
         }
         int responseOffset = 0;
+        boolean enableDiscovery = false;
+        tdaResult.setStatus(TdaResult.RESULT_FAILURE);
+        tdaResult.setError(TdaResult.RESULT_FAILURE);
+        tdaResult.setException(TdaResult.RESULT_FAILURE);
         try {
+            if (isDiscoveryStopRequiredForTDA()) {
+                mNfcOperations.startDiscovery(false);
+                enableDiscovery = true;
+            }
             byte[] preCmd = {NFC_TDA_DISCOVER_SUB_GID_OID};
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
-                    NxpNfcConstants.NXP_NFC_PROP_OID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
+                    NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
             if (vendorRsp != null && vendorRsp.length > 1
                     && vendorRsp[responseOffset++] == NFC_TDA_DISCOVER_SUB_GID_OID
                     && vendorRsp[responseOffset++] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
@@ -105,6 +119,7 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
                         NxpNfcLogger.e(TAG, "discoverTDA: corrupted vendor response");
                         return null;
                     }
+                    tdaInfo[i] = new NfcTDAInfo();
                     tdaInfo[i].id = vendorRsp[responseOffset++];
                     tdaInfo[i].status = vendorRsp[responseOffset++];
                     tdaInfo[i].numberOfProtocols = vendorRsp[responseOffset++];
@@ -129,6 +144,7 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
                             NxpNfcLogger.e(TAG, "discoverTDA: corrupted vendor response for cardtlv");
                             return null;
                         }
+                        tdaInfo[i].cardTLVInfo[offset] = new CardTLVInfo();
                         tdaInfo[i].cardTLVInfo[offset].type = vendorRsp[responseOffset++];
                         tdaInfo[i].cardTLVInfo[offset].length = vendorRsp[responseOffset++];
                         tdaInfo[i].cardTLVInfo[offset].value = new byte[tdaInfo[i].cardTLVInfo[offset].length];
@@ -142,32 +158,54 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
                         }
                     }
                 }
+                tdaResult.setStatus(TdaResult.RESULT_SUCCESS);
+                tdaResult.setError(TdaResult.RESULT_SUCCESS);
+                tdaResult.setException(TdaResult.RESULT_SUCCESS);
                 return tdaInfo;
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (enableDiscovery) {
+                mNfcOperations.startDiscovery(true);
+            }
         }
         NxpNfcLogger.d(TAG, "discoverTDA: Failed");
         return null;
     }
 
     public byte openTDA(byte tdaID, boolean standBy, TdaResult tdaResult) {
+        NxpNfcLogger.d(TAG, "openTDA: ");
+        byte cid = 0x00; // Invalid
+        if (mNxpNciPacketHandler == null) {
+            NxpNfcLogger.e(TAG, "openTDA: Invalid state");
+            return cid;
+        }
+        if (tdaResult == null) {
+            NxpNfcLogger.e(TAG, "openTDA: tdaResult is null");
+            return cid;
+        }
+        tdaResult.setStatus(TdaResult.RESULT_FAILURE);
+        tdaResult.setError(TdaResult.RESULT_FAILURE);
+        tdaResult.setException(TdaResult.RESULT_FAILURE);
         if (mNxpNciPacketHandler == null) {
             return STATUS_FAILED;
         }
-        byte cid = 0x00; // Invalid
         try {
             int responseOffset = 0;
             byte[] preCmd = {NFC_TDA_OPEN_SUB_GID_OID, tdaID, (byte) (standBy ? 0x01 : 0x00)};
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
-                    NxpNfcConstants.NXP_NFC_PROP_OID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
+                    NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
             if (vendorRsp != null && vendorRsp.length > 1
                     && vendorRsp[responseOffset++] == NFC_TDA_OPEN_SUB_GID_OID
                     && vendorRsp[responseOffset++] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
-                if (vendorRsp.length > responseOffset + 1) {
+                if (vendorRsp.length > responseOffset) {
                     cid = vendorRsp[responseOffset++];
                 }
                 NxpNfcLogger.d(TAG, "openTDA: Success CID : " + cid);
+                tdaResult.setStatus(TdaResult.RESULT_SUCCESS);
+                tdaResult.setError(TdaResult.RESULT_SUCCESS);
+                tdaResult.setException(TdaResult.RESULT_SUCCESS);
             } else {
                 NxpNfcLogger.e(TAG, "openTDA: Failed");
             }
@@ -179,31 +217,42 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
     }
 
     public byte[] transceive(byte[] cmd_data, TdaResult tdaResult) {
+        NxpNfcLogger.d(TAG, "transceive: ");
+        if (mNxpNciPacketHandler == null) {
+            NxpNfcLogger.e(TAG, "transceive: Invalid state");
+            return null;
+        }
+        if (tdaResult == null) {
+            NxpNfcLogger.e(TAG, "transceive: tdaResult is null");
+            return null;
+        }
         try {
+            tdaResult.setStatus(TdaResult.RESULT_FAILURE);
+            tdaResult.setError(TdaResult.RESULT_FAILURE);
+            tdaResult.setException(TdaResult.RESULT_FAILURE);
             int responseOffset = 0;
             byte[] preCmd = new byte[cmd_data.length + 2];
             int commandOffset = 0;
             preCmd[commandOffset++] = NFC_TDA_TRANSACT_SUB_GID_OID;
             preCmd[commandOffset++] = (byte) cmd_data.length;
             for (int cmdIndex = 0; cmdIndex < cmd_data.length; cmdIndex++) {
-                preCmd[commandOffset++] = cmd_data[cmdIndex++];
+                preCmd[commandOffset++] = cmd_data[cmdIndex];
             }
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
-                    NxpNfcConstants.NXP_NFC_PROP_OID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
+                    NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
             byte[] response = null;
             if (vendorRsp != null && vendorRsp.length > 1
                     && vendorRsp[responseOffset++] == NFC_TDA_TRANSACT_SUB_GID_OID
                     && vendorRsp[responseOffset++] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
                 if (vendorRsp.length > responseOffset + 1) {
-                    response = new byte[vendorRsp[responseOffset++]];// 1 byte for response length
-                    if (vendorRsp.length < responseOffset + response.length) {
-                        NxpNfcLogger.e(TAG, "transceive: corrupted vendor nci data");
-                        return null;
-                    }
+                    response = new byte[vendorRsp.length - responseOffset];
                     for (int i = 0; i < response.length; i++) {
                         response[i] = vendorRsp[responseOffset++];
                     }
                     NxpNfcLogger.d(TAG, "transceive: Success");
+                    tdaResult.setStatus(TdaResult.RESULT_SUCCESS);
+                    tdaResult.setError(TdaResult.RESULT_SUCCESS);
+                    tdaResult.setException(TdaResult.RESULT_SUCCESS);
                 }
             } else {
                 NxpNfcLogger.e(TAG, "transceive: Failed");
@@ -216,14 +265,29 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
     }
 
     public void closeTDA(byte tdaID, boolean standBy, TdaResult tdaResult) {
+        NxpNfcLogger.d(TAG, "closeTDA: ");
+        if (mNxpNciPacketHandler == null) {
+            NxpNfcLogger.e(TAG, "closeTDA: Invalid state");
+            return;
+        }
+        if (tdaResult == null) {
+            NxpNfcLogger.e(TAG, "closeTDA: tdaResult is null");
+            return;
+        }
         try {
+            tdaResult.setStatus(TdaResult.RESULT_FAILURE);
+            tdaResult.setError(TdaResult.RESULT_FAILURE);
+            tdaResult.setException(TdaResult.RESULT_FAILURE);
             byte[] preCmd = {NFC_TDA_CLOSE_SUB_GID_OID, tdaID, (byte) (standBy ? 0x01 : 0x00)};
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
-                    NxpNfcConstants.NXP_NFC_PROP_OID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
+                    NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
             if (vendorRsp != null && vendorRsp.length > 1
                     && vendorRsp[0] == NFC_TDA_CLOSE_SUB_GID_OID
                     && vendorRsp[1] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
                 NxpNfcLogger.d(TAG, "closeTDA: Success");
+                tdaResult.setStatus(TdaResult.RESULT_SUCCESS);
+                tdaResult.setError(TdaResult.RESULT_SUCCESS);
+                tdaResult.setException(TdaResult.RESULT_SUCCESS);
             } else {
                 NxpNfcLogger.e(TAG, "closeTDA: Failed");
             }
@@ -231,6 +295,29 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             e.printStackTrace();
         }
         return;
+    }
+
+    private boolean isDiscoveryStopRequiredForTDA() {
+        try {
+            int responseOffset = 0;
+            byte[] preCmd = {NFC_TDA_GET_STATE_SUB_GID_OID};
+            byte tdaState = TDA_STATE_INIT;
+            byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
+                    NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
+            if (vendorRsp != null && vendorRsp.length > 1
+                    && vendorRsp[responseOffset++] == NFC_TDA_GET_STATE_SUB_GID_OID
+                    && vendorRsp[responseOffset++] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
+                if (vendorRsp.length > responseOffset) {
+                    tdaState = vendorRsp[responseOffset++];
+                }
+                if (tdaState != TDA_STATE_INIT) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     @Override
