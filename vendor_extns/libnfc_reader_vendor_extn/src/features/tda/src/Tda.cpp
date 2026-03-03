@@ -24,10 +24,12 @@
 #include "NfcExtensionController.h"
 #include "NfcExtensionWriter.h"
 #include "PlatformAbstractionLayer.h"
+#include <phNxpConfig.h>
 #include <cstring>
 #include <phNxpLog.h>
 #include <stdlib.h>
 #include <string.h>
+#include <tda_api.h>
 
 std::unique_ptr<Tda> Tda::instance = nullptr;
 
@@ -48,35 +50,75 @@ static void switchToDefaultHandler() {
 }
 
 NFCSTATUS Tda::discover(tda_control_t *tda_data) {
-  // return ct_discover_tda(tda_data);
+  NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Enter ", __func__);
+  if (ct_get_tda_state() == INIT_STATE) {
+    if (ct_init_ext() != NFCSTATUS_SUCCESS) {
+      NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN, "%s TDA CT init Failed  ", __func__);
+      return NFCSTATUS_FAILED;
+    }
+   // TODO: Need to call the new set config to enable the TDA detetction
+   // in Discovery by default it will be disable
+    unsigned long num = 0;
+    if (GetNxpNumValue(NAME_NXP_CT_MAX_WTX_WAIT_TIME, &num, sizeof(num)) > 0) {
+      set_max_wtx_timeout_value(num);
+    } else {
+      NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN, "%s NXP_CT_MAX_WTX_WAIT_TIME not found", __func__);
+    }
+  }
+  if (ct_discover_tda(tda_data) != NFCSTATUS_SUCCESS) {
+    NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Discover TDA Failed  ", __func__);
+    return NFCSTATUS_FAILED;
+  }
   return NFCSTATUS_EXTN_FEATURE_SUCCESS;
 }
 
 NFCSTATUS Tda::open(uint8_t tdaId, uint8_t standBy, uint8_t &cid) {
-  // return ct_open(tdaId, standBy, cid);
+  NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Enter ", __func__);
+  int8_t cid_val = 0;
+
+  if (ct_open((int8_t)tdaId, (int8_t)standBy, &cid_val) != NFCSTATUS_SUCCESS) {
+    return NFCSTATUS_FAILED;
+  }
+  cid = (uint8_t)cid_val;
   return NFCSTATUS_EXTN_FEATURE_SUCCESS;
 }
 
 NFCSTATUS Tda::transceive(std::vector<uint8_t> command,
                           std::vector<uint8_t> &response) {
+  NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Enter ", __func__);
   tda_data tda_cmd;
   tda_data tda_res;
   tda_cmd.len = command.size();
   tda_cmd.p_data = command.data();
-  // ct_transceive(tda_cmd, tda_res);
+  if (ct_transceive(&tda_cmd, &tda_res) != NFCSTATUS_SUCCESS) {
+    return NFCSTATUS_FAILED;
+  }
   response.resize(tda_res.len);
   std::copy(tda_res.p_data, tda_res.p_data + tda_res.len, response.begin());
   return NFCSTATUS_EXTN_FEATURE_SUCCESS;
 }
 
 NFCSTATUS Tda::close(uint8_t tdaId, uint8_t standBy) {
-  // return ct_close(tdaId, standBy);
-  return NFCSTATUS_EXTN_FEATURE_SUCCESS;
+  NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Enter ", __func__);
+  NFCSTATUS status = NFCSTATUS_FAILED;
+  if (NFCSTATUS_SUCCESS == ct_close((int8_t) tdaId, (int8_t) standBy)) {
+    status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
+  }
+  // TODO: Need to call the new set config to disable the TDA detetction
+  if (ct_de_init_ext() != NFCSTATUS_SUCCESS) {
+    NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN, "%s TDA CT deinit Failed  ", __func__);
+  }
+  return status;
+}
+
+system_state_t Tda::getTdaState() {
+  return ct_get_tda_state();
 }
 
 NFCSTATUS Tda::processResponseNtf(uint16_t dataLen, uint8_t *pData) {
-  /*if (process_tda_rsp_ntf(pData, dataLen) == EMVCO_STATUS_SUCCESS) {
+  NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Enter ", __func__);
+  if (process_tda_rsp_ntf(pData, dataLen) == NFCSTATUS_SUCCESS) {
     return NFCSTATUS_EXTN_FEATURE_SUCCESS;
-  }*/
+  }
   return NFCSTATUS_EXTN_FEATURE_FAILURE;
 }

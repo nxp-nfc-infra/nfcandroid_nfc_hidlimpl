@@ -103,6 +103,7 @@ private:
   static constexpr uint8_t OPEN_TDA_GID_OID = 0x12;
   static constexpr uint8_t TRANSCIVE_TDA_GID_OID = 0x13;
   static constexpr uint8_t CLOSE_TDA_GID_OID = 0x14;
+  static constexpr uint8_t GET_TDA_STATE_GID_OID = 0x15;
 };
 /** @}*/
 #endif // TDA_HANDLER_H

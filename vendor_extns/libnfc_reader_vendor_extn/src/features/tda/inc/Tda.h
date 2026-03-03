@@ -42,6 +42,7 @@ public:
   NFCSTATUS transceive(std::vector<uint8_t> command,
                        std::vector<uint8_t> &response);
   NFCSTATUS close(uint8_t tdaId, uint8_t standBy);
+  system_state_t getTdaState();
   NFCSTATUS processResponseNtf(uint16_t dataLen, uint8_t *pData);
   /**
    * @brief Releases all the resources

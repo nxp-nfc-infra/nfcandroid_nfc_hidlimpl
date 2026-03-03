@@ -30,6 +30,25 @@ extern "C" {
 #endif
 
 /**
+ * @brief    defines the possible API's and events of TDA
+ *
+ **/
+typedef enum {
+  NFCEE_DISCOVER_EVENT,
+  DISCOVER_TDA_EVENT,
+  OPEN_TDA_EVENT,
+  CORE_CONN_CREATE_EVENT,
+  TRANSCEIVE_EVENT,
+  CLOSE_TDA_EVENT,
+  CORE_CONN_CLOSE_EVENT,
+  LAST_EVENT
+} system_event_t;
+
+
+
+typedef uint16_t (*fp_event_handler_t)(void *);
+
+/**
  * @brief MAX data length of CT fragmented data
  */
 #define CT_FRAG_MAX_DATA_LEN 1024
@@ -131,18 +150,15 @@ typedef struct {
 } transceive_buffer_t;
 
 /**
- * @brief
- * The callback passed in from the EMVCo HAL that EMVCo
- * stack can use to pass emvco tda state change to EMVCo HAL.
- */
-typedef void(emvco_tda_state_change_t)(void *tda_info, char *p_dbg_reason);
-
-/**
- * @brief
- * The callback passed in from the EMVCo HAL that EMVCo
- * stack can use to pass emvco cl state change and card detection to EMVCo HAL.
- */
-typedef void(emvco_cl_state_change_t)(uint8_t emvco_state, char *p_dbg_reason);
+ * @brief    defines the state machine with state, event and
+ *           corresponding event handler to process the data
+ *
+ **/
+typedef struct {
+  system_state_t state;
+  system_event_t event;
+  fp_event_handler_t handler;
+} state_machine_t;
 
 /**
  * @brief Structure representing Fragmented data and its properties.
@@ -186,9 +202,6 @@ typedef struct tda_control {
   transceive_buffer_t trans_buf;
   /* Ensures mutual exclusion for all client API */
   pthread_mutex_t snd_lck;
-  /* tda and cl state callbacks */
-  emvco_tda_state_change_t *p_tda_state_change;
-  emvco_cl_state_change_t *p_cl_state_change;
   /* Fragment data structure holds fragment response data information */
   ct_frag_rsp_t frag_rsp;
   /* specifies whether command data is fragmented or not */
