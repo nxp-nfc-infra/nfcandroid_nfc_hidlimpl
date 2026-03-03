@@ -38,6 +38,12 @@ cc_defaults {
         "src/features/nci_state_monitor/RfStateMonitor.cpp",
         "src/features/tda/src/TdaHandler.cpp",
         "src/features/tda/src/Tda.cpp",
+        "src/features/tda/src/api/tda_api.cc",
+        "src/features/tda/src/ct/tda.cc",
+        "src/features/tda/src/nci/nci_snd.cc",
+        "src/features/tda/src/nci/nci_rcv.cc",
+        "src/features/tda/src/fsm/fsm.cc",
+        "src/features/tda/src/pal/pal.cc"
     ],
     export_include_dirs: [
         "inc/common",
