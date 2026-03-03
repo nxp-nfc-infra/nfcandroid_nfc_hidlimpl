@@ -26,6 +26,7 @@
 #include "phNxpNciHal.h"
 #include "phNxpNciHal_IoctlOperations.h"
 #endif
+#include "phNxpNciHal_extOperations.h"
 #define NXP_EN_PN7150 0
 #define NXP_EN_PN7160 1
 #define NXP_EN_PN7161 1
@@ -757,7 +758,6 @@ clean_and_return:
 NFCSTATUS phNxpNciHal_write_ext(uint16_t *cmd_len, uint8_t *p_cmd_data,
                                 uint16_t *rsp_len, uint8_t *p_rsp_data) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
-
   if (p_cmd_data[0] == PROPRIETARY_CMD_FELICA_READER_MODE &&
       p_cmd_data[1] == PROPRIETARY_CMD_FELICA_READER_MODE &&
       p_cmd_data[2] == PROPRIETARY_CMD_FELICA_READER_MODE) {
@@ -787,6 +787,12 @@ NFCSTATUS phNxpNciHal_write_ext(uint16_t *cmd_len, uint8_t *p_cmd_data,
     NXPLOG_NCIHAL_D("NFC_FORUM_PROFILE mode - Enabled");
     nxpprofile_ctrl.profile_type = NFC_FORUM_PROFILE;
     status = NFCSTATUS_SUCCESS;
+  } else if (p_cmd_data[0] == 0x2F && p_cmd_data[1] == 0x0C &&
+             (p_cmd_data[2] == 0x01 || p_cmd_data[2] == 0x00)) {
+    NXPLOG_NCIHAL_D("NCI_ANDROID_GET_CAPS_CMD ");
+    phNxpNciHal_print_packet("SEND", p_cmd_data, *cmd_len);
+    *rsp_len = phNxpNciHal_hndlVndSpecificAndroidCmd(*cmd_len, p_cmd_data);
+    status = NFCSTATUS_FAILED;
   }
 
   if (nxpprofile_ctrl.profile_type == EMV_CO_PROFILE) {

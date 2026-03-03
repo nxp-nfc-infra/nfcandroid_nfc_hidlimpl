@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2018-2025 NXP
+ *  Copyright 2018-2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -104,6 +104,20 @@ typedef struct {
 } tNfc_nfcMwFeatureList;
 
 typedef struct {
+  uint8_t id;
+  uint8_t len;
+  uint8_t val;
+} tNfc_capability;
+
+typedef struct {
+  tNfc_capability OBSERVE_MODE;
+  tNfc_capability POLLING_FRAME_NOTIFICATION;
+  tNfc_capability POWER_SAVING;
+  tNfc_capability AUTOTRANSACT_PLF;
+  tNfc_capability NO_OF_EXIT_FRAMES_PLF;
+} tNfc_nfccCapability;
+
+typedef struct {
   tNFC_chipType chipType;
   std::string _FW_LIB_PATH;
   std::string _PLATFORM_LIB_PATH;
@@ -115,10 +129,12 @@ typedef struct {
   tNfc_nfccFeatureList nfccFL;
   tNfc_platformFeatureList platformFL;
   tNfc_nfcMwFeatureList nfcMwFL;
+  tNfc_nfccCapability nfccCap;
 } tNfc_featureList;
 
 extern tNfc_featureList nfcFL;
 
+#define IS_CHIP_TYPE_GE(cType) (nfcFL.chipType >= (cType))
 
 #define CONFIGURE_FEATURELIST(chipType)                                         \
   {                                                                             \
@@ -150,6 +166,7 @@ extern tNfc_featureList nfcFL;
     nfcFL._PHDNLDNFC_USERDATA_EEPROM_LEN = 0x0C80U;                             \
     nfcFL._FW_MOBILE_MAJOR_NUMBER = FW_MOBILE_MAJOR_NUMBER_PN7220;              \
     nfcFL.nfccFL._NFCC_DWNLD_MODE = NFCC_DWNLD_WITH_VEN_RESET;                  \
+    UPDATE_NFCC_CAPABILITY()                                                    \
     switch (chipType) {                                                         \
       case pn7220:                                                              \
       case pn7221:                                                              \
@@ -214,4 +231,37 @@ extern tNfc_featureList nfcFL;
   nfcFL._FW_LIB_PATH.append(str1);                                              \
   nfcFL._FW_LIB_PATH.append(FW_LIB_EXTENSION);                                  \
 }
+
+#define CAP_OBSERVE_MODE_ID 0x00
+#define CAP_POLL_FRAME_NTF_ID 0x01
+#define CAP_POWER_SAVING_MODE_ID 0x02
+#define CAP_AUTOTRANSACT_PLF_ID 0x03
+#define CAP_NUMBER_OF_EXIT_FRAMES_PLF_ID 0x04
+#define OBSERVE_MODE_WITHOUT_RF_DEACTIVATE 0x02
+#define UPDATE_NFCC_CAPABILITY()                                               \
+  {                                                                            \
+    nfcFL.nfccCap.OBSERVE_MODE.id = CAP_OBSERVE_MODE_ID;                       \
+    nfcFL.nfccCap.OBSERVE_MODE.len = 0x01;                                     \
+    nfcFL.nfccCap.OBSERVE_MODE.val = 0x00;                                     \
+    nfcFL.nfccCap.POLLING_FRAME_NOTIFICATION.id = CAP_POLL_FRAME_NTF_ID;       \
+    nfcFL.nfccCap.POLLING_FRAME_NOTIFICATION.len = 0x01;                       \
+    nfcFL.nfccCap.POLLING_FRAME_NOTIFICATION.val = 0x00;                       \
+    nfcFL.nfccCap.POWER_SAVING.id = CAP_POWER_SAVING_MODE_ID;                  \
+    nfcFL.nfccCap.POWER_SAVING.len = 0x01;                                     \
+    nfcFL.nfccCap.POWER_SAVING.val = 0x00;                                     \
+    nfcFL.nfccCap.AUTOTRANSACT_PLF.id = CAP_AUTOTRANSACT_PLF_ID;               \
+    nfcFL.nfccCap.AUTOTRANSACT_PLF.len = 0x01;                                 \
+    nfcFL.nfccCap.AUTOTRANSACT_PLF.val = 0x00;                                 \
+    nfcFL.nfccCap.NO_OF_EXIT_FRAMES_PLF.id = CAP_NUMBER_OF_EXIT_FRAMES_PLF_ID; \
+    nfcFL.nfccCap.NO_OF_EXIT_FRAMES_PLF.len = 0x01;                            \
+    nfcFL.nfccCap.NO_OF_EXIT_FRAMES_PLF.val = 0x00;                            \
+    uint8_t extended_field_mode = 0x00;                                        \
+    if (IS_CHIP_TYPE_GE(sn100u) &&                                             \
+        GetNxpNumValue(NAME_NXP_EXTENDED_FIELD_DETECT_MODE,                    \
+                       &extended_field_mode, sizeof(extended_field_mode))) {   \
+      if (extended_field_mode == 0x03) {                                       \
+        nfcFL.nfccCap.OBSERVE_MODE.val = OBSERVE_MODE_WITHOUT_RF_DEACTIVATE;   \
+      }                                                                        \
+    }                                                                          \
+  }
 #endif

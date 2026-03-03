@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021,2023-2024 NXP
+ * Copyright 2019-2021,2023-2024,2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,3 +40,24 @@ extern nxp_nfc_config_ext_t config_ext;
  *
  ******************************************************************************/
 uint8_t phNxpNciHal_updateAutonomousPwrState(uint8_t num);
+/*******************************************************************************
+ *
+ * Function         handleGetCapability()
+ *
+ * Description      Get Capability command is not supported, hence returning
+ *                  failure
+ *
+ * Returns          It returns number of bytes received.
+ *
+ ******************************************************************************/
+int handleGetCapability(uint16_t data_len, const uint8_t *p_data);
+/*******************************************************************************
+**
+** Function         phNxpNciHal_hndlVndSpecificAndroidCmd()
+**
+** Description      This handles the vendor specific command
+**
+** Returns          It returns number of bytes received.
+*******************************************************************************/
+int phNxpNciHal_hndlVndSpecificAndroidCmd(uint16_t data_len,
+                                          const uint8_t *p_data);
