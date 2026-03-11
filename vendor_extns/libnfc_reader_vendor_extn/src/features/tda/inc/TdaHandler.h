@@ -104,6 +104,8 @@ private:
   static constexpr uint8_t TRANSCIVE_TDA_GID_OID = 0x13;
   static constexpr uint8_t CLOSE_TDA_GID_OID = 0x14;
   static constexpr uint8_t GET_TDA_STATE_GID_OID = 0x15;
+  static constexpr uint8_t TRANSCIVE_CHAIN_TDA_GID_OID = 0x16;
+  std::vector<uint8_t> mTransceiveCommand;
 };
 /** @}*/
 #endif // TDA_HANDLER_H

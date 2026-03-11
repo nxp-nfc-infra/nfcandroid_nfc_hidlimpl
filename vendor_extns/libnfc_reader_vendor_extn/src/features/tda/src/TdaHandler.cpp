@@ -74,12 +74,12 @@ NFCSTATUS TdaHandler::handleVendorNciMessage(uint16_t dataLen,
   if (currentHandleType != HandlerType::TDA) {
     NfcExtensionController::getInstance()->switchEventHandler(HandlerType::TDA);
   }
+  response.push_back(NCI_PROP_RSP_VAL);
+  response.push_back(NCI_READER_PROP_OID_VAL);
 
   switch (subGidOid) {
   case DISCOVER_TDA_GID_OID: {
     tda_control_t tda_control;
-    response.push_back(NCI_PROP_RSP_VAL);
-    response.push_back(NCI_READER_PROP_OID_VAL);
     response.push_back(0x00); // Length to be modify after calculation
     response.push_back(DISCOVER_TDA_GID_OID);
     if (mTdaMngr->discover(&tda_control) == NFCSTATUS_EXTN_FEATURE_SUCCESS) {
@@ -133,8 +133,6 @@ NFCSTATUS TdaHandler::handleVendorNciMessage(uint16_t dataLen,
     uint8_t tdaId = pData[offset++];
     uint8_t standBy = pData[offset++];
     uint8_t cid;
-    response.push_back(NCI_PROP_RSP_VAL);
-    response.push_back(NCI_READER_PROP_OID_VAL);
     if (mTdaMngr->open(tdaId, standBy, cid) == NFCSTATUS_EXTN_FEATURE_SUCCESS) {
       response.push_back(0x03);
       response.push_back(OPEN_TDA_GID_OID);
@@ -150,11 +148,15 @@ NFCSTATUS TdaHandler::handleVendorNciMessage(uint16_t dataLen,
     status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
   } break;
   case TRANSCIVE_TDA_GID_OID: {
-    uint8_t command_len = pData[offset++];
-    std::vector<uint8_t> cmd(pData + offset, pData + offset + command_len);
+    std::vector<uint8_t> cmd;
     std::vector<uint8_t> transResponse;
-    response.push_back(NCI_PROP_RSP_VAL);
-    response.push_back(NCI_READER_PROP_OID_VAL);
+    if (payload_len > 1) {
+      cmd.assign(pData + offset, pData + offset + (payload_len - 1));
+    }
+    if (!mTransceiveCommand.empty()) {
+      cmd.insert(cmd.begin(), mTransceiveCommand.begin(), mTransceiveCommand.end());
+      mTransceiveCommand.clear();
+    }
     if (mTdaMngr->transceive(cmd, transResponse) ==
         NFCSTATUS_EXTN_FEATURE_SUCCESS) {
       response.push_back(transResponse.size() + 2);
@@ -171,11 +173,19 @@ NFCSTATUS TdaHandler::handleVendorNciMessage(uint16_t dataLen,
         response.size(), response.data());
     status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
   } break;
+  case TRANSCIVE_CHAIN_TDA_GID_OID: {
+     std::vector<uint8_t> cmd(pData + offset, pData + offset + (payload_len - 1));
+     mTransceiveCommand.insert(mTransceiveCommand.end(), cmd.begin(), cmd.end());
+     response.push_back(0x02);
+     response.push_back(TRANSCIVE_CHAIN_TDA_GID_OID);
+     response.push_back(RESPONSE_STATUS_OK);
+     PlatformAbstractionLayer::getInstance()->palSendNfcDataCallback(
+         response.size(), response.data());
+     status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
+  } break;
   case CLOSE_TDA_GID_OID: {
     uint8_t tdaId = pData[offset++];
     uint8_t standBy = pData[offset++];
-    response.push_back(NCI_PROP_RSP_VAL);
-    response.push_back(NCI_READER_PROP_OID_VAL);
     response.push_back(0x02);
     response.push_back(CLOSE_TDA_GID_OID);
     if (mTdaMngr->close(tdaId, standBy) == NFCSTATUS_EXTN_FEATURE_SUCCESS) {
@@ -188,8 +198,6 @@ NFCSTATUS TdaHandler::handleVendorNciMessage(uint16_t dataLen,
     status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
   } break;
   case GET_TDA_STATE_GID_OID: {
-    response.push_back(NCI_PROP_RSP_VAL);
-    response.push_back(NCI_READER_PROP_OID_VAL);
     system_state_t tdaState = mTdaMngr->getTdaState();
     response.push_back(0x03);
     response.push_back(GET_TDA_STATE_GID_OID);
