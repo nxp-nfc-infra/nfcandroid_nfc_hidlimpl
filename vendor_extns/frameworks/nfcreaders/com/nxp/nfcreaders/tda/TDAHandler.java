@@ -44,10 +44,12 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
     public static final byte NFC_TDA_TRANSACT_SUB_GID_OID = (byte) 0x13;
     public static final byte NFC_TDA_CLOSE_SUB_GID_OID = (byte) 0x14;
     public static final byte NFC_TDA_GET_STATE_SUB_GID_OID = (byte) 0x15;
+    public static final byte NFC_TDA_TRANSACT_CHAIN_SUB_GID_OID = (byte) 0x16;
 
     private final NfcOperations mNfcOperations;
     private final NxpNciPacketHandler mNxpNciPacketHandler;
 
+    private static final int MAX_TRANSCEIVE_LEN_SUPPORT = 251;
     private static final int STATUS_SUCCESS = 0x00;
     private static final int STATUS_FAILED = 0x01;
     private static final byte TDA_STATE_INIT = 0x00;
@@ -222,8 +224,8 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             NxpNfcLogger.e(TAG, "transceive: Invalid state");
             return null;
         }
-        if (tdaResult == null) {
-            NxpNfcLogger.e(TAG, "transceive: tdaResult is null");
+        if (tdaResult == null || cmd_data == null || cmd_data.length == 0) {
+            NxpNfcLogger.e(TAG, "transceive: invalid params");
             return null;
         }
         try {
@@ -231,12 +233,34 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             tdaResult.setError(TdaResult.RESULT_FAILURE);
             tdaResult.setException(TdaResult.RESULT_FAILURE);
             int responseOffset = 0;
-            byte[] preCmd = new byte[cmd_data.length + 2];
-            int commandOffset = 0;
-            preCmd[commandOffset++] = NFC_TDA_TRANSACT_SUB_GID_OID;
-            preCmd[commandOffset++] = (byte) cmd_data.length;
-            for (int cmdIndex = 0; cmdIndex < cmd_data.length; cmdIndex++) {
-                preCmd[commandOffset++] = cmd_data[cmdIndex];
+            byte[] preCmd;
+            if (cmd_data.length <= MAX_TRANSCEIVE_LEN_SUPPORT) {
+                preCmd = new byte[cmd_data.length + 1];
+                preCmd[0] = NFC_TDA_TRANSACT_SUB_GID_OID;
+                System.arraycopy(cmd_data, 0, preCmd, 1, cmd_data.length);
+            } else {
+                int offset = 0;
+                while (offset < cmd_data.length) {
+                    if (offset + MAX_TRANSCEIVE_LEN_SUPPORT > cmd_data.length) {
+                        break;
+                    }
+                    byte[] chainedData = new byte[MAX_TRANSCEIVE_LEN_SUPPORT + 1];
+                    chainedData[0] = NFC_TDA_TRANSACT_CHAIN_SUB_GID_OID;
+                    System.arraycopy(cmd_data, offset, chainedData, 1, MAX_TRANSCEIVE_LEN_SUPPORT);
+                    offset += MAX_TRANSCEIVE_LEN_SUPPORT;
+                    byte[] resp = mNxpNciPacketHandler.sendVendorNciMessage(
+                            NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, chainedData);
+                    if (resp == null || resp.length < 2
+                            || resp[responseOffset++] != NFC_TDA_TRANSACT_CHAIN_SUB_GID_OID
+                            || resp[responseOffset++] != NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
+                        NxpNfcLogger.e(TAG, "transceive: Failed for chaining pkt");
+                        return null;
+                    }
+                }
+                preCmd = new byte[(cmd_data.length - offset) + 1];
+                preCmd[0] = NFC_TDA_TRANSACT_SUB_GID_OID;
+                System.arraycopy(cmd_data, offset, preCmd, 1, cmd_data.length - offset);
+                responseOffset = 0;
             }
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
                     NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
