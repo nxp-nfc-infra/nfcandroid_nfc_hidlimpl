@@ -25,6 +25,7 @@ import android.annotation.RequiresPermission;
 import android.nfc.NfcAdapter;
 import com.nxp.nfcreaders.tda.NfcTDAInfo;
 import com.nxp.nfcreaders.dynamicpower.DynamicPowerResult;
+import com.nxp.nfcreaders.dynamicpower.DynamicPowerHandler;
 import com.nxp.nfcreaders.tda.TdaResult;
 import com.nxp.nfcreaders.tda.TDAHandler;
 import com.nxp.nfcreaders.utils.NxpNfcLogger;
@@ -34,9 +35,11 @@ public final class NxpNfcAdapter implements INxpNfcAdapter {
 
     private static NxpNfcAdapter sNxpNfcAdapter;
     private static TDAHandler sTDAHandler;
+    private static DynamicPowerHandler sDynamicPowerHandler;
 
     private NxpNfcAdapter(NfcAdapter nfcAdapter) {
         sTDAHandler = new TDAHandler(nfcAdapter);
+        sDynamicPowerHandler = new DynamicPowerHandler(nfcAdapter);
     }
 
     /**
@@ -74,14 +77,7 @@ public final class NxpNfcAdapter implements INxpNfcAdapter {
      */
     @RequiresPermission(android.Manifest.permission.NFC)
     public DynamicPowerResult setDynamicPowerConfig(byte[] pwrConfig) {
-       /* try {
-            return sNxpService.setDynamicPowerConfig(pwrConfig);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }*/
-//TODO : Yet to implement handler for this api
-        return null;
+        return sDynamicPowerHandler.setDynamicPowerConfig(pwrConfig);
     }
 
     @RequiresPermission(android.Manifest.permission.NFC)
