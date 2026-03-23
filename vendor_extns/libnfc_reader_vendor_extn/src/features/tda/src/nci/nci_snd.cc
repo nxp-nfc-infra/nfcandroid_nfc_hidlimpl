@@ -323,19 +323,20 @@ NFC_STATUS send_nfc_ct_data(uint8_t *p_data, uint16_t data_len) {
 
   g_tda_ctrl.ret_status = NFC_STATUS_SUCCESS;
   if (data_len > MAX_FRAGMENT_SIZE) {
-    while (data_len > MAX_FRAGMENT_SIZE) {
+    uint8_t pbf_n_conn_id = PBF_SEGMENT_MSG | (*p_data);
+    p_data += NCI_PKT_HDR_SIZE;
+    data_len -=NCI_PKT_HDR_SIZE;
+    while (data_len > (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE)) {
       CT_SET_CHAINED_CMD_DATA();
-      uint8_t pbf_n_conn_id = PBF_SEGMENT_MSG | (*p_data);
       OSAL_LOG_NFCHAL_D(
           "%s sending segment packet data_len:%02x, pbf_n_conn_id:%02x\n",
           __func__, data_len, pbf_n_conn_id);
-      send_nfc_ct_data_impl(pbf_n_conn_id, p_data + NCI_PKT_HDR_SIZE,
-                              MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE);
-      data_len -= MAX_FRAGMENT_SIZE;
-      p_data += MAX_FRAGMENT_SIZE;
+      send_nfc_ct_data_impl(pbf_n_conn_id, p_data, (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE));
+      data_len -= (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE);
+      p_data += (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE);
     }
     if (data_len > 0) {
-      uint8_t pbf_n_conn_id = (PBF_COMPLETE_MSG | act_conn_id);
+      pbf_n_conn_id = (PBF_COMPLETE_MSG | act_conn_id);
       OSAL_LOG_NFCHAL_D("%s pbf_n_conn_id:%d, data_len:%d\n", __func__,
                           pbf_n_conn_id, data_len);
       send_nfc_ct_data_impl(pbf_n_conn_id, p_data, data_len);
