@@ -250,6 +250,7 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
                     offset += MAX_TRANSCEIVE_LEN_SUPPORT;
                     byte[] resp = mNxpNciPacketHandler.sendVendorNciMessage(
                             NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, chainedData);
+                    responseOffset = 0;
                     if (resp == null || resp.length < 2
                             || resp[responseOffset++] != NFC_TDA_TRANSACT_CHAIN_SUB_GID_OID
                             || resp[responseOffset++] != NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
