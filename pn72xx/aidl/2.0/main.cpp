@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2025 NXP
+ *  Copyright 2025, 2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,19 +46,26 @@ void startNxpNfcAidlService() {
 }
 
 int main() {
-  ALOGI("NFC AIDL HAL starting up");
-  if (!ABinderProcess_setThreadPoolMaxThreadCount(1)) {
-    ALOGE("failed to set thread pool max thread count");
-    return 1;
+  try {
+    ALOGI("NFC AIDL HAL starting up");
+    if (!ABinderProcess_setThreadPoolMaxThreadCount(1)) {
+      ALOGE("failed to set thread pool max thread count");
+      return 1;
+    }
+    std::shared_ptr<Nfc> nfc_service = ndk::SharedRefBase::make<Nfc>();
+    const std::string nfcInstName =
+        std::string() + Nfc::descriptor + "/default";
+    binder_status_t status = AServiceManager_addService(
+        nfc_service->asBinder().get(), nfcInstName.c_str());
+    CHECK(status == STATUS_OK);
+    std::thread t1(startNxpNfcAidlService);
+    ABinderProcess_joinThreadPool();
+    return 0;
+  } catch (const std::length_error &e) {
+    ALOGE("Length error during startup: %s", e.what());
+    return 2;
+  } catch (const std::exception &e) {
+    ALOGE("Unhandled std::exception during startup: %s", e.what());
+    return 3;
   }
-  std::shared_ptr<Nfc> nfc_service = ndk::SharedRefBase::make<Nfc>();
-
-  const std::string nfcInstName = std::string() + Nfc::descriptor + "/default";
-  binder_status_t status = AServiceManager_addService(
-      nfc_service->asBinder().get(), nfcInstName.c_str());
-  CHECK(status == STATUS_OK);
-
-  thread t1(startNxpNfcAidlService);
-  ABinderProcess_joinThreadPool();
-  return 0;
 }
