@@ -87,14 +87,14 @@ void phNxpExtn_LibSetup() {
   nciMsgDeferredData.tTransactionInfo.pBuff =
       static_cast<uint8_t*>(calloc(NCI_MAX_DATA_LEN, sizeof(uint8_t)));
   if (nciMsgDeferredData.tTransactionInfo.pBuff == NULL) {
-    NXPLOG_NCIHAL_E("%s Failed to allocate transaction buffer");
+    NXPLOG_NCIHAL_E("%s Failed to allocate transaction buffer", __func__);
     phNxpExtn_LibClose();
     return;
   }
   nciRspNtfDeferredData.tTransactionInfo.pBuff =
       static_cast<uint8_t*>(calloc(NCI_MAX_DATA_LEN, sizeof(uint8_t)));
   if (nciRspNtfDeferredData.tTransactionInfo.pBuff == NULL) {
-    NXPLOG_NCIHAL_E("%s Failed to allocate transaction buffer");
+    NXPLOG_NCIHAL_E("%s Failed to allocate transaction buffer", __func__);
     phNxpExtn_LibClose();
     return;
   }
