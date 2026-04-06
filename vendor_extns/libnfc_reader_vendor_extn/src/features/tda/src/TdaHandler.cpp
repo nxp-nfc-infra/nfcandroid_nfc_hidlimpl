@@ -21,13 +21,13 @@
 #include "NfcExtensionController.h"
 #include "NfcExtensionWriter.h"
 #include "PlatformAbstractionLayer.h"
-#include "Tda.h"
 #include <phNxpLog.h>
 
-Tda *mTdaMngr = Tda::getInstance();
+Tda* TdaHandler::mTdaMngr = nullptr;
 
 TdaHandler::TdaHandler() {
   NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN, "%s Enter", __func__);
+  mTdaMngr = Tda::getInstance();
 }
 
 TdaHandler::~TdaHandler() {

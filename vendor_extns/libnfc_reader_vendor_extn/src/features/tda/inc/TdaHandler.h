@@ -22,6 +22,7 @@
 #include "IEventHandler.h"
 #include <cstdint>
 #include <vector>
+#include "Tda.h"
 
 /** \addtogroup TDA_HANDLER_API_INTERFACE
  *  @brief  interface to perform the TDA feature functionality.
@@ -98,6 +99,7 @@ public:
   NFCSTATUS processExtnWrite(uint16_t *dataLen, uint8_t *pData) override;
 
 private:
+  static Tda* mTdaMngr;
   static constexpr uint8_t TDA_SUB_GID = 0x01;
   static constexpr uint8_t DISCOVER_TDA_GID_OID = 0x11;
   static constexpr uint8_t OPEN_TDA_GID_OID = 0x12;
