@@ -392,7 +392,7 @@ static void *phTmlNfc_TmlThread(void *pParam) {
           }
           usleep(readRetryDelay * 1000);
           sem_post(&gpphTmlNfc_Context->rxSemaphore);
-        } else if (dwNoBytesWrRd > 260) {
+        } else if (dwNoBytesWrRd < 0 || dwNoBytesWrRd > 260) {
           NXPLOG_TML_E("Numer of bytes read exceeds the limit 260.....\n");
           readRetryDelay = 0;
           sem_post(&gpphTmlNfc_Context->rxSemaphore);
