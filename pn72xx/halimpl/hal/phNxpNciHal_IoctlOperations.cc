@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021,2023-2024 NXP
+ * Copyright 2019-2021,2023-2024, 2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ int property_get_intf(const char *propName, char *valueStr,
   string propValueDefault = defaultStr;
   int len = 0;
 
-  propValue = phNxpNciHal_getSystemProperty(paramPropName);
+  propValue = phNxpNciHal_getSystemProperty(std::move(paramPropName));
   if (propValue.length() > 0) {
     NXPLOG_NCIHAL_D("property_get_intf , key[%s], propValue[%s], length[%zu]",
                     propName, propValue.c_str(), propValue.length());
@@ -117,7 +117,7 @@ int property_set_intf(const char *propName, const char *valueStr) {
   string paramPropName = propName;
   string propValue = valueStr;
   NXPLOG_NCIHAL_D("property_set_intf, key[%s], value[%s]", propName, valueStr);
-  if (phNxpNciHal_setSystemProperty(paramPropName, propValue))
+  if (phNxpNciHal_setSystemProperty(std::move(paramPropName), std::move(propValue)))
     return NFCSTATUS_SUCCESS;
   else
     return NFCSTATUS_FAILED;
@@ -293,7 +293,7 @@ bool phNxpNciHal_setSystemProperty(string key, string value) {
     NXPLOG_NCIHAL_E("%s : nci_timeout, sem post", __func__);
     sem_post(&(nxpncihal_ctrl.syncSpiNfc));
   }
-  gsystemProperty[key] = value;
+  gsystemProperty[key] = std::move(value);
   return stat;
 }
 
