@@ -113,7 +113,7 @@ void RfStateMonitor::updateNfcRfState(NfcRfState state) {
   const NfcRfState old_state = nfcRfState;
   NXPLOG_EXTNS_D(NXPLOG_ITEM_NXP_GEN_EXTN,
                  "RfStateMonitor %s: RF state old:%d new:%d", __func__,
-                 old_state, state);
+                 static_cast<int>(old_state), static_cast<int>(state));
   nfcRfState = state;
 }
 
