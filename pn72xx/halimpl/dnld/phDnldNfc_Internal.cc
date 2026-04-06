@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 NXP
+ * Copyright 2010-2024,2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1002,7 +1002,10 @@ static void phDnldNfc_RspTimeOutCb(uint32_t TimerId, void *pContext) {
       }
 #endif
 
-      (pDlCtxt->TimerInfo.wTimerExpStatus) = NFCSTATUS_RF_TIMEOUT;
+      {
+        NfcHalAutoThreadMutex a(sProcessRwSeqStateLock);
+        (pDlCtxt->TimerInfo.wTimerExpStatus) = NFCSTATUS_RF_TIMEOUT;
+      }
 
       if ((phDnldNfc_EventRead == pDlCtxt->tCurrEvent) ||
           (phDnldNfc_EventWrite == pDlCtxt->tCurrEvent)) {
@@ -1038,13 +1041,15 @@ static void phDnldNfc_ResendTimeOutCb(uint32_t TimerId, void *pContext) {
     if (1 == pDlCtxt->TimerInfo.TimerStatus) {
       /* No response received and the timer expired */
       pDlCtxt->TimerInfo.TimerStatus = 0; /* Reset timer status flag */
+      {
+        const NfcHalAutoThreadMutex a(sProcessRwSeqStateLock);
+        (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
 
-      (pDlCtxt->TimerInfo.wTimerExpStatus) = 0;
+        pDlCtxt->tCurrState = phDnldNfc_StateSend;
 
-      pDlCtxt->tCurrState = phDnldNfc_StateSend;
-
-      /* set the flag to trigger last frame re-transmission */
-      pDlCtxt->bResendLastFrame = true;
+        /* set the flag to trigger last frame re-transmission */
+        pDlCtxt->bResendLastFrame = true;
+      }
 
       phDnldNfc_ProcessRWSeqState(pDlCtxt, NULL);
     }
