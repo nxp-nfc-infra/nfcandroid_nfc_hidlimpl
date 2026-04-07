@@ -19,9 +19,6 @@
 #include <dlfcn.h>
 #include <phNxpLog.h>
 #include <phNxpNciHal.h>
-//#include "NfcWriter.h"
-//#include "NxpNfcExtension.h"
-#include "phNxpNciHal_WriterThread.h"
 
 extern phNxpNciHal_Control_t nxpncihal_ctrl;
 extern phTmlNfc_Context_t* gpphTmlNfc_Context;
@@ -51,8 +48,6 @@ std::string mLibPathName = "/system/vendor/lib64/" + mLibName;
 #else
 std::string mLibPathName = "/system/vendor/lib/" + mLibName;
 #endif
-
-extern phNxpNciHal_WriterThread& g_writerThread;
 
 void phNxpExtn_LibSetup() {
   NXPLOG_NCIHAL_D("%s Enter", __func__);
@@ -231,7 +226,7 @@ NFCSTATUS phNxpHal_EnqueueWrite(uint8_t* pBuffer, uint16_t wLength) {
     NXPLOG_NCIHAL_E("%s Invalid input buffer", __func__);
     return NFCSTATUS_FAILED;
   }
-  if (!g_writerThread.Post(pBuffer, wLength)) {
+  if (!getWriterThread().Post(pBuffer, wLength)) {
     NXPLOG_NCIHAL_E("%s Failed to post msg to WriterThread", __func__);
     return NFCSTATUS_FAILED;
   }

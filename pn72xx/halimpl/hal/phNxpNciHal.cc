@@ -34,8 +34,6 @@
 #include "NfccTransportFactory.h"
 #include "NxpNfcThreadMutex.h"
 #include "phNxpNciHal_IoctlOperations.h"
-#include "phNxpNciHal_ReaderThread.h"
-#include "phNxpNciHal_WriterThread.h"
 #include "phNxpNciHal_extOperations.h"
 
 #include <sys/system_properties.h>
@@ -64,10 +62,6 @@ static uint8_t fw_download_success = 0;
 uint8_t anti_tearing_recovery_success = 0;
 static uint8_t config_access = false;
 static uint8_t config_success = true;
-phNxpNciHal_ReaderThread& g_readerThread =
-    phNxpNciHal_ReaderThread::getInstance();
-phNxpNciHal_WriterThread& g_writerThread =
-    phNxpNciHal_WriterThread::getInstance();
 static NfcHalThreadMutex sHalFnLock;
 
 extern phNxpNciClock_t phNxpNciClock;
@@ -172,6 +166,28 @@ static NFCSTATUS phNxpNciHal_enableTmlRead();
 static NFCSTATUS phNxpNciHal_CheckRFCmdRespStatus();
 static NFCSTATUS phNxpNciHalRFConfigCmdRecSequence();
 NFCSTATUS phNxpNciHal_china_tianjin_rf_setting(void);
+/******************************************************************************
+ * Function         getReaderThread
+ *
+ * Description      This function returns the instance of the Reader Thread
+ *
+ * Returns          Instance of the Reader Thread
+ *
+ ******************************************************************************/
+phNxpNciHal_ReaderThread& getReaderThread() {
+    return phNxpNciHal_ReaderThread::getInstance();
+}
+/******************************************************************************
+ * Function         getWriterThread
+ *
+ * Description      This function returns the instance of the Writer Thread
+ *
+ * Returns          Instance of the Writer Thread
+ *
+ ******************************************************************************/
+phNxpNciHal_WriterThread& getWriterThread() {
+    return phNxpNciHal_WriterThread::getInstance();
+}
 /******************************************************************************
  * Function         phNxpNciHal_initialize_debug_enabled_flag
  *
@@ -570,19 +586,19 @@ int phNxpNciHal_MinOpen() {
   memset(mGetCfg_info, 0x00, sizeof(phNxpNci_getCfg_info_t));
 
   /* Create the writer thread */
-  if (g_writerThread.Start() != true) {
+  if (getWriterThread().Start() != true) {
     NXPLOG_NCIHAL_E("writer thread create failed");
     CONCURRENCY_UNLOCK();
     return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
   }
 
     /* Create the client thread */
-  if (g_readerThread.Start() != true) {
+  if (getReaderThread().Start() != true) {
     NXPLOG_NCIHAL_E("reader thread create failed");
     CONCURRENCY_UNLOCK();
     return phNxpNciHal_MinOpen_Clean(nfc_dev_node);
   }
-  nxpncihal_ctrl.gDrvCfg.nClientId = g_readerThread.GetMsgQueue();
+  nxpncihal_ctrl.gDrvCfg.nClientId = getReaderThread().GetMsgQueue();
   tOsalConfig.dwCallbackThreadId = (uintptr_t)nxpncihal_ctrl.gDrvCfg.nClientId;
   tTmlConfig.dwGetMsgThreadId = nxpncihal_ctrl.gDrvCfg.nClientId;
   /* Set Default Fragment Length */
@@ -2458,10 +2474,10 @@ close_and_return:
 
     status = phTmlNfc_Shutdown();
 
-    if (true != g_readerThread.Stop()) {
+    if (true != getReaderThread().Stop()) {
       NXPLOG_TML_E("Fail to kill Reader thread!");
     }
-    if (true != g_writerThread.Stop()) {
+    if (true != getWriterThread().Stop()) {
       NXPLOG_TML_E("Fail to kill Writer thread!");
     }
 
@@ -2602,7 +2618,7 @@ int phNxpNciHal_control_granted(void) {
   msg.eMsgType = HAL_CTRL_GRANTED_MSG;
   msg.pMsgData = NULL;
   msg.Size = 0;
-  if (g_writerThread.Post(msg)) {
+  if (getWriterThread().Post(msg)) {
     /* At the end concurrency unlock so calls from upper layer will
      * be allowed
      */

@@ -21,6 +21,8 @@
 #include "phNxpNciHal_IoctlOperations.h"
 #include <hardware/nfc.h>
 #include <phNxpNciHal_utils.h>
+#include "phNxpNciHal_ReaderThread.h"
+#include "phNxpNciHal_WriterThread.h"
 
 
 /********************* Definitions and structures *****************************/
@@ -345,6 +347,26 @@ NFCSTATUS phNxpNciHal_check_clock_config(void);
 NFCSTATUS phNxpNciHal_CheckValidFwVersion(void);
 
 NFCSTATUS phNxpNciHal_send_nfcee_pwr_cntl_cmd(uint8_t type);
+/******************************************************************************
+ * Function         getReaderThread
+ *
+ * Description      This function returns the instance of the Reader Thread
+ *
+ * Returns          Instance of the Reader Thread
+ *
+ ******************************************************************************/
+phNxpNciHal_ReaderThread& getReaderThread();
+
+/******************************************************************************
+ * Function         getWriterThread
+ *
+ * Description      This function returns the instance of the Writer Thread
+ *
+ * Returns          Instance of the Writer Thread
+ *
+ ******************************************************************************/
+phNxpNciHal_WriterThread& getWriterThread();
+
 /*******************************************************************************
 **
 ** Function         phNxpNciHal_configFeatureList
