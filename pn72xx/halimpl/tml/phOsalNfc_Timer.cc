@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014, 2020,2023-2024 NXP
+ * Copyright 2010-2014, 2020,2023-2024,2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@
 #include <phNxpNciHal.h>
 #include <phOsalNfc_Timer.h>
 #include <signal.h>
+#include "NxpNfcThreadMutex.h"
 
 #define PH_NFC_MAX_TIMER (5U)
 static phOsalNfc_TimerHandle_t apTimerInfo[PH_NFC_MAX_TIMER];
 
 extern phNxpNciHal_Control_t nxpncihal_ctrl;
+static NfcHalThreadMutex sPostTimerMsgLock;
 
 /*
  * Defines the base address for generating timerid.
@@ -346,6 +348,7 @@ static void phOsalNfc_DeferredCall(void *pParams) {
 **
 *******************************************************************************/
 static void phOsalNfc_PostTimerMsg(phLibNfc_Message_t *pMsg) {
+  NfcHalAutoThreadMutex a(sPostTimerMsgLock);
   (void)phDal4Nfc_msgsnd(
       nxpncihal_ctrl.gDrvCfg
           .nClientId /*gpphOsalNfc_Context->dwCallbackThreadID*/,
