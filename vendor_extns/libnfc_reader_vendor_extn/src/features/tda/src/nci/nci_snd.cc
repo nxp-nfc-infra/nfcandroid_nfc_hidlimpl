@@ -325,13 +325,14 @@ NFC_STATUS send_nfc_ct_data(uint8_t *p_data, uint16_t data_len) {
   if (data_len > MAX_FRAGMENT_SIZE) {
     uint8_t pbf_n_conn_id = PBF_SEGMENT_MSG | (*p_data);
     p_data += NCI_PKT_HDR_SIZE;
-    data_len -=NCI_PKT_HDR_SIZE;
+    data_len -= NCI_PKT_HDR_SIZE;
     while (data_len > (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE)) {
       CT_SET_CHAINED_CMD_DATA();
       OSAL_LOG_NFCHAL_D(
           "%s sending segment packet data_len:%02x, pbf_n_conn_id:%02x\n",
           __func__, data_len, pbf_n_conn_id);
-      send_nfc_ct_data_impl(pbf_n_conn_id, p_data, (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE));
+      send_nfc_ct_data_impl(pbf_n_conn_id, p_data,
+                            (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE));
       data_len -= (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE);
       p_data += (MAX_FRAGMENT_SIZE - NCI_PKT_HDR_SIZE);
     }

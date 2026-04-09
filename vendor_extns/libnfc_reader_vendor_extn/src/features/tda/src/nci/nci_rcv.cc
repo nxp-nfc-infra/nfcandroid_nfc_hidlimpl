@@ -419,8 +419,7 @@ NFC_STATUS proc_tda_rsp_ntf(uint8_t *p_ntf, uint16_t p_len) {
           release_ct_lock();
         }
       } else if (is_ct_data_credit_received(p_ntf, p_len)) {
-        OSAL_LOG_NFCHAL_D("%s credit ntf received  \n",
-                            __func__);
+        OSAL_LOG_NFCHAL_D("%s credit ntf received  \n", __func__);
       } else {
         status = NFC_STATUS_FAIL;
       }
