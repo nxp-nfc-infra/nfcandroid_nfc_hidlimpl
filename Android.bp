@@ -33,5 +33,5 @@ license {
 }
 
 subdirs = [
-    "pn72xx","intf",
+    "nfc_reader","intf",
 ]
