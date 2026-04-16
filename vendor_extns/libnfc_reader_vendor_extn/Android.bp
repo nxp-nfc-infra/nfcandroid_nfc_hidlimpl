@@ -83,12 +83,12 @@ cc_library_shared {
         "src/pal/vendor_ext/PlatformAbstractionLayer.cpp",
     ],
     include_dirs: [
-        "hardware/nxp/nfc/pn72xx/halimpl/common",
-        "hardware/nxp/nfc/pn72xx/halimpl/hal",
-        "hardware/nxp/nfc/pn72xx/halimpl/nfc_extn",
-        "hardware/nxp/nfc/pn72xx/halimpl/tml",
+        "hardware/nxp/nfc/nfc_reader/halimpl/common",
+        "hardware/nxp/nfc/nfc_reader/halimpl/hal",
+        "hardware/nxp/nfc/nfc_reader/halimpl/nfc_extn",
+        "hardware/nxp/nfc/nfc_reader/halimpl/tml",
     ],
     shared_libs: [
-        "nfc_nci_nxp_pn72xx",
+        "nfc_nci_nxp_nfc_reader",
     ],
 }
