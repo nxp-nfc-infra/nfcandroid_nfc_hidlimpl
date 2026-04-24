@@ -1377,7 +1377,7 @@ static void phNxpNciHal_read_complete(void *pContext,
                (nxpncihal_ctrl.p_rx_data[0x00] == 0x00)) {
       sendRspToUpperLayer = true;
       NFCSTATUS mfcRspStatus = NxpMfcReaderInstance.CheckMfcResponse(
-          nxpncihal_ctrl.p_rx_data, nxpncihal_ctrl.rx_data_len);
+          &nxpncihal_ctrl.p_rx_data, &nxpncihal_ctrl.rx_data_len);
       NXPLOG_NCIHAL_D("Mfc Response Status = 0x%x", mfcRspStatus);
       SEM_POST(&(nxpncihal_ctrl.ext_cb_data));
     }
