@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2019-2020,2023-2024 NXP
+ *  Copyright 2019-2020,2023-2024,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -119,8 +119,8 @@ private:
 public:
   int Write(uint16_t mfcDataLen, const uint8_t *pMfcData);
   NFCSTATUS AnalyzeMfcResp(uint8_t *pBuff, uint16_t *pBufflen);
-  NFCSTATUS CheckMfcResponse(uint8_t *pTransceiveData,
-                             uint16_t transceiveDataLen);
+  NFCSTATUS CheckMfcResponse(uint8_t **pTransceiveData,
+                             uint16_t *transceiveDataLen);
   void MfcNotifyOnAckReceived(uint8_t *buff);
   NFCSTATUS MfcWaitForAck();
   static NxpMfcReader &getInstance();

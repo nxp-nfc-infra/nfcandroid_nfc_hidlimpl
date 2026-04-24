@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2019-2021,2023-2024 NXP
+ *  Copyright 2019-2021,2023-2024,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -441,28 +441,28 @@ NFCSTATUS NxpMfcReader::AnalyzeMfcResp(uint8_t *pBuff, uint16_t *pBufflen) {
 **                  NFCSTATUS_FAILED
 **
 *******************************************************************************/
-NFCSTATUS NxpMfcReader::CheckMfcResponse(uint8_t *pTransceiveData,
-                                         uint16_t transceiveDataLen) {
+NFCSTATUS NxpMfcReader::CheckMfcResponse(uint8_t **pTransceiveData,
+                                         uint16_t *transceiveDataLen) {
   NFCSTATUS status = NFCSTATUS_SUCCESS;
 
-  if (transceiveDataLen == 3) {
-    if ((pTransceiveData)[0] == 0x10 && (pTransceiveData)[1] != 0x0A) {
+  if (*transceiveDataLen == 3) {
+    if ((*pTransceiveData)[0] == 0x10 && (*pTransceiveData)[1] != 0x0A) {
       NXPLOG_NCIHAL_E("Mifare Error in payload response");
-      transceiveDataLen = 0x1;
-      pTransceiveData += 1;
+      *transceiveDataLen = 0x1;
+      (*pTransceiveData) += 1;
       return NFCSTATUS_FAILED;
     }
   }
-  if ((pTransceiveData)[0] == 0x40) {
-    pTransceiveData += 1;
-    transceiveDataLen = 0x01;
-    if ((pTransceiveData)[0] == 0x03) {
-      transceiveDataLen = 0x00;
+  if ((*pTransceiveData)[0] == 0x40) {
+    (*pTransceiveData) += 1;
+    *transceiveDataLen = 0x01;
+    if ((*pTransceiveData)[0] == 0x03) {
+      *transceiveDataLen = 0x00;
       status = NFCSTATUS_FAILED;
     }
-  } else if ((pTransceiveData)[0] == 0x10) {
-    pTransceiveData += 1;
-    transceiveDataLen = 0x10;
+  } else if ((*pTransceiveData)[0] == 0x10) {
+    (*pTransceiveData) += 1;
+    *transceiveDataLen = 0x10;
   }
   return status;
 }
