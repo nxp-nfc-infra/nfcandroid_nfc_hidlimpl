@@ -65,7 +65,7 @@ ConfigValue::ConfigValue() {
   value_unsigned_ = 0;
 }
 
-ConfigValue::ConfigValue(std::string value) {
+ConfigValue::ConfigValue(const std::string& value) {
   // Don't allow empty strings
   CHECK(!(value.empty()));
   type_ = STRING;
@@ -85,7 +85,7 @@ ConfigValue::ConfigValue(std::vector<int8_t> value) {
   value_unsigned_ = 0;
 }
 
-ConfigValue::ConfigValue(std::vector<uint8_t> value) {
+ConfigValue::ConfigValue(const std::vector<uint8_t>& value) {
   CHECK(!(value.empty()));
   type_ = BYTES;
   value_bytes_ = value;
