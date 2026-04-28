@@ -53,6 +53,11 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
     private static final int STATUS_SUCCESS = 0x00;
     private static final int STATUS_FAILED = 0x01;
     private static final byte TDA_STATE_INIT = 0x00;
+    private static final byte DISABLE_TDA = 0x00;
+    private static final byte ENABLE_TDA = 0x01;
+    private static final byte CONF_GID = 0x20;
+    private static final byte SET_CONF_OID = 0x02;
+    private static final byte GET_CONF_OID = 0x03;
 
     public TDAHandler(NfcAdapter nfcAdapter) {
         this.mNxpNciPacketHandler = NxpNciPacketHandler.getInstance(nfcAdapter);
@@ -99,6 +104,11 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             if (isDiscoveryStopRequiredForTDA()) {
                 mNfcOperations.startDiscovery(false);
                 enableDiscovery = true;
+                if (getTDAConfig() == DISABLE_TDA) {
+                    if (!setTDAConfig(ENABLE_TDA)) {
+                        NxpNfcLogger.e(TAG, "discoverTDA: Failed to enable tda config");
+                    }
+                }
             }
             byte[] preCmd = {NFC_TDA_DISCOVER_SUB_GID_OID};
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
@@ -319,6 +329,13 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if (getTDAConfig() != DISABLE_TDA) {
+            mNfcOperations.startDiscovery(false);
+            if (!setTDAConfig(DISABLE_TDA)) {
+                NxpNfcLogger.e(TAG, "closeTDA: Failed to enable tda config");
+            }
+            mNfcOperations.startDiscovery(true);
+        }
         return;
     }
 
@@ -343,6 +360,53 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private boolean setTDAConfig(byte value) {
+        try {
+            byte[] setConfig = {0x01, (byte) 0xA1, (byte) 0xE6, 0x01, value};
+            int responseOffset = 0;
+            mNxpNciPacketHandler.shouldCheckResponseSubGid(false);
+            byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(CONF_GID,
+                    SET_CONF_OID, setConfig);
+            mNxpNciPacketHandler.shouldCheckResponseSubGid(true);
+            if (vendorRsp != null && vendorRsp.length > 0
+                    && vendorRsp[0] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
+                NxpNfcLogger.d(TAG, "SuccessFully updated the tda config to " + value);
+                return true;
+            } else {
+                NxpNfcLogger.e(TAG, "Failed to update TDA config");
+            }
+        } catch (Exception e) {
+            NxpNfcLogger.e(TAG, "Exception while updating TDA config " + e);
+        }
+        return false;
+    }
+
+    private byte getTDAConfig() {
+        try {
+            int responseOffset = 0;
+            byte[] getConfig = {0x01, (byte) 0xA1, (byte) 0xE6};
+            mNxpNciPacketHandler.shouldCheckResponseSubGid(false);
+            byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(CONF_GID,
+                    GET_CONF_OID, getConfig);
+            mNxpNciPacketHandler.shouldCheckResponseSubGid(true);
+            if (vendorRsp != null && vendorRsp.length > 4
+                    && vendorRsp[responseOffset++] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
+                responseOffset++;
+                if (vendorRsp[responseOffset++] == (byte)0xA1 &&
+                        vendorRsp[responseOffset++] == (byte)0xE6) {
+                    responseOffset++;
+                    NxpNfcLogger.d(TAG, "Get TDA Config Success");
+                    return vendorRsp[responseOffset++];
+                }
+            } else {
+                NxpNfcLogger.e(TAG, "Send Vendor Failed");
+            }
+        } catch (Exception e) {
+            NxpNfcLogger.e(TAG, "Exception while updating TDA config " + e);
+        }
+        return -1;
     }
 
     @Override

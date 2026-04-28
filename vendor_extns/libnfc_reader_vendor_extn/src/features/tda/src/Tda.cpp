@@ -56,8 +56,6 @@ NFCSTATUS Tda::discover(tda_control_t *tda_data) {
       NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN, "%s TDA CT init Failed  ", __func__);
       return NFCSTATUS_FAILED;
     }
-   // TODO: Need to call the new set config to enable the TDA detetction
-   // in Discovery by default it will be disable
     unsigned long num = 0;
     if (GetNxpNumValue(NAME_NXP_CT_MAX_WTX_WAIT_TIME, &num, sizeof(num)) > 0) {
       set_max_wtx_timeout_value(num);
@@ -104,7 +102,6 @@ NFCSTATUS Tda::close(uint8_t tdaId, uint8_t standBy) {
   if (NFCSTATUS_SUCCESS == ct_close((int8_t) tdaId, (int8_t) standBy)) {
     status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
   }
-  // TODO: Need to call the new set config to disable the TDA detetction
   if (ct_de_init_ext() != NFCSTATUS_SUCCESS) {
     NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN, "%s TDA CT deinit Failed  ", __func__);
   }
