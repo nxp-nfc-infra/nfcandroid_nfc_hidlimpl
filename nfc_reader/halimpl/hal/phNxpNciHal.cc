@@ -166,6 +166,8 @@ static NFCSTATUS phNxpNciHal_enableTmlRead();
 static NFCSTATUS phNxpNciHal_CheckRFCmdRespStatus();
 static NFCSTATUS phNxpNciHalRFConfigCmdRecSequence();
 NFCSTATUS phNxpNciHal_china_tianjin_rf_setting(void);
+static bool phNxpNciHal_is_tda_config_enabled();
+static NFCSTATUS phNxpNciHal_reset_tda_eeprom(void);
 /******************************************************************************
  * Function         getReaderThread
  *
@@ -1588,6 +1590,9 @@ if (nfcFL.chipType != pn7160) {
 
   if (isNxpRfExtConfigModified()) {
     updateNxpRfExtConfigTimestamp();
+  }
+  if (phNxpNciHal_is_tda_config_enabled()) {
+    phNxpNciHal_reset_tda_eeprom();
   }
 } else {
       status = phNxpNciHal_core_initialized_pn7160(core_init_rsp_params_len,
@@ -3960,7 +3965,69 @@ int  phNxpNciHal_determineConfiguredClockSrc()
     return param_clock_src;
   }
 
-  /******************************************************************************
+/******************************************************************************
+ * Function         phNxpNciHal_reset_tda_eeprom
+ *
+ * Description      This function is called to update data in tda eeprom area
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
+static NFCSTATUS phNxpNciHal_reset_tda_eeprom(void) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  uint8_t retry_cnt = 0;
+  uint8_t cmd[] = {0x20, 0x02, 0x05, 0x01, 0xA1, 0xE6, 0x00};
+retry_send_ext:
+  if (retry_cnt > 3) {
+    return NFCSTATUS_FAILED;
+  }
+
+  status =
+      phNxpNciHal_send_ext_cmd(sizeof(cmd), cmd);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_D("unable to update the mw eeprom data");
+    retry_cnt++;
+    goto retry_send_ext;
+  }
+  return status;
+}
+
+/******************************************************************************
+ * Function         phNxpNciHal_is_tda_config_enabled
+ *
+ * Description      This function is called to check if tda config enabled from eeprom
+ *
+ * Returns          true if tda config enable else false.
+ *
+ ******************************************************************************/
+static bool phNxpNciHal_is_tda_config_enabled(void) {
+  NFCSTATUS status = NFCSTATUS_SUCCESS;
+  uint8_t retry_cnt = 0;
+  static uint8_t get_config[] = {0x20, 0x03, 0x03, 0x01, 0xA1, 0xE6};
+
+retry_send_ext:
+  if (retry_cnt > 3) {
+    return false;
+  }
+
+  status =
+      phNxpNciHal_send_ext_cmd(sizeof(get_config), get_config);
+  if (status != NFCSTATUS_SUCCESS) {
+    NXPLOG_NCIHAL_D("unable to get the tda config data");
+    retry_cnt++;
+    goto retry_send_ext;
+  }
+
+  if ((nxpncihal_ctrl.p_rsp_data[0x03] == 0x00) &&
+      (nxpncihal_ctrl.p_rsp_data[0x05] == 0xA1) &&
+      (nxpncihal_ctrl.p_rsp_data[0x06] == 0xE6) &&
+      (nxpncihal_ctrl.p_rsp_data[0x08] != 0x00)) {
+    return true;
+  }
+  return false;
+}
+
+/******************************************************************************
  * Function         phNxpNciHal_setVerboseLogging
  *
  * Description      This function enables the nfc_debug_enabled
