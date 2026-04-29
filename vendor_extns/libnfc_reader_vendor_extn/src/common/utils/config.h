@@ -46,7 +46,7 @@ class ConfigValue {
   ConfigValue();
   explicit ConfigValue(const std::string&);
   explicit ConfigValue(unsigned);
-  explicit ConfigValue(std::vector<uint8_t>);
+  explicit ConfigValue(std::vector<int8_t>);
   explicit ConfigValue(const std::vector<uint8_t>&);
   Type getType() const;
   std::string getString() const;
