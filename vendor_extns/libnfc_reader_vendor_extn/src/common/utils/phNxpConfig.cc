@@ -134,10 +134,10 @@ private:
   unsigned long m_numValue;
 };
 
-class CNfcConfig : public vector<const CNfcParam *> {
+class CVendorExtnConfig : public vector<const CNfcParam *> {
 public:
-  virtual ~CNfcConfig();
-  static CNfcConfig &GetInstance();
+  virtual ~CVendorExtnConfig();
+  static CVendorExtnConfig &GetInstance();
   friend void readOptionalConfig(const char *optional);
   bool isModified(tNXP_CONF_FILE aType);
   void resetModified(tNXP_CONF_FILE aType);
@@ -152,7 +152,7 @@ public:
   void clean();
 
 private:
-  CNfcConfig();
+  CVendorExtnConfig();
   bool readConfig(const char *name, bool bResetContent);
   void moveFromList();
   void moveToList();
@@ -255,7 +255,7 @@ bool findConfigFilePathFromTransportConfigPaths(const string &configName,
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::readConfig()
+** Function:    CVendorExtnConfig::readConfig()
 **
 ** Description: read Config settings and parse them into a linked list
 **              move the element from linked list to a array at the end
@@ -263,7 +263,7 @@ bool findConfigFilePathFromTransportConfigPaths(const string &configName,
 ** Returns:     1, if there are any config data, 0 otherwise
 **
 *******************************************************************************/
-bool CNfcConfig::readConfig(const char *name, bool bResetContent) {
+bool CVendorExtnConfig::readConfig(const char *name, bool bResetContent) {
   enum : uint8_t {
     BEGIN_LINE = 1,
     TOKEN,
@@ -441,39 +441,39 @@ bool CNfcConfig::readConfig(const char *name, bool bResetContent) {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::CNfcConfig()
+** Function:    CVendorExtnConfig::CVendorExtnConfig()
 **
 ** Description: class constructor
 **
 ** Returns:     none
 **
 *******************************************************************************/
-CNfcConfig::CNfcConfig()
+CVendorExtnConfig::CVendorExtnConfig()
     : mValidFile(true), config_crc32_(0), config_rf_crc32_(0),
       config_tr_crc32_(0), state(0) {}
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::~CNfcConfig()
+** Function:    CVendorExtnConfig::~CVendorExtnConfig()
 **
 ** Description: class destructor
 **
 ** Returns:     none
 **
 *******************************************************************************/
-CNfcConfig::~CNfcConfig() {}
+CVendorExtnConfig::~CVendorExtnConfig() {}
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::GetInstance()
+** Function:    CVendorExtnConfig::GetInstance()
 **
 ** Description: get class singleton object
 **
 ** Returns:     none
 **
 *******************************************************************************/
-CNfcConfig &CNfcConfig::GetInstance() {
-  static CNfcConfig theInstance;
+CVendorExtnConfig &CVendorExtnConfig::GetInstance() {
+  static CVendorExtnConfig theInstance;
 
   if (theInstance.size() == 0 && theInstance.mValidFile) {
     string strPath;
@@ -510,7 +510,7 @@ CNfcConfig &CNfcConfig::GetInstance() {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::getValue()
+** Function:    CVendorExtnConfig::getValue()
 **
 ** Description: get a string value of a setting
 **
@@ -518,7 +518,7 @@ CNfcConfig &CNfcConfig::GetInstance() {
 **              false if setting does not exist
 **
 *******************************************************************************/
-bool CNfcConfig::getValue(const char *name, char *pValue, size_t len) const {
+bool CVendorExtnConfig::getValue(const char *name, char *pValue, size_t len) const {
   const CNfcParam *pParam = find(name);
   if (pParam == NULL)
     return false;
@@ -531,7 +531,7 @@ bool CNfcConfig::getValue(const char *name, char *pValue, size_t len) const {
   return false;
 }
 
-bool CNfcConfig::getValue(const char *name, char *pValue, long len,
+bool CVendorExtnConfig::getValue(const char *name, char *pValue, long len,
                           long *readLen) const {
   const CNfcParam *pParam = find(name);
   if (pParam == NULL)
@@ -553,7 +553,7 @@ bool CNfcConfig::getValue(const char *name, char *pValue, long len,
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::getValue()
+** Function:    CVendorExtnConfig::getValue()
 **
 ** Description: get a long numerical value of a setting
 **
@@ -561,7 +561,7 @@ bool CNfcConfig::getValue(const char *name, char *pValue, long len,
 **              false if setting does not exist
 **
 *******************************************************************************/
-bool CNfcConfig::getValue(const char *name, unsigned long &rValue) const {
+bool CVendorExtnConfig::getValue(const char *name, unsigned long &rValue) const {
   const CNfcParam *pParam = find(name);
   if (pParam == NULL)
     return false;
@@ -575,7 +575,7 @@ bool CNfcConfig::getValue(const char *name, unsigned long &rValue) const {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::getValue()
+** Function:    CVendorExtnConfig::getValue()
 **
 ** Description: get a short numerical value of a setting
 **
@@ -583,7 +583,7 @@ bool CNfcConfig::getValue(const char *name, unsigned long &rValue) const {
 **              false if setting does not exist
 **
 *******************************************************************************/
-bool CNfcConfig::getValue(const char *name, unsigned short &rValue) const {
+bool CVendorExtnConfig::getValue(const char *name, unsigned short &rValue) const {
   const CNfcParam *pParam = find(name);
   if (pParam == NULL)
     return false;
@@ -597,14 +597,14 @@ bool CNfcConfig::getValue(const char *name, unsigned short &rValue) const {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::find()
+** Function:    CVendorExtnConfig::find()
 **
 ** Description: search if a setting exist in the setting array
 **
 ** Returns:     pointer to the setting object
 **
 *******************************************************************************/
-const CNfcParam *CNfcConfig::find(const char *p_name) const {
+const CNfcParam *CVendorExtnConfig::find(const char *p_name) const {
   if (size() == 0)
     return NULL;
 
@@ -628,42 +628,42 @@ const CNfcParam *CNfcConfig::find(const char *p_name) const {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::readNciUpdateConfig()
+** Function:    CVendorExtnConfig::readNciUpdateConfig()
 **
 ** Description: read Config settings from nci_update conf file
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::readNciUpdateConfig(const char *fileName) const {
+void CVendorExtnConfig::readNciUpdateConfig(const char *fileName) const {
   ALOGD("readNciUpdateConfig-Enter..Reading %s", fileName);
-  CNfcConfig::GetInstance().readConfig(fileName, false);
+  CVendorExtnConfig::GetInstance().readConfig(fileName, false);
 }
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::readNxpRFConfig()
+** Function:    CVendorExtnConfig::readNxpRFConfig()
 **
 ** Description: read Config settings from RF conf file
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::readNxpRFConfig(const char *fileName) const {
+void CVendorExtnConfig::readNxpRFConfig(const char *fileName) const {
   ALOGD("readNxpRFConfig-Enter..Reading %s", fileName);
-  CNfcConfig::GetInstance().readConfig(fileName, false);
+  CVendorExtnConfig::GetInstance().readConfig(fileName, false);
 }
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::clean()
+** Function:    CVendorExtnConfig::clean()
 **
 ** Description: reset the setting array
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::clean() {
+void CVendorExtnConfig::clean() {
   if (size() == 0)
     return;
 
@@ -674,14 +674,14 @@ void CNfcConfig::clean() {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::Add()
+** Function:    CVendorExtnConfig::Add()
 **
 ** Description: add a setting object to the list
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::add(const CNfcParam *pParam) {
+void CVendorExtnConfig::add(const CNfcParam *pParam) {
   if (m_list.size() == 0) {
     m_list.push_back(pParam);
     return;
@@ -707,14 +707,14 @@ void CNfcConfig::add(const CNfcParam *pParam) {
 }
 /*******************************************************************************
 **
-** Function:    CNfcConfig::dump()
+** Function:    CVendorExtnConfig::dump()
 **
 ** Description: prints all elements in the list
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::dump() {
+void CVendorExtnConfig::dump() {
   ALOGD("%s Enter", __func__);
 
   for (list<const CNfcParam *>::iterator it = m_list.begin(),
@@ -729,14 +729,14 @@ void CNfcConfig::dump() {
 }
 /*******************************************************************************
 **
-** Function:    CNfcConfig::isAllowed()
+** Function:    CVendorExtnConfig::isAllowed()
 **
 ** Description: checks if token update is allowed
 **
 ** Returns:     true if allowed else false
 **
 *******************************************************************************/
-bool CNfcConfig::isAllowed(const char *name) {
+bool CVendorExtnConfig::isAllowed(const char *name) {
   const string token(name);
   bool stat = false;
   if ((token.find("HOST_LISTEN_TECH_MASK") != std::string::npos) ||
@@ -756,14 +756,14 @@ bool CNfcConfig::isAllowed(const char *name) {
 }
 /*******************************************************************************
 **
-** Function:    CNfcConfig::moveFromList()
+** Function:    CVendorExtnConfig::moveFromList()
 **
 ** Description: move the setting object from list to array
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::moveFromList() {
+void CVendorExtnConfig::moveFromList() {
   if (m_list.size() == 0)
     return;
 
@@ -776,14 +776,14 @@ void CNfcConfig::moveFromList() {
 
 /*******************************************************************************
 **
-** Function:    CNfcConfig::moveToList()
+** Function:    CVendorExtnConfig::moveToList()
 **
 ** Description: move the setting object from array to list
 **
 ** Returns:     none
 **
 *******************************************************************************/
-void CNfcConfig::moveToList() {
+void CVendorExtnConfig::moveToList() {
   if (m_list.size() != 0)
     m_list.clear();
 
@@ -791,7 +791,7 @@ void CNfcConfig::moveToList() {
     m_list.push_back(*it);
   clear();
 }
-bool CNfcConfig::isModified(tNXP_CONF_FILE aType) {
+bool CVendorExtnConfig::isModified(tNXP_CONF_FILE aType) {
   FILE *fd = NULL;
   bool isModified = false;
 
@@ -837,7 +837,7 @@ bool CNfcConfig::isModified(tNXP_CONF_FILE aType) {
   return isModified;
 }
 
-void CNfcConfig::resetModified(tNXP_CONF_FILE aType) {
+void CVendorExtnConfig::resetModified(tNXP_CONF_FILE aType) {
   FILE *fd = NULL;
 
   ALOGD("resetModified enter; conf file type is %d", aType);
@@ -943,7 +943,7 @@ void readOptionalConfig(const char *extra) {
     findConfigFilePathFromTransportConfigPaths(configName, strPath);
   }
 
-  CNfcConfig::GetInstance().readConfig(strPath.c_str(), false);
+  CVendorExtnConfig::GetInstance().readConfig(strPath.c_str(), false);
 }
 
 /*******************************************************************************
@@ -957,7 +957,7 @@ void readOptionalConfig(const char *extra) {
 *******************************************************************************/
 extern "C" int GetNxpStrValue(const char *name, char *pValue,
                               unsigned long len) {
-  const CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  const CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
 
   return rConfig.getValue(name, pValue, len);
 }
@@ -981,7 +981,7 @@ extern "C" int GetNxpStrValue(const char *name, char *pValue,
 *******************************************************************************/
 extern "C" int GetNxpByteArrayValue(const char *name, char *pValue,
                                     long bufflen, long *len) {
-  const CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  const CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
 
   return rConfig.getValue(name, pValue, bufflen, len);
 }
@@ -1000,7 +1000,7 @@ extern "C" int GetNxpNumValue(const char *name, void *pValue,
   if (!pValue)
     return false;
 
-  const CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  const CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
   const CNfcParam *pParam = rConfig.find(name);
 
   if (pParam == NULL)
@@ -1056,7 +1056,7 @@ extern "C" void setNxpRfConfigPath(const char *name) {
 extern "C" void resetNxpConfig()
 
 {
-  CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
 
   rConfig.clean();
 }
@@ -1071,7 +1071,7 @@ extern "C" void resetNxpConfig()
 **
 *******************************************************************************/
 extern "C" int isNxpConfigModified() {
-  CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
   return rConfig.isModified(CONF_FILE_NXP);
 }
 
@@ -1086,7 +1086,7 @@ extern "C" int isNxpConfigModified() {
 *******************************************************************************/
 extern "C" int isNxpRFConfigModified() {
   int retRF = 0, retTransit = 0, ret = 0;
-  CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
   retRF = rConfig.isModified(CONF_FILE_NXP_RF);
   retTransit = rConfig.isModified(CONF_FILE_NXP_TRANSIT);
   ret = retRF | retTransit;
@@ -1104,7 +1104,7 @@ extern "C" int isNxpRFConfigModified() {
 **
 *******************************************************************************/
 extern "C" int updateNxpConfigTimestamp() {
-  CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
   rConfig.resetModified(CONF_FILE_NXP);
   return 0;
 }
@@ -1118,7 +1118,7 @@ extern "C" int updateNxpConfigTimestamp() {
 **
 *******************************************************************************/
 extern "C" int updateNxpRfConfigTimestamp() {
-  CNfcConfig &rConfig = CNfcConfig::GetInstance();
+  CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
   rConfig.resetModified(CONF_FILE_NXP_RF);
   rConfig.resetModified(CONF_FILE_NXP_TRANSIT);
   return 0;
