@@ -105,9 +105,10 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
                 mNfcOperations.startDiscovery(false);
                 enableDiscovery = true;
                 if (getTDAConfig() == DISABLE_TDA) {
-                    if (!setTDAConfig(ENABLE_TDA)) {
-                        NxpNfcLogger.e(TAG, "discoverTDA: Failed to enable tda config");
-                    }
+                  if (!setTDAConfig(ENABLE_TDA)) {
+                    NxpNfcLogger.e(TAG,
+                                   "discoverTDA: Failed to enable tda config");
+                  }
                 }
             }
             byte[] preCmd = {NFC_TDA_DISCOVER_SUB_GID_OID};
@@ -330,11 +331,11 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             e.printStackTrace();
         }
         if (getTDAConfig() != DISABLE_TDA) {
-            mNfcOperations.startDiscovery(false);
-            if (!setTDAConfig(DISABLE_TDA)) {
-                NxpNfcLogger.e(TAG, "closeTDA: Failed to enable tda config");
-            }
-            mNfcOperations.startDiscovery(true);
+          mNfcOperations.startDiscovery(false);
+          if (!setTDAConfig(DISABLE_TDA)) {
+            NxpNfcLogger.e(TAG, "closeTDA: Failed to enable tda config");
+          }
+          mNfcOperations.startDiscovery(true);
         }
         return;
     }
@@ -363,50 +364,52 @@ public class TDAHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
     }
 
     private boolean setTDAConfig(byte value) {
-        try {
-            byte[] setConfig = {0x01, (byte) 0xA1, (byte) 0xE6, 0x01, value};
-            int responseOffset = 0;
-            mNxpNciPacketHandler.shouldCheckResponseSubGid(false);
-            byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(CONF_GID,
-                    SET_CONF_OID, setConfig);
-            mNxpNciPacketHandler.shouldCheckResponseSubGid(true);
-            if (vendorRsp != null && vendorRsp.length > 0
-                    && vendorRsp[0] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
-                NxpNfcLogger.d(TAG, "SuccessFully updated the tda config to " + value);
-                return true;
-            } else {
-                NxpNfcLogger.e(TAG, "Failed to update TDA config");
-            }
-        } catch (Exception e) {
-            NxpNfcLogger.e(TAG, "Exception while updating TDA config " + e);
+      try {
+        byte[] setConfig = {0x01, (byte)0xA1, (byte)0xE6, 0x01, value};
+        int responseOffset = 0;
+        mNxpNciPacketHandler.shouldCheckResponseSubGid(false);
+        byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
+            CONF_GID, SET_CONF_OID, setConfig);
+        mNxpNciPacketHandler.shouldCheckResponseSubGid(true);
+        if (vendorRsp != null && vendorRsp.length > 0 &&
+            vendorRsp[0] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
+          NxpNfcLogger.d(TAG,
+                         "SuccessFully updated the tda config to " + value);
+          return true;
+        } else {
+          NxpNfcLogger.e(TAG, "Failed to update TDA config");
         }
-        return false;
+      } catch (Exception e) {
+        NxpNfcLogger.e(TAG, "Exception while updating TDA config " + e);
+      }
+      return false;
     }
 
     private byte getTDAConfig() {
-        try {
-            int responseOffset = 0;
-            byte[] getConfig = {0x01, (byte) 0xA1, (byte) 0xE6};
-            mNxpNciPacketHandler.shouldCheckResponseSubGid(false);
-            byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(CONF_GID,
-                    GET_CONF_OID, getConfig);
-            mNxpNciPacketHandler.shouldCheckResponseSubGid(true);
-            if (vendorRsp != null && vendorRsp.length > 4
-                    && vendorRsp[responseOffset++] == NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
-                responseOffset++;
-                if (vendorRsp[responseOffset++] == (byte)0xA1 &&
-                        vendorRsp[responseOffset++] == (byte)0xE6) {
-                    responseOffset++;
-                    NxpNfcLogger.d(TAG, "Get TDA Config Success");
-                    return vendorRsp[responseOffset++];
-                }
-            } else {
-                NxpNfcLogger.e(TAG, "Send Vendor Failed");
-            }
-        } catch (Exception e) {
-            NxpNfcLogger.e(TAG, "Exception while updating TDA config " + e);
+      try {
+        int responseOffset = 0;
+        byte[] getConfig = {0x01, (byte)0xA1, (byte)0xE6};
+        mNxpNciPacketHandler.shouldCheckResponseSubGid(false);
+        byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
+            CONF_GID, GET_CONF_OID, getConfig);
+        mNxpNciPacketHandler.shouldCheckResponseSubGid(true);
+        if (vendorRsp != null && vendorRsp.length > 4 &&
+            vendorRsp[responseOffset++] ==
+                NfcAdapter.SEND_VENDOR_NCI_STATUS_SUCCESS) {
+          responseOffset++;
+          if (vendorRsp[responseOffset++] == (byte)0xA1 &&
+              vendorRsp[responseOffset++] == (byte)0xE6) {
+            responseOffset++;
+            NxpNfcLogger.d(TAG, "Get TDA Config Success");
+            return vendorRsp[responseOffset++];
+          }
+        } else {
+          NxpNfcLogger.e(TAG, "Send Vendor Failed");
         }
-        return -1;
+      } catch (Exception e) {
+        NxpNfcLogger.e(TAG, "Exception while updating TDA config " + e);
+      }
+      return -1;
     }
 
     @Override
