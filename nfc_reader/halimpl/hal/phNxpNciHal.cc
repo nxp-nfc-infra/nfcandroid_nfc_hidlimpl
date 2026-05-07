@@ -3530,7 +3530,7 @@ NFCSTATUS phNxpNciHal_getChipInfoInFwDnldMode(bool bIsVenResetReqd) {
  *
  ******************************************************************************/
 uint8_t phNxpNciHal_getSessionInfoInFwDnldMode() {
-  uint8_t session_status = -1;
+  uint8_t session_status = 0xff;
   NFCSTATUS status = NFCSTATUS_FAILED;
 #if (NXP_EXTNS == TRUE)
   uint8_t get_session_info_cmd[] = {0x00, 0x04, 0xDB, 0x00,
