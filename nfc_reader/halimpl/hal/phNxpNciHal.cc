@@ -2750,7 +2750,9 @@ int phNxpNciHal_check_ncicmd_write_window(uint16_t cmd_len, uint8_t *p_cmd) {
 
   if ((p_cmd[0] & 0xF0) == 0x20) {
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    ts.tv_sec += sem_timedout;
+    if (ts.tv_sec <= (time_t)(__LONG_MAX__ - sem_timedout)) {
+      ts.tv_sec += sem_timedout;
+    }
     while ((s = sem_timedwait_monotonic_np(&nxpncihal_ctrl.syncSpiNfc, &ts)) ==
                -1 &&
            errno == EINTR) {
