@@ -307,7 +307,7 @@ bool CNfcConfig::readConfig(const char *name, bool bResetContent) {
   string strValue;
   unsigned long numValue = 0;
   CNfcParam *pParam = NULL;
-  int i = 0;
+  uint8_t i = 0;
   int base = 0;
   char c;
   int bflag = 0;
@@ -316,18 +316,18 @@ bool CNfcConfig::readConfig(const char *name, bool bResetContent) {
   ALOGD("readConfig; filename is %s", name);
   if (strcmp(name, nxp_rf_config_path) == 0) {
     config_rf_crc32_ =
-        sparse_crc32(0, (const void *)p_config, (int)config_size);
+        sparse_crc32(0, (const void *)p_config, (uint16_t)config_size);
   } else if (strcmp(name, transit_config_path) == 0) {
     config_tr_crc32_ =
-        sparse_crc32(0, (const void *)p_config, (int)config_size);
+        sparse_crc32(0, (const void *)p_config, (uint16_t)config_size);
   } else if (strcmp(name, nxp_eeprom_config_path) == 0) {
     config_eeprom_crc32_ =
-        sparse_crc32(0, (const void *)p_config, (int)config_size);
+        sparse_crc32(0, (const void *)p_config, (uint16_t)config_size);
   } else if (strcmp(name, nxp_rfext_config_path) == 0) {
     config_rfext_crc32_ =
-        sparse_crc32(0, (const void *)p_config, (int)config_size);
+        sparse_crc32(0, (const void *)p_config, (uint16_t)config_size);
   } else {
-    config_crc32_ = sparse_crc32(0, (const void *)p_config, (int)config_size);
+    config_crc32_ = sparse_crc32(0, (const void *)p_config, (uint16_t)config_size);
   }
 
   mValidFile = true;
