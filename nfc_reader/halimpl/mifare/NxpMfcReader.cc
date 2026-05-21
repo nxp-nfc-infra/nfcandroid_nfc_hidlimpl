@@ -48,6 +48,7 @@ int NxpMfcReader::Write(uint16_t mfcDataLen, const uint8_t *pMfcData) {
   uint16_t mfcTagCmdBuffLen = 0;
   uint8_t mfcTagCmdBuff[MAX_MFC_BUFF_SIZE] = {0};
   uint16_t mfcTagCmdRemaingCmdLen = mfcDataLen;
+  int writtenDataLen = 0;
 
   if (mfcDataLen > MAX_MFC_BUFF_SIZE) {
     android_errorWriteLog(0x534e4554, "169259605");
@@ -67,7 +68,9 @@ int NxpMfcReader::Write(uint16_t mfcDataLen, const uint8_t *pMfcData) {
       return 0;
     }
   }
-  int writtenDataLen = phNxpNciHal_write_internal(mfcDataLen, mfcTagCmdBuff);
+  if ((mfcDataLen > 0) && (mfcDataLen <= MAX_MFC_BUFF_SIZE)) {
+    writtenDataLen = phNxpNciHal_write_internal(mfcDataLen, mfcTagCmdBuff);
+  }
 
   /* send TAG_CMD part 2 for Mifare increment ,decrement and restore commands */
   if (checkIsMFCIncDecRestore(pMfcData[3])) {
