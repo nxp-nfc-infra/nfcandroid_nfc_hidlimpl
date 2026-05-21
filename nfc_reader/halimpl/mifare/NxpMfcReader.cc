@@ -246,6 +246,10 @@ void NxpMfcReader::BuildWrite16Cmd() {
 **
 *******************************************************************************/
 void NxpMfcReader::BuildRawCmd() {
+  if (mMfcTagCmdIntfData.sendBufLen >= MAX_MFC_BUFF_SIZE) {
+    NXPLOG_NCIHAL_E("%s: sendBufLen overflow", __func__);
+    return;
+  }
   mMfcTagCmdIntfData.sendBufLen = mMfcTagCmdIntfData.sendBufLen + 1;
   uint8_t buff[mMfcTagCmdIntfData.sendBufLen];
   memset(buff, 0, mMfcTagCmdIntfData.sendBufLen);
