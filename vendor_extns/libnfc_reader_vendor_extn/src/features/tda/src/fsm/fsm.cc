@@ -23,6 +23,8 @@
 #include "tda.h"
 #include "tda_nci_defs.h"
 
+#define STATE_MACHINE_SIZE (LAST_STATE * LAST_EVENT)
+
 extern tda_control_t g_tda_ctrl;
 
 state_machine_t state_machine[] = {
@@ -81,10 +83,16 @@ state_machine_t state_machine[] = {
  **/
 fp_event_handler_t handle_event(system_event_t new_event) {
   int index = (g_tda_ctrl.tda_state * LAST_EVENT) + new_event;
-  OSAL_LOG_NFCHAL_D("%s g_tda_ctrl.tda_state:%d, new_event:%d,index:%d, "
+  if (index > STATE_MACHINE_SIZE){
+    OSAL_LOG_NFCHAL_D("Invalid state or event: state=%d, event=%d",
+                   g_tda_ctrl.tda_state, new_event);
+  }
+  else{
+    OSAL_LOG_NFCHAL_D("%s g_tda_ctrl.tda_state:%d, new_event:%d,index:%d, "
                     "state_machine[index].event:%d",
                     __func__, g_tda_ctrl.tda_state, new_event, index,
                     state_machine[index].event);
+  }
   if ((g_tda_ctrl.tda_state < LAST_STATE) && (new_event < LAST_EVENT) &&
       (state_machine[index].event == new_event) &&
       (state_machine[index].handler != NULL)) {
