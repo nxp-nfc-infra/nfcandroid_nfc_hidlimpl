@@ -55,7 +55,7 @@ NFCSTATUS TdaHandler::handleVendorNciMessage(uint16_t dataLen,
   int offset = NCI_PAYLOAD_LEN_INDEX;
   int payload_len = pData[offset++];
 
-  if ((payload_len + NCI_HEADER_LEN) > dataLen) {
+  if ((dataLen < NCI_HEADER_LEN) || (payload_len > (dataLen - NCI_HEADER_LEN))) {
     status = NFCSTATUS_EXTN_FEATURE_SUCCESS;
     NXPLOG_EXTNS_E(NXPLOG_ITEM_NXP_GEN_EXTN,
                    "TdaHandler::%s Received corrupted payload ", __func__);
