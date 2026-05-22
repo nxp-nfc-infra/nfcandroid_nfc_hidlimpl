@@ -346,7 +346,10 @@ NFCSTATUS phNxpNciHal_process_ext_rsp(uint8_t *p_ntf, uint16_t *p_len) {
       break;
     }
   }
-  phNxpNciHal_ext_process_nfc_init_rsp(p_ntf, p_len);
+  status = phNxpNciHal_ext_process_nfc_init_rsp(p_ntf, p_len);
+  if (status != NFCSTATUS_SUCCESS) {
+    return status;
+  }
   if (p_ntf[0] == NCI_MT_NTF &&
       ((p_ntf[1] & NCI_OID_MASK) == NCI_MSG_CORE_RESET) &&
       p_ntf[3] == CORE_RESET_TRIGGER_TYPE_POWERED_ON) {
