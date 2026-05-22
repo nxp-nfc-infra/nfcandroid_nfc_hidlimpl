@@ -38,7 +38,9 @@ PalThreadMutex::PalThreadMutex() {
   } else {
     NXPLOG_EXTNS_E(LOG_TAG, "fail to init mutex");
   }
-  pthread_mutexattr_destroy(&mutexAttr);
+  if (pthread_mutexattr_destroy(&mutexAttr) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to destroy mutex attribute");
+  }
 }
 
 /*******************************************************************************
@@ -50,7 +52,11 @@ PalThreadMutex::PalThreadMutex() {
 ** Returns:     none
 **
 *******************************************************************************/
-PalThreadMutex::~PalThreadMutex() { pthread_mutex_destroy(&mMutex); }
+PalThreadMutex::~PalThreadMutex() {
+  if (pthread_mutex_destroy(&mMutex) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to destroy mutex");
+  }
+}
 
 /*******************************************************************************
 **
@@ -61,7 +67,11 @@ PalThreadMutex::~PalThreadMutex() { pthread_mutex_destroy(&mMutex); }
 ** Returns:     none
 **
 *******************************************************************************/
-void PalThreadMutex::lock() { pthread_mutex_lock(&mMutex); }
+void PalThreadMutex::lock() {
+  if (pthread_mutex_lock(&mMutex) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to lock mutex");
+  }
+}
 
 /*******************************************************************************
 **
@@ -86,11 +96,19 @@ void PalThreadMutex::unlock() { pthread_mutex_unlock(&mMutex); }
 PalThreadCondVar::PalThreadCondVar() {
   pthread_condattr_t CondAttr;
 
-  pthread_condattr_init(&CondAttr);
-  pthread_condattr_setclock(&CondAttr, CLOCK_MONOTONIC);
-  pthread_cond_init(&mCondVar, &CondAttr);
+  if (pthread_condattr_init(&CondAttr) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to init condition attribute");
+  }
+  if (pthread_condattr_setclock(&CondAttr, CLOCK_MONOTONIC) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to set clock for condition attribute");
+  }
+  if (pthread_cond_init(&mCondVar, &CondAttr) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to init condition variable");
+  }
 
-  pthread_condattr_destroy(&CondAttr);
+  if (pthread_condattr_destroy(&CondAttr) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to destroy condition attribute");
+  }
 }
 
 /*******************************************************************************
@@ -102,7 +120,11 @@ PalThreadCondVar::PalThreadCondVar() {
 ** Returns:     none
 **
 *******************************************************************************/
-PalThreadCondVar::~PalThreadCondVar() { pthread_cond_destroy(&mCondVar); }
+PalThreadCondVar::~PalThreadCondVar() {
+  if (pthread_cond_destroy(&mCondVar) != 0) {
+    NXPLOG_EXTNS_E(LOG_TAG, "fail to destroy condition variable");
+  }
+}
 
 /*******************************************************************************
 **
@@ -114,7 +136,9 @@ PalThreadCondVar::~PalThreadCondVar() { pthread_cond_destroy(&mCondVar); }
 **
 *******************************************************************************/
 void PalThreadCondVar::timedWait(struct timespec *time) {
-  pthread_cond_timedwait(&mCondVar, static_cast<pthread_mutex_t*>(*this), time);
+  if (pthread_cond_timedwait(&mCondVar, static_cast<pthread_mutex_t*>(*this), time) != 0) {
+     NXPLOG_EXTNS_D(LOG_TAG, "timed wait returned non-zero");
+  }
 }
 
 /*******************************************************************************
@@ -130,7 +154,9 @@ void PalThreadCondVar::timedWait(uint8_t sec) {
   struct timespec timeout_spec;
   clock_gettime(CLOCK_MONOTONIC, &timeout_spec);
   timeout_spec.tv_sec += sec;
-  pthread_cond_timedwait(&mCondVar, static_cast<pthread_mutex_t*>(*this), &timeout_spec);
+  if (pthread_cond_timedwait(&mCondVar, static_cast<pthread_mutex_t*>(*this), &timeout_spec) != 0) {
+     NXPLOG_EXTNS_D(LOG_TAG, "timed wait returned non-zero");
+  }
 }
 
 /*******************************************************************************
@@ -144,7 +170,9 @@ void PalThreadCondVar::timedWait(uint8_t sec) {
 *******************************************************************************/
 void PalThreadCondVar::signal() {
   const PalAutoThreadMutex a(*this);
-  pthread_cond_signal(&mCondVar);
+  if (pthread_cond_signal(&mCondVar) != 0) {
+     NXPLOG_EXTNS_E(LOG_TAG, "fail to signal condition variable");
+  }
 }
 
 /*******************************************************************************
