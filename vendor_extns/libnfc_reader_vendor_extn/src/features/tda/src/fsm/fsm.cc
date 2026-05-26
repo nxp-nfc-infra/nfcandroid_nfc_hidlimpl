@@ -436,7 +436,7 @@ NFC_STATUS core_conn_created_close_tda(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   NFC_STATUS status = core_conn_close_tda_impl(input);
   if (status == NFC_STATUS_SUCCESS) {
-    int8_t tda_id = *((int *)input);
+    int8_t tda_id = *((int8_t *)input);
     fp_event_handler_t fp_event_handler = handle_event(CLOSE_TDA_EVENT);
     status = fp_event_handler(&tda_id);
   }
