@@ -246,7 +246,7 @@ void NxpMfcReader::BuildWrite16Cmd() {
 **
 *******************************************************************************/
 void NxpMfcReader::BuildRawCmd() {
-  if (mMfcTagCmdIntfData.sendBufLen >= MAX_MFC_BUFF_SIZE) {
+  if (mMfcTagCmdIntfData.sendBufLen >= MAX_MFC_BUFF_SIZE - 1) {
     NXPLOG_NCIHAL_E("%s: sendBufLen overflow", __func__);
     return;
   }
