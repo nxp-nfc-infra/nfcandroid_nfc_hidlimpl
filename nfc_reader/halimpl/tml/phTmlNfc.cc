@@ -1037,6 +1037,14 @@ NFCSTATUS phTmlNfc_IoCtl(phTmlNfc_ControlCode_t eControlCode) {
       }
       break;
     }
+    case phTmlNfc_e_GreenLedOff: {
+      gpTransportObj->SetLED(gpphTmlNfc_Context->pDevHandle, GREEN_LED_OFF);
+      break;
+    }
+    case phTmlNfc_e_GreenLedOn: {
+      gpTransportObj->SetLED(gpphTmlNfc_Context->pDevHandle, GREEN_LED_ON);
+      break;
+    }
     default: {
       wStatus = NFCSTATUS_INVALID_PARAMETER;
       break;

@@ -15,6 +15,7 @@
   */
 package com.nxp.nfcreaders;
 
+import android.content.Context;
 import com.nxp.nfcreaders.dynamicpower.DynamicPowerResult;
 import com.nxp.nfcreaders.tda.NfcTDAInfo;
 import com.nxp.nfcreaders.tda.TdaResult;
@@ -26,4 +27,5 @@ public interface INxpNfcAdapter
     byte openTDA(byte tdaID, boolean standBy, TdaResult tdaResult);
     void closeTDA(byte tdaID, boolean standBy, TdaResult tdaResult);
     byte[] transceive(byte[] in_cmd_data, TdaResult tdaResult);
+    int enableSoftPOSMode (byte config, boolean mode, Context context);
 }

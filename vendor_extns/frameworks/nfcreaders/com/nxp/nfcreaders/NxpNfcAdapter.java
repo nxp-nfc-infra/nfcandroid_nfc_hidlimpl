@@ -22,12 +22,14 @@ package com.nxp.nfcreaders;
 
 import android.annotation.RequiresPermission;
 
+import android.content.Context;
 import android.nfc.NfcAdapter;
 import com.nxp.nfcreaders.tda.NfcTDAInfo;
 import com.nxp.nfcreaders.dynamicpower.DynamicPowerResult;
 import com.nxp.nfcreaders.dynamicpower.DynamicPowerHandler;
 import com.nxp.nfcreaders.tda.TdaResult;
 import com.nxp.nfcreaders.tda.TDAHandler;
+import com.nxp.nfcreaders.softpos.SoftPosHandler;
 import com.nxp.nfcreaders.utils.NxpNfcLogger;
 
 public final class NxpNfcAdapter implements INxpNfcAdapter {
@@ -35,11 +37,13 @@ public final class NxpNfcAdapter implements INxpNfcAdapter {
 
     private static NxpNfcAdapter sNxpNfcAdapter;
     private static TDAHandler sTDAHandler;
+    private static SoftPosHandler sSoftPosHandler;
     private static DynamicPowerHandler sDynamicPowerHandler;
 
     private NxpNfcAdapter(NfcAdapter nfcAdapter) {
         sTDAHandler = new TDAHandler(nfcAdapter);
         sDynamicPowerHandler = new DynamicPowerHandler(nfcAdapter);
+        sSoftPosHandler = new SoftPosHandler(nfcAdapter);
     }
 
     /**
@@ -121,4 +125,27 @@ public final class NxpNfcAdapter implements INxpNfcAdapter {
         return;
     }
 
+    /**
+     * This API switches the softpos mode discovery and default discovery
+     * by enabling and disabling the softpos feature.
+     *
+     * @param config :       technology configuration required to
+     *                       be enable in softpos mode discovery
+     * @param mode :         to enable disable the softpos mode
+     *                       true will indicate the request to enable softpos
+     *                       false will indicate the request to disable softpos
+     *                       and start default nfc discovery
+     * @param context :      application context
+     * @return int :         0x00 : For successful execution of api
+     *                       0x01 : If switching from softpos to default
+     *                              or default to softpos fails.
+     *                       0x02 : If NFC is off.
+     *                       0x03 : If NFC service not available.
+     *                       0x04 : If already in requested mode softpos off/on.
+     *                       0x05 : if input params are invalid like: context is null.
+     *                       0xFF : any unkonwn error or exceptions like IO Exception;
+     */
+    public int enableSoftPOSMode (byte config, boolean mode, Context context) {
+       return sSoftPosHandler.enableSoftPOSMode(config, mode, context);
+    }
 }

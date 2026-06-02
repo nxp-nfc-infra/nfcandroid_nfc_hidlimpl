@@ -40,6 +40,7 @@ enum class HandlerType : uint8_t {
    */
   DEFAULT = 0X00,
   TDA = 0x01,
+  SOFTPOS = 0x03,
 };
 
 class NfcExtensionController {

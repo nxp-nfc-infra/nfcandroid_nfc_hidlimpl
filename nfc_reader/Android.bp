@@ -65,6 +65,7 @@ cc_library_shared {
         "halimpl/nfc_extn/NfcExtension.cc",
         "halimpl/hal/phNxpNciHal_WriterThread.cc",
         "halimpl/hal/phNxpNciHal_ReaderThread.cc",
+        "halimpl/softpos/NxpSoftPos.cc",
     ],
 
     local_include_dirs: [
@@ -78,6 +79,7 @@ cc_library_shared {
         "halimpl/utils",
         "halimpl/src/include",
         "halimpl/mifare",
+        "halimpl/softpos",
         "extns/impl/nxpnfc/2.0",
         "halimpl/nfc_extn",
     ],

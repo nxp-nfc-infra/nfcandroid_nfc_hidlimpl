@@ -26,6 +26,7 @@
 #include "PlatformAbstractionLayer.h"
 #include "RfStateMonitor.h"
 #include <TdaHandler.h>
+#include <SoftPosHandler.h>
 #include <phNxpLog.h>
 #include <stdint.h>
 
@@ -151,6 +152,8 @@ static void addHandlers() {
                                                          defaultEventHandler);
   NfcExtensionController::getInstance()->addEventHandler(
       HandlerType::TDA, std::make_shared<TdaHandler>());
+  NfcExtensionController::getInstance()->addEventHandler(
+      HandlerType::SOFTPOS, std::make_shared<SoftPosHandler>());
 }
 
 static void printGenExtnLibVersion() {

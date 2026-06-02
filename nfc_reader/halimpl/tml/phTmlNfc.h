@@ -123,7 +123,9 @@ typedef enum {
   phTmlNfc_e_ModeSwitchOff,     /* sets mode switch NFCC gpio low */
   phTmlNfc_e_SmcuModeSwitchOn,  /* sets mode switch SMCU gpio high */
   phTmlNfc_e_SmcuModeSwitchOff, /* sets mode switch SMCU gpio low */
-  phTmlNfc_e_WaitForSmcuSP_Done /* Wait for SMCU SP DONE Pin or Timeout */
+  phTmlNfc_e_WaitForSmcuSP_Done, /* Wait for SMCU SP DONE Pin or Timeout */
+  phTmlNfc_e_GreenLedOff,         /* Turns off green led */
+  phTmlNfc_e_GreenLedOn,          /* Turns on green led */
 } phTmlNfc_ControlCode_t;       /* Control code for IOCTL call */
 
 /*

@@ -16,14 +16,19 @@
 
 package com.nxp.nfcreaders.core;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.ControllerAlwaysOnListener;
 import android.nfc.NfcOemExtension;
 import android.nfc.OemLogItems;
 import android.nfc.Tag;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.nfc.cardemulation.ApduServiceInfo;
 import android.os.AsyncTask;
 
@@ -116,6 +121,9 @@ public class NfcOperations {
      * {@link NfcOemExtension.Callback#onTagConnected()}
      */
     private boolean mIsTagConnected = false;
+    private Context mContext = null;
+    private CountDownLatch mNfcDisableCountDownLatch;
+    private int NFC_DISABLE_WAIT_TIMEOUT = 2000;
 
     Map<String, Boolean> mOemCallbackMap = new HashMap<>();
     /**
@@ -629,4 +637,79 @@ public class NfcOperations {
             return null;
         }
     }
+
+    /**
+     * To Disable the NFC
+     * <br/>
+     *
+     * @return true if successfully Disable otherwise false.
+     */
+    public synchronized boolean disableNfc(Context context) {
+        boolean status = true;
+        if (mNfcAdapter == null) {
+            NxpNfcLogger.e(TAG, "NfcAdapter is null");
+            // treat service not avilable as disabled NFC
+            return true;
+        }
+        if (!mNfcAdapter.isEnabled()) {
+            NxpNfcLogger.e(TAG, "NFC Already Disabled");
+            return true;
+        }
+
+        if (context == null) {
+            NxpNfcLogger.e(TAG, "context is null");
+            return false;
+        }
+
+        NxpNfcLogger.d(TAG, "Disable NFC");
+        HandlerThread nfcIntentReceiverThread = new HandlerThread("nfc-intent-receiver");
+        try {
+            nfcIntentReceiverThread.start();
+            Handler nfcIntentReceiverHandler = new Handler(nfcIntentReceiverThread.getLooper());
+            IntentFilter nfcntentFilter =
+                new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
+            context.registerReceiver(mReceiver, nfcntentFilter, null, nfcIntentReceiverHandler);
+            mNfcDisableCountDownLatch = new CountDownLatch(1);
+            NxpNfcLogger.e(TAG, "Disable API Calling ");
+            if (!mNfcAdapter.disable()) {
+                NxpNfcLogger.d(TAG, "Not Able to Disable NFC");
+                return false;
+            }
+            NxpNfcLogger.e(TAG, "Disable API Call returned now wait for intent ");
+            if (!mNfcDisableCountDownLatch.await(NFC_DISABLE_WAIT_TIMEOUT, TimeUnit.MILLISECONDS)) {
+                NxpNfcLogger.e(TAG, "NFC OFF intent not recived");
+                return false;
+            }
+        } catch (InterruptedException Ie) {
+            NxpNfcLogger.e(TAG, "Exception During Disable NFC " + Ie);
+            return false;
+        } finally {
+            context.unregisterReceiver(mReceiver);
+            nfcIntentReceiverThread.quitSafely();
+        }
+        return true;
+    }
+
+    public synchronized boolean enableNfc() {
+        NxpNfcLogger.d(TAG, "Enable NFC");
+        if (mNfcAdapter != null  && !mNfcAdapter.isEnabled()) {
+            return mNfcAdapter.enable();
+        }
+        return false;
+    }
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (NfcAdapter.ACTION_ADAPTER_STATE_CHANGED.equals(action)) {
+                int nfcState = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE,
+                        NfcAdapter.STATE_OFF);
+                NxpNfcLogger.d(TAG, "Recived NFC State Change as " + nfcState);
+                if (nfcState == NfcAdapter.STATE_OFF && mNfcDisableCountDownLatch != null) {
+                    mNfcDisableCountDownLatch.countDown();
+                }
+            }
+        }
+    };
 }

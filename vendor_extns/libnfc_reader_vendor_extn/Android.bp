@@ -43,7 +43,8 @@ cc_defaults {
         "src/features/tda/src/nci/nci_snd.cc",
         "src/features/tda/src/nci/nci_rcv.cc",
         "src/features/tda/src/fsm/fsm.cc",
-        "src/features/tda/src/pal/pal.cc"
+        "src/features/tda/src/pal/pal.cc",
+        "src/features/softpos/src/SoftPosHandler.cpp",
     ],
     export_include_dirs: [
         "inc/common",
@@ -57,6 +58,7 @@ cc_defaults {
         "src/pal/common",
         "src/features/nci_state_monitor",
         "src/features/tda/inc",
+        "src/features/softpos/inc",
     ],
     shared_libs: [
         "libbase",
@@ -87,6 +89,7 @@ cc_library_shared {
         "hardware/nxp/nfc/nfc_reader/halimpl/hal",
         "hardware/nxp/nfc/nfc_reader/halimpl/nfc_extn",
         "hardware/nxp/nfc/nfc_reader/halimpl/tml",
+        "hardware/nxp/nfc/nfc_reader/halimpl/softpos/",
     ],
     shared_libs: [
         "nfc_nci_nxp_reader",
