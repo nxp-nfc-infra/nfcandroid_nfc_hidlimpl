@@ -124,8 +124,13 @@ NFC_STATUS init_nfcee_discover(void *input) {
   NFC_STATUS status = NFC_STATUS_FAIL;
   status = send_nfcee_discover();
   if (status == NFC_STATUS_SUCCESS) {
-    OSAL_LOG_NFCHAL_D("%s updated state as DISCOVERED_STATE", __func__);
-    update_state(DISCOVERED_STATE);
+    if (g_tda_ctrl.p_tda->status == DISABLED) {
+      OSAL_LOG_NFCHAL_D("%s updated state as DISCOVERED_STATE", __func__);
+      update_state(DISCOVERED_STATE);
+    } else {
+      OSAL_LOG_NFCHAL_D("%s No state update, TDA status = %d", __func__,
+                        g_tda_ctrl.p_tda->status);
+    }
   }
   return status;
 }
