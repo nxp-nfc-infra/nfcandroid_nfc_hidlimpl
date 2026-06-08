@@ -956,7 +956,7 @@ void readOptionalConfig(const char *extra) {
 **
 *******************************************************************************/
 extern "C" int GetNxpStrValue(const char *name, char *pValue,
-                              unsigned long len) {
+                              uint64_t len) {
   const CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
 
   return rConfig.getValue(name, pValue, len);
@@ -980,7 +980,7 @@ extern "C" int GetNxpStrValue(const char *name, char *pValue,
 **
 *******************************************************************************/
 extern "C" int GetNxpByteArrayValue(const char *name, char *pValue,
-                                    long bufflen, long *len) {
+                                    int64_t bufflen, int64_t *len) {
   const CVendorExtnConfig &rConfig = CVendorExtnConfig::GetInstance();
 
   return rConfig.getValue(name, pValue, bufflen, len);
@@ -996,7 +996,7 @@ extern "C" int GetNxpByteArrayValue(const char *name, char *pValue,
 **
 *******************************************************************************/
 extern "C" int GetNxpNumValue(const char *name, void *pValue,
-                              unsigned long len) {
+                              uint64_t len) {
   if (!pValue)
     return false;
 

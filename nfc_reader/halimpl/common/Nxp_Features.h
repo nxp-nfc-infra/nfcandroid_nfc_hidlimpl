@@ -139,10 +139,10 @@ extern tNfc_featureList nfcFL;
 #define CONFIGURE_FEATURELIST(chipType)                                         \
   {                                                                             \
     nfcFL.chipType = chipType;                                                  \
-    if ((chipType == sn100u) || (chipType == sn220u)) {                         \
-      CONFIGURE_FEATURELIST_NFCC_WITH_ESE(chipType)                             \
+    if (((chipType) == sn100u) || ((chipType) == sn220u)) {                         \
+      CONFIGURE_FEATURELIST_NFCC_WITH_ESE((chipType))                             \
     } else {                                                                    \
-      CONFIGURE_FEATURELIST_NFCC(chipType)                                      \
+      CONFIGURE_FEATURELIST_NFCC((chipType))                                      \
     }                                                                           \
   }
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2025 NXP
+ *  Copyright 2025,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ void OnDeath(void* cookie) {
     // Just ignore the error.
   }
   printNfcMwVersion();
-  int ret = phNxpNciHal_open(eventCallback, dataCallback);
+  const int ret = phNxpNciHal_open(eventCallback, dataCallback);
   LOG(INFO) << "Nfc::open Exit";
   return ret == NFCSTATUS_SUCCESS
              ? ndk::ScopedAStatus::ok()
@@ -100,7 +100,7 @@ void OnDeath(void* cookie) {
     return ndk::ScopedAStatus::fromServiceSpecificError(
         static_cast<int32_t>(NfcStatus::FAILED));
   }
-  int ret = phNxpNciHal_core_initialized();
+  const int ret = phNxpNciHal_core_initialized();
 
   return ret == NFCSTATUS_SUCCESS
              ? ndk::ScopedAStatus::ok()
@@ -130,7 +130,7 @@ void OnDeath(void* cookie) {
     return ndk::ScopedAStatus::fromServiceSpecificError(
         static_cast<int32_t>(NfcStatus::FAILED));
   }
-  int ret = phNxpNciHal_power_cycle();
+  const int ret = phNxpNciHal_power_cycle();
   return ret == NFCSTATUS_SUCCESS
              ? ndk::ScopedAStatus::ok()
              : ndk::ScopedAStatus::fromServiceSpecificError(
@@ -144,7 +144,7 @@ void OnDeath(void* cookie) {
     return ndk::ScopedAStatus::fromServiceSpecificError(
         static_cast<int32_t>(NfcStatus::FAILED));
   }
-  int ret = phNxpNciHal_pre_discover();
+  const int ret = phNxpNciHal_pre_discover();
   return ret == NFCSTATUS_SUCCESS
              ? ndk::ScopedAStatus::ok()
              : ndk::ScopedAStatus::fromServiceSpecificError(
@@ -175,7 +175,7 @@ void OnDeath(void* cookie) {
 
 ::ndk::ScopedAStatus Nfc::controlGranted(NfcStatus* _aidl_return) {
   LOG(INFO) << "controlGranted";
-  int status = phNxpNciHal_control_granted();
+  const int status = phNxpNciHal_control_granted();
   *_aidl_return = CHK_STATUS(status);
   return ndk::ScopedAStatus::ok();
 }

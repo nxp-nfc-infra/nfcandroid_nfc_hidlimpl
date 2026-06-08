@@ -20,7 +20,7 @@
  *
  *  The original Work has been changed by NXP.
  *
- *  Copyright 2013-2021,2023-2025 NXP
+ *  Copyright 2013-2021,2023-2025,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -38,15 +38,16 @@
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int GetNxpStrValue(const char *name, char *p_value, unsigned long len);
-int GetNxpNumValue(const char *name, void *p_value, unsigned long len);
-int GetNxpByteArrayValue(const char *name, char *pValue, long bufflen,
-                         long *len);
+int GetNxpStrValue(const char *name, char *p_value, uint64_t len);
+int GetNxpNumValue(const char *name, void *p_value, uint64_t len);
+int GetNxpByteArrayValue(const char *name, char *pValue, int64_t bufflen,
+                        int64_t *len);
 void resetNxpConfig(void);
 int isNxpRFConfigModified();
 int isNxpConfigModified();
