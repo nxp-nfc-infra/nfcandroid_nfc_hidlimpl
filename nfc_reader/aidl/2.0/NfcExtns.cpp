@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2025 NXP
+ *  Copyright 2025,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,71 +35,71 @@ void NfcExtns::getConfig(NfcConfig& config) {
 
 
   if (GetNxpNumValue(NAME_NFA_POLL_BAIL_OUT_MODE, &num, sizeof(num))) {
-    config.nfaPollBailOutMode = (bool)num;
+    config.nfaPollBailOutMode = static_cast<bool>(num);
   }
   if (GetNxpNumValue(NAME_ISO_DEP_MAX_TRANSCEIVE, &num, sizeof(num))) {
-    config.maxIsoDepTransceiveLength = (uint32_t)num;
+    config.maxIsoDepTransceiveLength = static_cast<uint32_t>(num);
   }
   if (GetNxpNumValue(NAME_DEFAULT_OFFHOST_ROUTE, &num, sizeof(num))) {
-    config.defaultOffHostRoute = (uint8_t)num;
+    config.defaultOffHostRoute = static_cast<uint8_t>(num);
   }
   if (GetNxpNumValue(NAME_DEFAULT_NFCF_ROUTE, &num, sizeof(num))) {
-    config.defaultOffHostRouteFelica = (uint8_t)num;
+    config.defaultOffHostRouteFelica = static_cast<uint8_t>(num);
   }
   if (GetNxpNumValue(NAME_DEFAULT_SYS_CODE_ROUTE, &num, sizeof(num))) {
-    config.defaultSystemCodeRoute = (uint8_t)num;
+    config.defaultSystemCodeRoute = static_cast<uint8_t>(num);
   }
   if (GetNxpNumValue(NAME_DEFAULT_SYS_CODE_PWR_STATE, &num, sizeof(num))) {
     config.defaultSystemCodePowerState =
-        phNxpNciHal_updateAutonomousPwrState((uint8_t)num);
+        phNxpNciHal_updateAutonomousPwrState(static_cast<uint8_t>(num));
   }
   if (GetNxpNumValue(NAME_DEFAULT_ROUTE, &num, sizeof(num))) {
-    config.defaultRoute = (uint8_t)num;
+    config.defaultRoute = static_cast<uint8_t>(num);
   }
   if (GetNxpNumValue(NAME_OFF_HOST_ESE_PIPE_ID, &num, sizeof(num))) {
-    config.offHostESEPipeId = (uint8_t)num;
+    config.offHostESEPipeId = static_cast<uint8_t>(num);
   }
   if (GetNxpNumValue(NAME_T4T_NFCEE_ENABLE, &num, sizeof(num))) {
-    config.t4tNfceeEnable = (bool)(num & 0x01);
+    config.t4tNfceeEnable = static_cast<bool>(num & 0x01);
   }
-  if (GetNxpByteArrayValue(NAME_OFF_HOST_SIM_PIPE_IDS, (char*)buffer.data(),
+  if (GetNxpByteArrayValue(NAME_OFF_HOST_SIM_PIPE_IDS, reinterpret_cast<char*>(buffer.data()),
                            buffer.size(), &retlen)) {
     config.offHostSimPipeIds.resize(retlen);
     for (long i = 0; i < retlen; i++) config.offHostSimPipeIds[i] = buffer[i];
   }
   if (GetNxpNumValue(NAME_DEFAULT_ISODEP_ROUTE, &num, sizeof(num))) {
-    config.defaultIsoDepRoute = (uint8_t)num;
+    config.defaultIsoDepRoute = static_cast<uint8_t>(num);
   }
-  if (GetNxpByteArrayValue(NAME_OFFHOST_ROUTE_UICC, (char*)buffer.data(),
+  if (GetNxpByteArrayValue(NAME_OFFHOST_ROUTE_UICC, reinterpret_cast<char*>(buffer.data()),
                            buffer.size(), &retlen)) {
     config.offHostRouteUicc.resize(retlen);
     for (long i = 0; i < retlen; i++) config.offHostRouteUicc[i] = buffer[i];
   }
 
-  if (GetNxpByteArrayValue(NAME_OFFHOST_ROUTE_ESE, (char*)buffer.data(),
+  if (GetNxpByteArrayValue(NAME_OFFHOST_ROUTE_ESE, reinterpret_cast<char*>(buffer.data()),
                            buffer.size(), &retlen)) {
     config.offHostRouteEse.resize(retlen);
     for (long i = 0; i < retlen; i++) config.offHostRouteEse[i] = buffer[i];
   }
-  if ((GetNxpByteArrayValue(NAME_NFA_PROPRIETARY_CFG, (char*)buffer.data(),
+  if ((GetNxpByteArrayValue(NAME_NFA_PROPRIETARY_CFG, reinterpret_cast<char*>(buffer.data()),
                             buffer.size(), &retlen)) &&
       (retlen == 10)) {
-    config.nfaProprietaryCfg.protocol18092Active = (uint8_t)buffer[0];
-    config.nfaProprietaryCfg.protocolBPrime = (uint8_t)buffer[1];
-    config.nfaProprietaryCfg.protocolDual = (uint8_t)buffer[2];
-    config.nfaProprietaryCfg.protocol15693 = (uint8_t)buffer[3];
-    config.nfaProprietaryCfg.protocolKovio = (uint8_t)buffer[4];
-    config.nfaProprietaryCfg.protocolMifare = (uint8_t)buffer[5];
-    config.nfaProprietaryCfg.discoveryPollKovio = (uint8_t)buffer[6];
-    config.nfaProprietaryCfg.discoveryPollBPrime = (uint8_t)buffer[7];
-    config.nfaProprietaryCfg.discoveryListenBPrime = (uint8_t)buffer[8];
-    config.nfaProprietaryCfg.protocolChineseId = (uint8_t)buffer[9];
+    config.nfaProprietaryCfg.protocol18092Active = static_cast<uint8_t>(buffer[0]);
+    config.nfaProprietaryCfg.protocolBPrime = static_cast<uint8_t>(buffer[1]);
+    config.nfaProprietaryCfg.protocolDual = static_cast<uint8_t>(buffer[2]);
+    config.nfaProprietaryCfg.protocol15693 = static_cast<uint8_t>(buffer[3]);
+    config.nfaProprietaryCfg.protocolKovio = static_cast<uint8_t>(buffer[4]);
+    config.nfaProprietaryCfg.protocolMifare = static_cast<uint8_t>(buffer[5]);
+    config.nfaProprietaryCfg.discoveryPollKovio = static_cast<uint8_t>(buffer[6]);
+    config.nfaProprietaryCfg.discoveryPollBPrime = static_cast<uint8_t>(buffer[7]);
+    config.nfaProprietaryCfg.discoveryListenBPrime = static_cast<uint8_t>(buffer[8]);
+    config.nfaProprietaryCfg.protocolChineseId = static_cast<uint8_t>(buffer[9]);
   } else {
     memset(&config.nfaProprietaryCfg, 0xFF, sizeof(ProtocolDiscoveryConfig));
   }
   if ((GetNxpNumValue(NAME_PRESENCE_CHECK_ALGORITHM, &num, sizeof(num))) &&
       (num <= 2)) {
-    config.presenceCheckAlgorithm = (PresenceCheckAlgorithm)num;
+    config.presenceCheckAlgorithm = static_cast<PresenceCheckAlgorithm>(num);
   }
 }
 

@@ -1,7 +1,7 @@
 
 /******************************************************************************
  *
- *  Copyright 2025 NXP
+ *  Copyright 2025,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -64,13 +64,13 @@ struct Nfc : public BnNfc {
   static uint8_t mapToAidlIfRequired(uint8_t event) {
     switch (event) {
       case HAL_HCI_NETWORK_RESET_EVT:
-        event = (uint8_t)NfcEvent::HCI_NETWORK_RESET;
+        event = static_cast<uint8_t>(NfcEvent::HCI_NETWORK_RESET);
         break;
       case HAL_NFC_REQUEST_CONTROL_EVT:
-        event = (uint8_t)NfcEvent::REQUEST_CONTROL;
+        event = static_cast<uint8_t>(NfcEvent::REQUEST_CONTROL);
         break;
       case HAL_NFC_RELEASE_CONTROL_EVT:
-        event = (uint8_t)NfcEvent::RELEASE_CONTROL;
+        event = static_cast<uint8_t>(NfcEvent::RELEASE_CONTROL);
         break;
       default:
         break;
@@ -81,7 +81,7 @@ struct Nfc : public BnNfc {
   static void eventCallback(uint8_t event, uint8_t status) {
     if (mCallback != nullptr) {
       event = mapToAidlIfRequired(event);
-      auto ret = mCallback->sendEvent((NfcEvent)event, (NfcStatus)status);
+      auto ret = mCallback->sendEvent(static_cast<NfcEvent>(event), static_cast<NfcStatus>(status));
       if (!ret.isOk()) {
         LOG(ERROR) << "Failed to send event!";
       }
