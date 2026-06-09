@@ -27,11 +27,11 @@ namespace hardware {
 namespace nfc {
 
 void NfcExtns::getConfig(NfcConfig& config) {
-  unsigned long num = 0;
+  uint64_t num = 0;
   std::array<uint8_t, NXP_MAX_CONFIG_STRING_LEN> buffer;
   buffer.fill(0);
-  long retlen = 0;
-  memset(&config, 0x00, sizeof(NfcConfig));
+  int64_t retlen = 0;
+  config = {};
 
 
   if (GetNxpNumValue(NAME_NFA_POLL_BAIL_OUT_MODE, &num, sizeof(num))) {
@@ -65,7 +65,7 @@ void NfcExtns::getConfig(NfcConfig& config) {
   if (GetNxpByteArrayValue(NAME_OFF_HOST_SIM_PIPE_IDS, reinterpret_cast<char*>(buffer.data()),
                            buffer.size(), &retlen)) {
     config.offHostSimPipeIds.resize(retlen);
-    for (long i = 0; i < retlen; i++) config.offHostSimPipeIds[i] = buffer[i];
+    for (int64_t i = 0; i < retlen; i++) config.offHostSimPipeIds[i] = buffer[i];
   }
   if (GetNxpNumValue(NAME_DEFAULT_ISODEP_ROUTE, &num, sizeof(num))) {
     config.defaultIsoDepRoute = static_cast<uint8_t>(num);
@@ -73,13 +73,13 @@ void NfcExtns::getConfig(NfcConfig& config) {
   if (GetNxpByteArrayValue(NAME_OFFHOST_ROUTE_UICC, reinterpret_cast<char*>(buffer.data()),
                            buffer.size(), &retlen)) {
     config.offHostRouteUicc.resize(retlen);
-    for (long i = 0; i < retlen; i++) config.offHostRouteUicc[i] = buffer[i];
+    for (int64_t i = 0; i < retlen; i++) config.offHostRouteUicc[i] = buffer[i];
   }
 
   if (GetNxpByteArrayValue(NAME_OFFHOST_ROUTE_ESE, reinterpret_cast<char*>(buffer.data()),
                            buffer.size(), &retlen)) {
     config.offHostRouteEse.resize(retlen);
-    for (long i = 0; i < retlen; i++) config.offHostRouteEse[i] = buffer[i];
+    for (int64_t i = 0; i < retlen; i++) config.offHostRouteEse[i] = buffer[i];
   }
   if ((GetNxpByteArrayValue(NAME_NFA_PROPRIETARY_CFG, reinterpret_cast<char*>(buffer.data()),
                             buffer.size(), &retlen)) &&
