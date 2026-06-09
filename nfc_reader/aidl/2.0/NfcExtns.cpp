@@ -27,7 +27,7 @@ namespace hardware {
 namespace nfc {
 
 void NfcExtns::getConfig(NfcConfig& config) {
-  uint64_t num = 0;
+  uint32_t num = 0;
   std::array<uint8_t, NXP_MAX_CONFIG_STRING_LEN> buffer;
   buffer.fill(0);
   int64_t retlen = 0;

@@ -51,7 +51,7 @@
         {0xFF, 0XFF, 0xFF, 0XFF, 0xFF, 0XFF},                                  \
   } /* Key used during NDEF format */
 
-typedef enum MifareCmdList {
+typedef enum MifareCmdList : uint8_t {
   eMifareRaw = 0x00U,         /* This command performs raw transcations */
   eMifareAuthentA = 0x60U,    /* This command performs an authentication with
                                        KEY A for a sector. */
@@ -72,7 +72,7 @@ typedef enum MifareCmdList {
 /*
  * Request Id for different commands
  */
-typedef enum MfcCmdReqId {
+typedef enum MfcCmdReqId : uint8_t {
   eMfRawDataXchgHdr = 0x10,   /* MF Raw Data Request from DH */
   eMfWriteNReq = 0x31,        /* MF N bytes write request from DH */
   eMfReadNReq = 0x32,         /* MF N bytes read request from DH */
@@ -85,7 +85,7 @@ typedef enum MfcCmdReqId {
 /*
  * Response Ids for different command response
  */
-typedef enum MfcRespId {
+typedef enum MfcRespId : uint8_t {
   eMfXchgDataRsp = 0x10,      /* DH gets Raw data from MF on successful req */
   eMfWriteNRsp = 0x31,        /* DH gets write status */
   eMfReadNRsp = 0x32,         /* DH gets N Bytes read from MF, if successful */

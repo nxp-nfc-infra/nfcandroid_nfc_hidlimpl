@@ -106,20 +106,20 @@ typedef struct nci_data {
   uint8_t p_data[NCI_MAX_DATA_LEN];
 } nci_data_t;
 
-typedef enum {
+typedef enum : uint8_t {
   HAL_STATUS_CLOSE = 0,
   HAL_STATUS_OPEN,
   HAL_STATUS_MIN_OPEN
 } phNxpNci_HalStatus;
 
-typedef enum {
+typedef enum : uint8_t {
   HAL_NFC_FW_UPDATE_INVALID = 0x00,
   HAL_NFC_FW_UPDATE_START,
   HAL_NFC_FW_UPDATE_SCUCCESS,
   HAL_NFC_FW_UPDATE_FAILED,
 } HalNfcFwUpdateStatus;
 
-typedef enum {
+typedef enum : uint8_t {
   GPIO_UNKNOWN = 0x00,
   GPIO_STORE = 0x01,
   GPIO_STORE_DONE = 0x02,
@@ -222,7 +222,7 @@ typedef struct phNxpNci_LmNfcADiscCfg {
   uint8_t bNfcID1[4];
 } phNxpNci_LmNfcADiscCfg_t;
 
-enum { SE_TYPE_ESE, SE_TYPE_UICC, SE_TYPE_UICC2, NUM_SE_TYPES };
+enum : uint8_t { SE_TYPE_ESE, SE_TYPE_UICC, SE_TYPE_UICC2, NUM_SE_TYPES };
 
 typedef void (*fpVerInfoStoreInEeprom_t)();
 typedef int (*fpVerifyCscEfsTest_t)(char *nfcc_csc, char *rffilepath,
@@ -253,7 +253,7 @@ static const uint8_t get_cfg_arr[] = {TOTAL_DURATION, ATR_REQ_GEN_BYTES_POLL,
 //#define NXP_NFC_SET_CONFIG_PARAM_EXT 0xA0
 //#define NXP_NFC_PARAM_ID_SWP2        0xD4
 //#define NXP_NFC_PARAM_ID_SWPUICC3    0xDC
-typedef enum {
+typedef enum : uint8_t {
   EEPROM_RF_CFG,
   EEPROM_FW_DWNLD,
   EEPROM_WIREDMODE_RESUME_TIMEOUT,
@@ -301,7 +301,7 @@ typedef struct phNxpNci_getCfg_info {
   uint8_t auth_cmd_timeout[NXP_AUTH_TIMEOUT_BUF_LEN];
   uint8_t auth_cmd_timeoutlen;
 } phNxpNci_getCfg_info_t;
-typedef enum {
+typedef enum : uint8_t {
   NFC_FORUM_PROFILE,
   EMV_CO_PROFILE,
   SRD_PROFILE,

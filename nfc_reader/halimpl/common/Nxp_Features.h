@@ -52,12 +52,12 @@
 #define FW_BIN_EXTENSION ".bin"
 #endif
 using namespace std;
-typedef enum {
+typedef enum : uint8_t {
   NFCC_DWNLD_WITH_VEN_RESET,
   NFCC_DWNLD_WITH_NCI_CMD
 } tNFCC_DnldType;
 
-typedef enum {
+typedef enum : uint8_t {
   DEFAULT_CHIP_TYPE = 0x00,
   pn7160,
   sn100u,

@@ -56,7 +56,7 @@ typedef uint16_t NFCSTATUS; /* Return values */
  * Typically this should be port name (Ex:"COM1","COM2") to which PN72xx is
  * connected.
  */
-typedef enum {
+typedef enum : uint8_t {
   ENUM_LINK_TYPE_COM1,
   ENUM_LINK_TYPE_COM2,
   ENUM_LINK_TYPE_COM3,

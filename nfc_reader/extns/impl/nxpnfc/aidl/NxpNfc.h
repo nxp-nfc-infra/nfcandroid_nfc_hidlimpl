@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2022,2025 NXP
+ *  Copyright 2022,2025,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #include <aidl/vendor/nxp/nxpnfc_aidl/BnNxpNfc.h>
 #include <android-base/logging.h>
 
-enum Constants : uint16_t {
+enum Constants : uint8_t {
   HAL_NFC_ESE_HARD_RESET = 5,
 };
 
