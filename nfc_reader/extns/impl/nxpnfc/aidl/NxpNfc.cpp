@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2022-2023,2025 NXP
+ *  Copyright 2022-2023,2025,2026 NXP
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ namespace nxpnfc_aidl {
   *_aidl_return = false;
   ALOGD("NxpNfc::setNxpTransitConfig Entry");
 
-  *_aidl_return = phNxpNciHal_setNxpTransitConfig((char*)strVal.c_str());
+  *_aidl_return = phNxpNciHal_setNxpTransitConfig(const_cast<char*>(strVal.c_str()));
 
   ALOGD("NxpNfc::setNxpTransitConfig Exit");
   return *_aidl_return == true ? ndk::ScopedAStatus::ok()
@@ -85,7 +85,7 @@ NxpNfc::switchMode(::aidl::vendor::nxp::nxpnfc_aidl::ModeType in_mode,
                    bool *_aidl_return) {
   ALOGD("NxpNfc::modeSwitch Entry");
 
-  *_aidl_return = phNxpNciHal_DualCPU_modeSwitch((uint8_t)in_mode);
+  *_aidl_return = phNxpNciHal_DualCPU_modeSwitch(static_cast<uint8_t>(in_mode));
   if (*_aidl_return == true) {
     ALOGD("Mode switch successful");
   } else {
