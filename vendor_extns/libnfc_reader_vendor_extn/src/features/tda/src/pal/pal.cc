@@ -19,10 +19,11 @@
  */
 
 #include "pal.h"
+#include "PlatformAbstractionLayer.h"
+#include <NfcExtensionWriter.h>
+#include <semaphore.h>
 #include <stdlib.h>
 #include <string.h>
-#include <semaphore.h>
-#include <NfcExtensionWriter.h>
 
 /**
  *
@@ -37,7 +38,8 @@
 NFCSTATUS ct_osal_write(uint8_t *p_data, uint16_t data_len, bool is_tda) {
   OSAL_LOG_NFCHAL_D("%s \n", __func__);
   (void)is_tda;
-  return NfcExtensionWriter::getInstance()->write(p_data, data_len);
+  return PlatformAbstractionLayer::getInstance()->palenQueueWrite(p_data,
+                                                                  data_len);
 }
 
 /**
