@@ -414,7 +414,7 @@ NFC_STATUS core_conn_created_transceive(void *input) {
  **/
 NFC_STATUS core_conn_close_tda_impl(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
-  int8_t tda_id = *((int *)input);
+  int8_t tda_id = *((int8_t *)input);
   int8_t channel_num = get_tda_channel_num();
   OSAL_LOG_NFCHAL_D("%s tda_id:%02x, channel_num:%02x", __func__, tda_id,
                     channel_num);
