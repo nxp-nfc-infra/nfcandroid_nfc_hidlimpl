@@ -95,3 +95,28 @@ cc_library_shared {
         "nfc_nci_nxp_reader",
     ],
 }
+
+
+
+
+cc_binary {
+    name: "tda_sm_test",
+
+    srcs: [
+        "src/features/tda_test/tda_sm_test.cpp",
+    ],
+
+    shared_libs: [
+        "liblog",
+        "libnfc_reader_vendor_extn_vnd",
+    ],
+
+    include_dirs: [
+        "hardware/nxp/nfc/vendor_extns/libnfc_reader_vendor_extn/inc",
+        "hardware/nxp/nfc/vendor_extns/libnfc_reader_vendor_extn/src/features/tda/inc",
+    ],
+
+    cflags: [
+        "-Wall",
+    ],
+}
