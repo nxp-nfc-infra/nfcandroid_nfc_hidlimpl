@@ -429,4 +429,13 @@ void phNxpNciHal_txNfccClockSetCmd(void);
  *****************************************************************************/
 int phNxpNciHal_determineConfiguredClockSrc(void);
 
+/******************************************************************************
+ * Function         phNxpNciHal_setSoftPosMode
+ *
+ * Description      This function sets softpos specific rf discovery command
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
+void phNxpNciHal_setSoftPosModeRfDiscCmd(const std::vector<uint8_t>& cmd);
 #endif /* _PHNXPNCIHAL_H_ */

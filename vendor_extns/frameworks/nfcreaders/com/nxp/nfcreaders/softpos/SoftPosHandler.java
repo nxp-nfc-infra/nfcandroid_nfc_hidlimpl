@@ -122,7 +122,7 @@ public class SoftPosHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
             NxpNfcLogger.e(TAG, "NFC not enabled please enable the NFC before calling api");
             return SOFTPOS_STATUS_NFC_OFF;
         }
-        if (context == null) {
+        if (context == null || config > 0x07 || config < 0x01) {
             return SOFTPOS_STATUS_INVALID_PARAM;
         }
         if (mode == isEmvcoMode()) {
@@ -138,7 +138,7 @@ public class SoftPosHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
                 isDiscoverStopped = true;
 
             }
-            if (switchEmvcoMode()) {
+            if (switchEmvcoMode(config)) {
                 mNfcOperations.setDiscoveryTech(config, NfcAdapter.FLAG_LISTEN_DISABLE);
             } else if (isDiscoverStopped) {
                 mNfcOperations.startDiscovery(true);
@@ -185,13 +185,13 @@ public class SoftPosHandler implements INxpNfcNtfHandler, INxpOEMCallbacks {
         return false;
     }
 
-    private boolean switchEmvcoMode() {
+    private boolean switchEmvcoMode(byte techConfig) {
         if (mNxpNciPacketHandler == null) {
             return false;
         }
         try {
             int responseOffset = 0;
-            byte[] preCmd = {NFC_SOFTPOS_SWITCH_EMVCO};
+            byte[] preCmd = {NFC_SOFTPOS_SWITCH_EMVCO, techConfig};
             byte[] vendorRsp = mNxpNciPacketHandler.sendVendorNciMessage(
                     NxpNfcConstants.NFC_NCI_PROP_GID, NxpNfcConstants.NXP_NFC_PROP_OID, preCmd);
             if (vendorRsp != null && vendorRsp.length > 1

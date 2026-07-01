@@ -28,6 +28,7 @@
 #include <phTmlNfc.h>
 #include <phNxpNciHal_ext.h>
 #include "phNxpNciHal_IoctlOperations.h"
+#include <phNfcNciConstants.h>
 
 std::unique_ptr<NxpSoftPos> NxpSoftPos::instance = nullptr;
 
@@ -42,8 +43,12 @@ NxpSoftPos *NxpSoftPos::getInstance() {
   return instance.get();
 }
 
-bool NxpSoftPos::switchEmvcoMode() {
+bool NxpSoftPos::switchEmvcoMode(uint8_t techConfig) {
   NXPLOG_NCIHAL_D("%s Enter ", __func__);
+  std::vector<uint8_t> cmd = buildSoftPosRfDiscoveryCmd(techConfig);
+  phNxpNciHal_setSoftPosModeRfDiscCmd(cmd);
+  std::vector<uint8_t> rf_disc_cmd = {0x21,0x03};
+
   if (mIsEmvcoMode) {
     NXPLOG_NCIHAL_D("%s Already in EMVCO Mode", __func__);
     return true;
@@ -80,6 +85,7 @@ bool NxpSoftPos::switchEmvcoMode() {
 }
 
 bool NxpSoftPos::switchNciMode() {
+  phNxpNciHal_setSoftPosModeRfDiscCmd({});
   if (!mIsEmvcoMode) {
     NXPLOG_NCIHAL_D("%s Already in NCI Mode", __func__);
     return true;
@@ -126,6 +132,35 @@ bool NxpSoftPos::setRequiredConfig() {
   }
   return false;
 }
+
+std::vector<uint8_t> NxpSoftPos::buildSoftPosRfDiscoveryCmd(uint8_t techConfig) {
+    std::vector<uint8_t> cmd;
+    cmd.push_back(NCI_RF_DISC_COMMD_GID);
+    cmd.push_back(NCI_RF_DISC_COMMAND_OID);
+    cmd.push_back(0x00);
+    uint8_t total_tech = 0;
+    cmd.push_back(0x00);
+    if (techConfig & TECH_MASK_A) {
+        cmd.push_back(TECH_NFC_A_POLL);
+        cmd.push_back(DISCOVERY_FREQ);
+        total_tech++;
+    }
+    if (techConfig & TECH_MASK_B) {
+        cmd.push_back(TECH_NFC_B_POLL);
+        cmd.push_back(DISCOVERY_FREQ);
+        total_tech++;
+    }
+    if (techConfig & TECH_MASK_F) {
+        cmd.push_back(TECH_NFC_F_POLL);
+        cmd.push_back(DISCOVERY_FREQ);
+        total_tech++;
+    }
+    cmd[NCI_MSG_LEN_INDEX] = static_cast<uint8_t>(1 + (total_tech * 2));
+    /* number of tech value set */
+    cmd[NCI_MSG_LEN_INDEX + 1] = total_tech;
+    return cmd;
+}
+
 bool NxpSoftPos::isEMVCOMode() {
   return mIsEmvcoMode;
 }

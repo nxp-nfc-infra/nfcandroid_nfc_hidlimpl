@@ -35,7 +35,7 @@ public:
   NxpSoftPos(const NxpSoftPos &) = delete;            /* Deleted copy constructor */
   NxpSoftPos &operator=(const NxpSoftPos &) = delete; /* Deleted assignment operator */
 
-  bool switchEmvcoMode();
+  bool switchEmvcoMode(uint8_t techConfig);
   bool switchNciMode();
   bool isEMVCOMode();
 
@@ -51,6 +51,16 @@ public:
   }
 
 private:
+  const uint8_t TECH_MASK_A = 0x01;
+  const uint8_t TECH_MASK_B = 0x02;
+  const uint8_t TECH_MASK_F = 0x04;
+
+  const uint8_t TECH_NFC_A_POLL = 0x00;
+  const uint8_t TECH_NFC_B_POLL = 0x01;
+  const uint8_t TECH_NFC_F_POLL = 0x02;
+
+  const uint8_t DISCOVERY_FREQ = 0x01;
+
   static std::unique_ptr<NxpSoftPos> instance;
   NxpSoftPos();
   ~NxpSoftPos();
@@ -59,4 +69,5 @@ private:
   bool performNciCoreReset();
   bool performPropAct();
   bool setRequiredConfig();
+  std::vector<uint8_t> buildSoftPosRfDiscoveryCmd(uint8_t techConfig);
 };

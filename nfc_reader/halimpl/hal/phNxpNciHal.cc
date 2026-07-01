@@ -26,6 +26,7 @@
 #include <phNxpNciHal_Dnld.h>
 #include <phNxpNciHal_ext.h>
 #include <phTmlNfc.h>
+#include <phNfcNciConstants.h>
 
 #include <android-base/stringprintf.h>
 #include <sys/stat.h>
@@ -63,6 +64,7 @@ uint8_t anti_tearing_recovery_success = 0;
 static uint8_t config_access = false;
 static uint8_t config_success = true;
 static NfcHalThreadMutex sHalFnLock;
+std::vector<uint8_t> mSoftPosRfDiscCmd;
 
 extern phNxpNciClock_t phNxpNciClock;
 
@@ -517,6 +519,7 @@ int phNxpNciHal_MinOpen() {
   int8_t ret_val = 0x00;
 
   phNxpNciHal_initialize_debug_enabled_flag();
+  phNxpNciHal_setSoftPosModeRfDiscCmd({});
   /* initialize trace level */
   phNxpLog_InitializeLogLevel();
 
@@ -966,6 +969,11 @@ int phNxpNciHal_write(uint16_t data_len, const uint8_t *p_data) {
   struct stat stpath;
   if (bDisableLegacyMfcExtns && bEnableMfcExtns && p_data[0] == 0x00) {
     return NxpMfcReaderInstance.Write(data_len, p_data);
+  }
+  if (!mSoftPosRfDiscCmd.empty() && p_data[NCI_GID_INDEX] == NCI_RF_DISC_COMMD_GID &&
+      p_data[NCI_OID_INDEX] == NCI_RF_DISC_COMMAND_OID) {
+    NXPLOG_NCIHAL_D("RF discovery in softpos mode");
+    return phNxpNciHal_write_internal(mSoftPosRfDiscCmd.size(), mSoftPosRfDiscCmd.data());
   }
   if (stat(mLibPathName.c_str(), &stpath) == 0) {
     NFCSTATUS status = phNxpExtn_HandleNciMsg(&data_len, p_data);
@@ -4051,3 +4059,13 @@ int  phNxpNciHal_determineConfiguredClockSrc()
  *****************************************************************************/
 
 bool phNxpNciHal_getVerboseLogging() { return nfc_debug_enabled; }
+
+/******************************************************************************
+ * Function         phNxpNciHal_setSoftPosMode
+ *
+ * Description      This function sets softpos specific rf discovery command
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
+void phNxpNciHal_setSoftPosModeRfDiscCmd(const std::vector<uint8_t>& cmd) { mSoftPosRfDiscCmd = cmd; }

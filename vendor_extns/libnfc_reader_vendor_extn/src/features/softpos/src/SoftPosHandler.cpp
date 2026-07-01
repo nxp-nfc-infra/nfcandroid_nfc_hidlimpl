@@ -82,7 +82,8 @@ NFCSTATUS SoftPosHandler::handleVendorNciMessage(uint16_t dataLen,
   case SWITCH_MODE_EMVCO: {
       response.push_back(0x02);
       response.push_back(SWITCH_MODE_EMVCO);
-      if (mSoftPosMngr->switchEmvcoMode()) {
+      uint8_t techConfig = pData[offset++];
+      if (mSoftPosMngr->switchEmvcoMode(techConfig)) {
         response.push_back(RESPONSE_STATUS_OK);
       } else {
         response.push_back(RESPONSE_STATUS_FAILED);
