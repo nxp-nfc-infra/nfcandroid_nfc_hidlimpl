@@ -133,6 +133,13 @@ typedef enum {
   LAST_STATE
 } system_state_t;
 
+static const char *g_system_state_names[] = {"INIT_STATE",
+                                             "DISCOVERED_STATE",
+                                             "MODE_SET_ENABLED_STATE",
+                                             "CORE_CONN_CREATED_STATE",
+                                             "CORE_CONN_CLOSED_STATE",
+                                             "LAST_STATE"};
+
 /**
  * @brief tda_channel_pair_t has tda_id and it's corresponding channel number
  */
@@ -191,7 +198,12 @@ typedef struct tda_control {
   /* Holds current channel number of the opened TDA */
   int8_t curr_channel_num;
   /* Ensure to wait for API response and fills in the client API data buffer */
-  sem_t sync_tda_write;
+  sem_t discover_lck;
+  sem_t mode_set_en_lck;
+  sem_t open_ch_lck;
+  sem_t transceive_lck;
+  sem_t mode_set_dis_lck;
+  sem_t close_ch_lck;
   /* Holds details about the tda_id and mode set request command */
   mode_set_control_t mode_set_ctrl;
   /* Holds latest client API status */
@@ -201,7 +213,11 @@ typedef struct tda_control {
   /* Holds command and response APDU buffer and length */
   transceive_buffer_t trans_buf;
   /* Ensures mutual exclusion for all client API */
+  pthread_mutex_t api_lck;
+  /* Ensures mutual exclusion for all controller cmd */
   pthread_mutex_t snd_lck;
+  /* Ensures mutual exclusion for all controller rsp/ntf */
+  pthread_mutex_t rcv_lck;
   /* Fragment data structure holds fragment response data information */
   ct_frag_rsp_t frag_rsp;
   /* specifies whether command data is fragmented or not */

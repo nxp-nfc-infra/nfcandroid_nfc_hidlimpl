@@ -49,7 +49,7 @@ uint8_t get_tda_channel_num();
  * @return          returns void
  *
  **/
-void release_ct_lock();
+void release_ct_lock(sem_t *lck);
 
 /**
  *

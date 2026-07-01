@@ -41,7 +41,7 @@ void process_tda_discover_rsp(uint8_t *p_rsp, uint16_t p_len) {
   OSAL_LOG_NFCHAL_D("%s status:%02x\n", __func__, status);
   if (p_len != MSG_CORE_NFCEE_DISCOVER_RSP_LEN || status != 0x00) {
     g_tda_ctrl.ret_status = NFC_STATUS_NCI_RESPONSE_ERR;
-    release_ct_lock();
+    release_ct_lock(&g_tda_ctrl.discover_lck);
   } else {
     g_tda_ctrl.num_tda_supported = (*(p_rsp + 4) & 0xFF);
     OSAL_LOG_NFCHAL_D("%s MAX SUPPORTED TDA:%02x\n", __func__,
@@ -71,7 +71,7 @@ void process_tda_core_conn_close_rsp(uint8_t *p_rsp, uint16_t p_len) {
   }
   g_tda_ctrl.curr_tda = INVALID_NUM;
   g_tda_ctrl.curr_channel_num = INVALID_NUM;
-  release_ct_lock();
+  release_ct_lock(&g_tda_ctrl.close_ch_lck);
 }
 
 /**
@@ -99,7 +99,7 @@ void process_tda_core_conn_create_rsp(uint8_t *p_rsp, uint16_t p_len) {
     OSAL_LOG_NFCHAL_D("%s invalid core create res len:%02x\n", __func__, p_len);
     g_tda_ctrl.ret_status = NFC_STATUS_CORE_CONN_CREATE_FAILED;
   }
-  release_ct_lock();
+  release_ct_lock(&g_tda_ctrl.open_ch_lck);
 }
 
 /**
@@ -145,14 +145,28 @@ void process_tda_mode_set_ntf(uint8_t *p_rsp) {
     g_tda_ctrl.mode_set_ctrl.mode = INVALID_NUM;
     g_tda_ctrl.mode_set_ctrl.tda_id = INVALID_NUM;
     alarm(0);
-    release_ct_lock();
-  } else if (g_tda_ctrl.mode_set_ctrl.mode == NCI_NFCEE_MD_DEACTIVATE) {
-    remove_tda_info_of_tda(g_tda_ctrl.mode_set_ctrl.tda_id);
-    g_tda_ctrl.mode_set_ctrl.mode = INVALID_NUM;
-    g_tda_ctrl.mode_set_ctrl.tda_id = INVALID_NUM;
-    update_state(DISCOVERED_STATE);
-    alarm(0);
-    release_ct_lock();
+    if (g_tda_ctrl.mode_set_ctrl.mode == NCI_NFCEE_MD_DEACTIVATE) {
+      release_ct_lock(&g_tda_ctrl.mode_set_dis_lck);
+    } else if (g_tda_ctrl.mode_set_ctrl.mode == NCI_NFCEE_MD_ACTIVATE) {
+      release_ct_lock(&g_tda_ctrl.mode_set_en_lck);
+    } else {
+      OSAL_LOG_NFCHAL_D("%s ERROR: MODESET NTF NOT HANDLED \n", __func__);
+    }
+  } else if (status == NFC_STATUS_SUCCESS) {
+    if (g_tda_ctrl.mode_set_ctrl.mode == NCI_NFCEE_MD_DEACTIVATE) {
+      remove_tda_info_of_tda(g_tda_ctrl.mode_set_ctrl.tda_id);
+      g_tda_ctrl.mode_set_ctrl.mode = INVALID_NUM;
+      g_tda_ctrl.mode_set_ctrl.tda_id = INVALID_NUM;
+      update_state(DISCOVERED_STATE);
+      alarm(0);
+      release_ct_lock(&g_tda_ctrl.mode_set_dis_lck);
+    } else if (g_tda_ctrl.mode_set_ctrl.mode == NCI_NFCEE_MD_ACTIVATE) {
+      update_state(MODE_SET_ENABLED_STATE);
+      release_ct_lock(&g_tda_ctrl.mode_set_en_lck);
+    } else {
+      OSAL_LOG_NFCHAL_D("%s ERROR: MODESET NTF WITH FAILURE  NOT HANDLED \n",
+                        __func__);
+    }
   }
 }
 
@@ -171,7 +185,7 @@ void process_tda_mode_set_rsp(uint8_t *p_rsp) {
   if (status != 0x00) {
     update_nfcee_error_status(status);
     alarm(0);
-    release_ct_lock();
+    release_ct_lock(&g_tda_ctrl.mode_set_en_lck);
   }
 }
 
@@ -214,7 +228,7 @@ void process_tda_discover_ntf(uint8_t *p_ntf) {
       g_tda_ctrl.curr_tda += 1;
       if (g_tda_ctrl.curr_tda == g_tda_ctrl.num_tda_supported) {
         g_tda_ctrl.curr_tda = 0;
-        release_ct_lock();
+        release_ct_lock(&g_tda_ctrl.discover_lck);
       }
       break;
     case DISCOVERED_STATE:
@@ -229,13 +243,13 @@ void process_tda_discover_ntf(uint8_t *p_ntf) {
         g_tda_ctrl.mode_set_ctrl.tda_id = INVALID_NUM;
         g_tda_ctrl.mode_set_ctrl.mode = INVALID_NUM;
         alarm(0);
-        release_ct_lock();
+        release_ct_lock(&g_tda_ctrl.discover_lck);
       }
       break;
     }
   } else if (current_id == 0xC1 && op_code == MSG_CORE_INTERFACE_ERROR_NTF) {
     g_tda_ctrl.ret_status = NFC_STATUS_NCI_RESPONSE_ERR;
-    release_ct_lock();
+    release_ct_lock(&g_tda_ctrl.discover_lck);
   } else {
     OSAL_LOG_NFCHAL_D("%s unknown opcode:0x%x\n", __func__, op_code);
   }
@@ -301,7 +315,7 @@ void process_nfc_ct_data(uint8_t *p_ntf, uint16_t p_len) {
                                      g_tda_ctrl.frag_rsp.data_pos);
         g_tda_ctrl.trans_buf.rsp_apdu->len =
             g_tda_ctrl.frag_rsp.data_pos + NCI_PKT_HDR_SIZE;
-        release_ct_lock();
+        release_ct_lock(&g_tda_ctrl.transceive_lck);
       } else {
         OSAL_LOG_NFCHAL_E("Invalid APDU data length:%d received",
                             g_tda_ctrl.frag_rsp.data_pos + apdu_len);
@@ -314,7 +328,7 @@ void process_nfc_ct_data(uint8_t *p_ntf, uint16_t p_len) {
       g_tda_ctrl.trans_buf.rsp_apdu->p_data = get_nci_ct_loopback_data(
           pbf_n_conn_id, p_ntf + NCI_PKT_HDR_SIZE, p_len - NCI_PKT_HDR_SIZE);
       g_tda_ctrl.trans_buf.rsp_apdu->len = p_len;
-      release_ct_lock();
+      release_ct_lock(&g_tda_ctrl.transceive_lck);
     }
   } else {
     OSAL_LOG_NFCHAL_D("%s Non CT data packet, Not processing. "
@@ -409,14 +423,14 @@ NFC_STATUS proc_tda_rsp_ntf(uint8_t *p_ntf, uint16_t p_len) {
       if (is_core_inf_err_ntf(p_ntf, p_len)) {
         OSAL_LOG_NFCHAL_D("%s core interface error. release CT lock \n",
                             __func__);
-        release_ct_lock();
+        release_ct_lock(&g_tda_ctrl.transceive_lck);
       } else if (CT_IS_CHAINED_CMD_DATA()) {
         if (is_ct_data_credit_received(p_ntf, p_len)) {
           OSAL_LOG_NFCHAL_D("%s credit ntf received when cmd frag is "
                               "present. release CT lock \n",
                               __func__);
           CT_RESET_CHAINED_CMD_DATA();
-          release_ct_lock();
+          release_ct_lock(&g_tda_ctrl.transceive_lck);
         }
       } else if (is_ct_data_credit_received(p_ntf, p_len)) {
         OSAL_LOG_NFCHAL_D("%s credit ntf received  \n", __func__);

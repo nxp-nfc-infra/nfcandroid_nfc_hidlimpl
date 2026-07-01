@@ -36,8 +36,31 @@ tda_control_t g_tda_ctrl;
 NFC_STATUS ct_init_ext(void) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   NFC_STATUS status = NFC_STATUS_SUCCESS;
-  if (0 != sem_init(&g_tda_ctrl.sync_tda_write, 0, 0)) {
-    OSAL_LOG_NFCHAL_E("sem_init() Failed for sync_tda_write, errno = 0x%02X",
+  if (0 != sem_init(&g_tda_ctrl.discover_lck, 0, 0)) {
+    OSAL_LOG_NFCHAL_E("sem_init() Failed for discover_lck, errno = 0x%02X",
+                      errno);
+  }
+
+  if (0 != sem_init(&g_tda_ctrl.mode_set_en_lck, 0, 0)) {
+    OSAL_LOG_NFCHAL_E("sem_init() Failed for mode_set_en_lck, errno = 0x%02X",
+                      errno);
+  }
+
+  if (0 != sem_init(&g_tda_ctrl.open_ch_lck, 0, 0)) {
+    OSAL_LOG_NFCHAL_E("sem_init() Failed for open_ch_lck, errno = 0x%02X",
+                      errno);
+  }
+  if (0 != sem_init(&g_tda_ctrl.transceive_lck, 0, 0)) {
+    OSAL_LOG_NFCHAL_E("sem_init() Failed for transceive_lck, errno = 0x%02X",
+                      errno);
+  }
+  if (0 != sem_init(&g_tda_ctrl.mode_set_dis_lck, 0, 0)) {
+    OSAL_LOG_NFCHAL_E("sem_init() Failed for mode_set_dis_lck, errno = 0x%02X",
+                      errno);
+  }
+
+  if (0 != sem_init(&g_tda_ctrl.close_ch_lck, 0, 0)) {
+    OSAL_LOG_NFCHAL_E("sem_init() Failed for close_ch_lck, errno = 0x%02X",
                       errno);
   }
 
@@ -45,7 +68,12 @@ NFC_STATUS ct_init_ext(void) {
     OSAL_LOG_NFCHAL_E("sem_init failed for snd_lck, errono = 0x%08x",
                       errno);
   }
-
+  if (pthread_mutex_init(&g_tda_ctrl.api_lck, NULL) != 0) {
+    OSAL_LOG_NFCHAL_E("sem_init failed for api_lck, errono = 0x%08x", errno);
+  }
+  if (pthread_mutex_init(&g_tda_ctrl.rcv_lck, NULL) != 0) {
+    OSAL_LOG_NFCHAL_E("sem_init failed for rcv_lck, errono = 0x%08x", errno);
+  }
 
   fp_event_handler_t fp_event_handler = handle_event(NFCEE_DISCOVER_EVENT);
   status = fp_event_handler(NULL);
@@ -66,7 +94,15 @@ NFC_STATUS ct_de_init_ext(void) {
   g_tda_ctrl.num_tda_supported = 0;
   g_tda_ctrl.curr_tda = 0;
   update_state(INIT_STATE);
-  sem_destroy(&g_tda_ctrl.sync_tda_write);
+  sem_destroy(&g_tda_ctrl.discover_lck);
+  sem_destroy(&g_tda_ctrl.mode_set_en_lck);
+  sem_destroy(&g_tda_ctrl.open_ch_lck);
+  sem_destroy(&g_tda_ctrl.transceive_lck);
+  sem_destroy(&g_tda_ctrl.mode_set_dis_lck);
+  sem_destroy(&g_tda_ctrl.close_ch_lck);
+  pthread_mutex_destroy(&g_tda_ctrl.snd_lck);
+  pthread_mutex_destroy(&g_tda_ctrl.api_lck);
+  pthread_mutex_destroy(&g_tda_ctrl.rcv_lck);
   return NFC_STATUS_SUCCESS;
 }
 
@@ -84,10 +120,12 @@ NFC_STATUS ct_de_init_ext(void) {
  *
  */
 NFC_STATUS ct_discover_tda(tda_control_t *tda_control) {
-  OSAL_LOG_NFCHAL_D("%s", __func__);
+  pthread_mutex_lock(&g_tda_ctrl.api_lck);
+  OSAL_LOG_NFCHAL_D("%s with api_lck", __func__);
   NFC_STATUS status = NFC_STATUS_SUCCESS;
   fp_event_handler_t fp_event_handler = handle_event(DISCOVER_TDA_EVENT);
   status = fp_event_handler(tda_control);
+  pthread_mutex_unlock(&g_tda_ctrl.api_lck);
   return status;
 }
 
@@ -122,8 +160,9 @@ system_state_t ct_get_tda_state() {
  *
  */
 NFC_STATUS ct_open(int8_t tda_id, bool in_standBy, int8_t *channel_num) {
-  OSAL_LOG_NFCHAL_D("%s tda_id:%02x, in_standBy:%d", __func__, tda_id,
-                    in_standBy);
+  pthread_mutex_lock(&g_tda_ctrl.api_lck);
+  OSAL_LOG_NFCHAL_D("%s with api_lck tda_id:%02x, in_standBy:%d", __func__,
+                    tda_id, in_standBy);
   g_tda_ctrl.tda_ch_pr.tda_id = tda_id;
   g_tda_ctrl.tda_ch_pr.channel_num = INVALID_NUM;
   NFC_STATUS status = NFC_STATUS_SUCCESS;
@@ -137,6 +176,7 @@ NFC_STATUS ct_open(int8_t tda_id, bool in_standBy, int8_t *channel_num) {
   *channel_num = g_tda_ctrl.tda_ch_pr.channel_num;
   OSAL_LOG_NFCHAL_D("%s g_tda_ctrl.tda_ch_pr.channel_num: 0x%X,*channel_num: 0x%X", __func__,
                     g_tda_ctrl.tda_ch_pr.channel_num, *channel_num);
+  pthread_mutex_unlock(&g_tda_ctrl.api_lck);
   return status;
 }
 
@@ -182,7 +222,8 @@ NFC_STATUS ct_transceive(tda_data *cmd_apdu, tda_data *rsp_apdu) {
  *
  */
 NFC_STATUS ct_close(int8_t tda_id, bool in_standBy) {
-  OSAL_LOG_NFCHAL_D("%s tda_id:%02x", __func__, tda_id);
+  pthread_mutex_lock(&g_tda_ctrl.api_lck);
+  OSAL_LOG_NFCHAL_D("%s with api_lck tda_id:%02x", __func__, tda_id);
   NFC_STATUS status = NFC_STATUS_SUCCESS;
   fp_event_handler_t fp_event_handler;
   if (in_standBy) {
@@ -191,6 +232,7 @@ NFC_STATUS ct_close(int8_t tda_id, bool in_standBy) {
     fp_event_handler = handle_event(CORE_CONN_CLOSE_EVENT);
   }
   status = fp_event_handler(&tda_id);
+  pthread_mutex_unlock(&g_tda_ctrl.api_lck);
   return status;
 }
 
@@ -231,7 +273,7 @@ bool is_core_inf_err_ntf(uint8_t *p_ntf, uint16_t p_len) {
  */
 bool is_ct_data_credit_received(uint8_t *p_ntf, uint16_t p_len) {
   if (is_core_inf_err_ntf(p_ntf, p_len)) {
-    release_ct_lock();
+    release_ct_lock(&g_tda_ctrl.transceive_lck);
   }
   OSAL_LOG_NFCHAL_D("%s p_len:%d", __func__, p_len);
 
@@ -263,10 +305,10 @@ bool is_ct_data_credit_received(uint8_t *p_ntf, uint16_t p_len) {
  *
  */
 NFC_STATUS process_tda_rsp_ntf(uint8_t *p_ntf, uint16_t p_len) {
-  pthread_mutex_lock(&g_tda_ctrl.snd_lck);
-  OSAL_LOG_NFCHAL_D("%s snd_lck p_len:%d", __func__, p_len);
+  pthread_mutex_lock(&g_tda_ctrl.rcv_lck);
+  OSAL_LOG_NFCHAL_D("%s with  rcv_lck p_len:%d", __func__, p_len);
   NFC_STATUS status = proc_tda_rsp_ntf(p_ntf, p_len);
-  pthread_mutex_unlock(&g_tda_ctrl.snd_lck);
+  pthread_mutex_unlock(&g_tda_ctrl.rcv_lck);
   return status;
 }
 

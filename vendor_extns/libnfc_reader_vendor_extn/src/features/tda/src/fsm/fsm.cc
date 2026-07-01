@@ -106,8 +106,9 @@ fp_event_handler_t handle_event(system_event_t new_event) {
  *
  **/
 void update_state(system_state_t state) {
-  OSAL_LOG_NFCHAL_D("%s previous_state:%d, current_state:%d", __func__,
-                      g_tda_ctrl.tda_state, state);
+  OSAL_LOG_NFCHAL_D("%s UPDATE_TDA_STATE previous_state:%s, current_state:%s",
+                    __func__, g_system_state_names[g_tda_ctrl.tda_state],
+                    g_system_state_names[state]);
   g_tda_ctrl.tda_state = state;
 }
 
@@ -201,7 +202,7 @@ NFC_STATUS discover_tda_impl(void *tda_ctrl) {
 NFC_STATUS discovered_nfcee_discover(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   (void)input;
-  return NFC_STATUS_INVALID_STATE_TDA_DISCOVERED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }
 
 NFC_STATUS discovered_discover_tda(void *input) {
@@ -230,7 +231,6 @@ NFC_STATUS discovered_open_tda(void *input) {
     OSAL_LOG_NFCHAL_D("%s MODESET_ENABLE_FAILED", __func__);
     return status;
   }
-  update_state(MODE_SET_ENABLED_STATE);
   fp_event_handler_t fp_event_handler = handle_event(CORE_CONN_CREATE_EVENT);
   status = fp_event_handler(&g_tda_ctrl.tda_ch_pr);
   if (status != NFC_STATUS_SUCCESS) {
@@ -288,7 +288,7 @@ NFC_STATUS discovered_close_tda(void *input) {
 NFC_STATUS discovered_core_conn_close(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   (void)input;
-  return NFC_STATUS_INVALID_STATE_OPEN_NOT_COMPLETED;
+  return NFC_STATUS_SUCCESS;
 }
 
 NFC_STATUS mode_set_enabled_nfcee_discover(void *input) {
@@ -353,7 +353,7 @@ NFC_STATUS mode_set_enabled_core_conn_close(void *input) {
 NFC_STATUS core_conn_created_nfcee_discover(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   (void)input;
-  return NFC_STATUS_INVALID_STATE_TDA_DISCOVERED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }
 
 NFC_STATUS core_conn_created_discover_tda(void *input) {
@@ -364,12 +364,12 @@ NFC_STATUS core_conn_created_discover_tda(void *input) {
 NFC_STATUS core_conn_created_open_tda(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   (void)input;
-  return NFC_STATUS_INVALID_STATE_TDA_OPENED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }
 NFC_STATUS core_conn_created_core_conn_create(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   (void)input;
-  return NFC_STATUS_INVALID_STATE_CORE_CONN_CREATED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }
 /**
  * @brief         sends the raw APDU to controller and returns the response APDU
@@ -451,7 +451,7 @@ NFC_STATUS core_conn_created_core_conn_close(void *input) {
 NFC_STATUS core_conn_closed_nfcee_discover(void *input) {
   (void)input;
   OSAL_LOG_NFCHAL_D("%s", __func__);
-  return NFC_STATUS_INVALID_STATE_TDA_DISCOVERED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }
 
 NFC_STATUS core_conn_closed_discover_tda(void *input) {
@@ -472,7 +472,7 @@ NFC_STATUS core_conn_closed_core_conn_create(void *input) {
 NFC_STATUS core_conn_closed_transceive(void *input) {
   OSAL_LOG_NFCHAL_D("%s", __func__);
   (void)input;
-  return NFC_STATUS_INVALID_STATE_CORE_CONN_CLOSED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }
 
 NFC_STATUS core_conn_closed_close_tda(void *input) {
@@ -482,5 +482,5 @@ NFC_STATUS core_conn_closed_close_tda(void *input) {
 
 NFC_STATUS core_conn_closed_core_conn_close(void *input) {
   (void)input;
-  return NFC_STATUS_INVALID_STATE_TDA_CLOSED_ALREADY;
+  return NFC_STATUS_SUCCESS;
 }

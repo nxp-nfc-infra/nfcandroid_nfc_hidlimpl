@@ -30,12 +30,12 @@ extern tda_control_t g_tda_ctrl;
  * @return          returns void
  *
  **/
-void release_ct_lock() {
+void release_ct_lock(sem_t *sem) {
   int sem_val;
-  ct_osal_sem_getvalue(&(g_tda_ctrl.sync_tda_write), &sem_val);
+  ct_osal_sem_getvalue(sem, &sem_val);
   OSAL_LOG_NFCHAL_D("%s sem_val:%d\n", __func__, sem_val);
   if (sem_val == 0) {
-    ct_osal_sem_post(&(g_tda_ctrl.sync_tda_write));
+    ct_osal_sem_post(sem);
   }
 }
 

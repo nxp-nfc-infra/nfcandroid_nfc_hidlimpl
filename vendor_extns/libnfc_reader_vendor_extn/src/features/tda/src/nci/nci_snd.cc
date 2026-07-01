@@ -24,8 +24,9 @@
 
 extern tda_control_t g_tda_ctrl;
 
-static int wait_for_data_rsp();
-static NFC_STATUS write_ct_data_internal(uint8_t *p_data, uint16_t data_len);
+static int wait_for_data_rsp(sem_t *lck);
+static NFC_STATUS write_ct_data_internal(sem_t *lck, uint8_t *p_data,
+                                         uint16_t data_len);
 uint8_t *p_nci_data = NULL;
 
 /**
@@ -51,7 +52,8 @@ NFC_STATUS send_nfcee_discover() {
   UINT8_TO_STREAM(pp, NCI_PARAM_SIZE_DISCOVER_NFCEE);
 
   g_tda_ctrl.ret_status = NFCSTATUS_SUCCESS;
-  if (NFC_STATUS_SUCCESS != write_ct_data_internal(p, len)) {
+  if (NFC_STATUS_SUCCESS !=
+      write_ct_data_internal(&(g_tda_ctrl.discover_lck), p, len)) {
     g_tda_ctrl.ret_status = NFCSTATUS_FAILED;
   }
   return g_tda_ctrl.ret_status;
@@ -88,9 +90,22 @@ NFC_STATUS send_nfcee_mode_set_impl(uint8_t tda_id, uint8_t nfcee_mode) {
   g_tda_ctrl.ret_status = NFCSTATUS_SUCCESS;
   // Since mode set have timeout callback, no need to update the error based on
   // write return value
-  if (NFC_STATUS_SUCCESS != write_ct_data_internal(p, len)) {
-    OSAL_LOG_NFCHAL_E("%s write_ct_data_internal : failed \n", __func__);
-    g_tda_ctrl.ret_status = NFC_STATUS_TRANSCEIVE_FAILED;
+  if (NCI_NFCEE_MD_ACTIVATE == nfcee_mode) {
+    OSAL_LOG_NFCHAL_D("%s Mode set enabled Lock \n", __func__);
+    if (NFC_STATUS_SUCCESS !=
+        write_ct_data_internal(&g_tda_ctrl.mode_set_en_lck, p, len)) {
+      OSAL_LOG_NFCHAL_E("%s write_ct_data_internal : failed \n", __func__);
+      g_tda_ctrl.ret_status = NFC_STATUS_TRANSCEIVE_FAILED;
+    }
+  } else if (NCI_NFCEE_MD_DEACTIVATE == nfcee_mode) {
+    OSAL_LOG_NFCHAL_D("%s Mode set enabled Lock \n", __func__);
+    if (NFC_STATUS_SUCCESS !=
+        write_ct_data_internal(&g_tda_ctrl.mode_set_dis_lck, p, len)) {
+      OSAL_LOG_NFCHAL_E("%s write_ct_data_internal : failed \n", __func__);
+      g_tda_ctrl.ret_status = NFC_STATUS_TRANSCEIVE_FAILED;
+    }
+  } else {
+    OSAL_LOG_NFCHAL_D("%s ERROR UNKNOWN MODESET MODE \n", __func__);
   }
   return g_tda_ctrl.ret_status;
 }
@@ -130,7 +145,8 @@ NFC_STATUS send_core_conn_create_internal(uint8_t dest_type, uint8_t num_tlv,
   }
 
   g_tda_ctrl.ret_status = NFC_STATUS_SUCCESS;
-  if (NFC_STATUS_SUCCESS != write_ct_data_internal(p, len)) {
+  if (NFC_STATUS_SUCCESS !=
+      write_ct_data_internal(&g_tda_ctrl.open_ch_lck, p, len)) {
     g_tda_ctrl.ret_status = NFC_STATUS_WRITE_FAILED;
   }
   return g_tda_ctrl.ret_status;
@@ -185,7 +201,8 @@ NFC_STATUS send_core_conn_close(uint8_t channel_num) {
   UINT8_TO_STREAM(pp, NCI_CORE_PARAM_SIZE_CON_CLOSE);
   UINT8_TO_STREAM(pp, channel_num);
   g_tda_ctrl.ret_status = NFC_STATUS_SUCCESS;
-  if (NFC_STATUS_SUCCESS != write_ct_data_internal(p, len)) {
+  if (NFC_STATUS_SUCCESS !=
+      write_ct_data_internal(&g_tda_ctrl.close_ch_lck, p, len)) {
     g_tda_ctrl.ret_status = NFC_STATUS_WRITE_FAILED;
   }
   return g_tda_ctrl.ret_status;
@@ -259,17 +276,18 @@ static uint8_t *get_nci_ct_loopback_data(uint8_t pbf_n_conn_id, uint8_t *p_data,
  *                  NFCSTATUS_FAILED - failed to process the command
  *
  **/
-static NFC_STATUS write_ct_data_internal(uint8_t *p_data, uint16_t data_len) {
+static NFC_STATUS write_ct_data_internal(sem_t *lck, uint8_t *p_data,
+                                         uint16_t data_len) {
   pthread_mutex_lock(&g_tda_ctrl.snd_lck);
   if (ct_osal_write(p_data, data_len, true) != NFCSTATUS_SUCCESS) {
     g_tda_ctrl.ret_status = NFC_STATUS_TRANSCEIVE_FAILED;
     return NFC_STATUS_TRANSCEIVE_FAILED;
   }
 
-  NFC_STATUS status = wait_for_data_rsp();
+  NFC_STATUS status = wait_for_data_rsp(lck);
   if (status != NFC_STATUS_SUCCESS) {
     int sem_val;
-    ct_osal_sem_getvalue(&(g_tda_ctrl.sync_tda_write), &sem_val);
+    ct_osal_sem_getvalue(lck, &sem_val);
     g_tda_ctrl.ret_status = status;
   }
   return status;
@@ -290,7 +308,9 @@ static NFC_STATUS write_ct_data_internal(uint8_t *p_data, uint16_t data_len) {
 static void send_nfc_ct_data_impl(int pbf, uint8_t *p_data, int data_len) {
   OSAL_LOG_NFCHAL_D("%s \n", __func__);
   p_nci_data = get_nci_ct_loopback_data(pbf, p_data, data_len);
-  if (NFC_STATUS_SUCCESS != write_ct_data_internal(p_nci_data, data_len + NCI_PKT_HDR_SIZE)) {
+  if (NFC_STATUS_SUCCESS !=
+      write_ct_data_internal(&g_tda_ctrl.transceive_lck, p_nci_data,
+                             data_len + NCI_PKT_HDR_SIZE)) {
     OSAL_LOG_NFCHAL_D("%s write_ct_data_internal:failed \n", __func__);
   }
   if (p_nci_data != NULL) {
@@ -343,7 +363,8 @@ NFC_STATUS send_nfc_ct_data(uint8_t *p_data, uint16_t data_len) {
       send_nfc_ct_data_impl(pbf_n_conn_id, p_data, data_len);
     }
   } else {
-    if (write_ct_data_internal(p_data, data_len) != NFC_STATUS_SUCCESS) {
+    if (write_ct_data_internal(&g_tda_ctrl.transceive_lck, p_data, data_len) !=
+        NFC_STATUS_SUCCESS) {
       OSAL_LOG_NFCHAL_E("%s write_ct_data_internal failed ", __func__);
     }
   }
@@ -361,7 +382,7 @@ NFC_STATUS send_nfc_ct_data(uint8_t *p_data, uint16_t data_len) {
  *
  ******************************************************************************/
 
-int wait_for_data_rsp() {
+int wait_for_data_rsp(sem_t *lck) {
   OSAL_LOG_NFCHAL_D("%s \n", __func__);
   NFCSTATUS status = NFC_STATUS_FAIL;
   int s;
@@ -370,12 +391,11 @@ int wait_for_data_rsp() {
   clock_gettime(CLOCK_MONOTONIC, &ts);
   ts.tv_sec += max_wtx_time_out;
   int sem_val;
-  ct_osal_sem_getvalue(&(g_tda_ctrl.sync_tda_write), &sem_val);
+  ct_osal_sem_getvalue(lck, &sem_val);
   OSAL_LOG_NFCHAL_D("%s sem_val:%d, max_wtx_time_out:%d \n", __func__,
                       sem_val, max_wtx_time_out);
   pthread_mutex_unlock(&g_tda_ctrl.snd_lck);
-  while ((s = ct_osal_sem_timedwait_monotonic_np(&g_tda_ctrl.sync_tda_write,
-                                                 &ts)) == -1 &&
+  while ((s = ct_osal_sem_timedwait_monotonic_np(lck, &ts)) == -1 &&
          errno == EINTR) {
     OSAL_LOG_NFCHAL_D("%s continue\n", __func__);
     continue; /* Restart if interrupted by handler */
