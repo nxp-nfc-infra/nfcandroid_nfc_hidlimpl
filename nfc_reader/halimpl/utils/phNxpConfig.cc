@@ -1099,7 +1099,7 @@ extern "C" int GetNxpByteArrayValue(const char *name, char *pValue,
 **
 *******************************************************************************/
 extern "C" int GetNxpNumValue(const char *name, void *pValue,
-                              uint64_t len) {
+                              unsigned long len) {
   if (!pValue)
     return false;
 
