@@ -23,6 +23,7 @@
 #include <PalIntervalTimer.h>
 #include <cstdint>
 #include <phNxpLog.h>
+#include <memory>
 #include <vector>
 
 /** \addtogroup NFC_EXTENSION_WRITER_API_INTERFACE
