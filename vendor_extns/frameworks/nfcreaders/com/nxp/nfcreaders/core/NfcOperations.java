@@ -88,6 +88,11 @@ public class NfcOperations {
     private CountDownLatch mDisCountDownLatch;
 
     /**
+     * @brief wait latch for conditionallyRegisterOemCallback
+     */
+    private CountDownLatch mRegisterOemCallbackCountDownLatch;
+
+    /**
      * @brief wait latch to receive callback data
      */
     private CountDownLatch mCallbackCountDownLatch;
@@ -234,12 +239,20 @@ public class NfcOperations {
      * @param isRegister
      */
     private void conditionallyRegisterOemCallback(boolean isRegister) {
-        if (mNxpOemCallbacks == null) {
-            if (isRegister)
-                mNfcOemExtension.registerCallback(CALLBACK_EXECUTOR,
-                                                    mOemExtensionCallback);
-            else
-                mNfcOemExtension.unregisterCallback(mOemExtensionCallback);
+        try {
+            if (mNxpOemCallbacks == null) {
+                if (isRegister) {
+                    mRegisterOemCallbackCountDownLatch = new CountDownLatch(1);
+                    mNfcOemExtension.registerCallback(CALLBACK_EXECUTOR,
+                                                        mOemExtensionCallback);
+                    mRegisterOemCallbackCountDownLatch.await(NxpNfcConstants.SEND_RAW_WAIT_TIME_OUT_VAL,
+                            TimeUnit.MILLISECONDS);
+                }
+                else
+                    mNfcOemExtension.unregisterCallback(mOemExtensionCallback);
+            }
+        } catch (InterruptedException e) {
+            NxpNfcLogger.e(TAG, "Error while conditionallyRegisterOemCallback");
         }
     }
     /**
@@ -482,6 +495,7 @@ public class NfcOperations {
             NxpNfcLogger.d(TAG, "onRfDiscoveryStarted: " + isDiscoveryStarted);
             NfcOperations.this.mIsDiscoveryStarted = isDiscoveryStarted;
             if (mDisCountDownLatch != null) mDisCountDownLatch.countDown();
+            if (mRegisterOemCallbackCountDownLatch != null) mRegisterOemCallbackCountDownLatch.countDown();
             if (mCallbackCountDownLatch != null) updateOemCallbackMap("onRfDiscoveryStarted");
         }
 
